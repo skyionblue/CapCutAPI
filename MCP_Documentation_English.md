@@ -2,7 +2,7 @@
 
 ## Overview
 
-The CapCut API MCP Server is a video editing service based on the Model Context Protocol (MCP), providing complete CapCut video editing functionality. This fork exposes that functionality through **two** MCP tools rather than one per capability:
+The CapCut API MCP Server is a video editing service based on the Model Context Protocol (MCP), providing complete CapCut video editing functionality. It exposes that functionality through **two** MCP tools rather than one per capability:
 
 - **`search_tools(query)`** — discover available editing tools and their full JSON Schema. Pass a keyword (e.g. `"video"`, `"mask"`, `"keyframe"`) to filter, or leave `query` empty to list everything.
 - **`invoke_tool(name, arguments)`** — execute one of those tools by its exact name.
@@ -329,7 +329,7 @@ or, on failure:
 
 ## Changelog
 
-### Unreleased (this fork)
+### Unreleased
 - Refactored from one MCP tool per capability into the `search_tools`/`invoke_tool` gateway
 - Expanded every existing tool's schema to expose parameters the underlying implementation already supported but weren't wired up (full mask fine-tuning, text font/border/bubble/animation, subtitle styling, sticker flip, etc.)
 - Added `list_option_values`, `query_script`, `list_drafts`, `delete_draft`, `query_draft_status`, `generate_draft_url`, `replace_material`
@@ -339,13 +339,6 @@ or, on failure:
 - Initial release
 - Support for 11 core tools
 - Complete MCP protocol implementation
-
-## Technical Support
-
-For questions or suggestions, please contact us through:
-- GitHub Issues
-- Technical Documentation
-- Community Forums
 
 ---
 
