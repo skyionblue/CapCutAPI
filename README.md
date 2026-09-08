@@ -86,25 +86,42 @@
 ### 🛠️ API Interface Overview
 
 <details>
-<summary><b>📡 HTTP API Endpoints (9 endpoints)</b></summary>
+<summary><b>📡 HTTP API Endpoints (25 endpoints)</b></summary>
 
 🎬 Draft Management
-├── POST /create_draft     # Create new draft
-└── POST /save_draft       # Save draft file
+├── POST /create_draft        # Create new draft
+├── POST /save_draft          # Save draft file
+├── POST /query_script        # Get a draft's full current timeline as JSON
+├── POST /query_draft_status  # Poll a save task's status
+└── POST /generate_draft_url  # Format the cloud preview URL for a draft_id
 
 🎥 Media Assets
-├── POST /add_video        # Add video material
-├── POST /add_audio        # Add audio material
-└── POST /add_image        # Add image material
+├── POST /add_video           # Add video material
+├── POST /add_audio           # Add audio material
+├── POST /add_image           # Add image material
+└── POST /add_video_keyframe  # Add keyframe animation to a video segment
 
 📝 Text Content
-├── POST /add_text         # Add text elements
-└── POST /add_subtitle     # Add subtitle files
+├── POST /add_text            # Add text elements
+└── POST /add_subtitle        # Add subtitle files
 
 ✨ Effect Enhancement
-├── POST /add_effect       # Add visual effects
-└── POST /add_sticker      # Add sticker elements
+├── POST /add_effect          # Add visual effects
+└── POST /add_sticker         # Add sticker elements
 
+🔍 Option Lookups (read-only, GET)
+├── GET /get_intro_animation_types
+├── GET /get_outro_animation_types
+├── GET /get_combo_animation_types
+├── GET /get_transition_types
+├── GET /get_mask_types
+├── GET /get_audio_effect_types
+├── GET /get_font_types
+├── GET /get_text_intro_types
+├── GET /get_text_outro_types
+├── GET /get_text_loop_anim_types
+├── GET /get_video_scene_effect_types
+└── GET /get_video_character_effect_types
 
 </details>
 
