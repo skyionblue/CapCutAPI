@@ -41,22 +41,12 @@ from save_draft_impl import save_draft_impl, query_script_impl, query_task_statu
 from util import generate_draft_url as util_generate_draft_url
 from pyJianYingDraft.text_segment import TextStyleRange
 from pyJianYingDraft import Text_style, Video_material, Audio_material
-from util import hex_to_rgb, url_to_hash
-from settings import IS_CAPCUT_ENV
 
-from pyJianYingDraft.metadata.animation_meta import (
-    Intro_type, Outro_type, Group_animation_type, Text_intro, Text_outro, Text_loop_anim,
-)
 from pyJianYingDraft.metadata.capcut_animation_meta import (
     CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type,
 )
-from pyJianYingDraft.metadata.transition_meta import Transition_type
 from pyJianYingDraft.metadata.capcut_transition_meta import CapCut_Transition_type
-from pyJianYingDraft.metadata.mask_meta import Mask_type
 from pyJianYingDraft.metadata.capcut_mask_meta import CapCut_Mask_type
-from pyJianYingDraft.metadata.audio_effect_meta import (
-    Tone_effect_type, Audio_scene_effect_type, Speech_to_song_type,
-)
 from pyJianYingDraft.metadata.capcut_audio_effect_meta import (
     CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type,
 )
@@ -64,37 +54,33 @@ from pyJianYingDraft.metadata.font_meta import Font_type
 from pyJianYingDraft.metadata.capcut_text_animation_meta import (
     CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim,
 )
-from pyJianYingDraft.metadata.video_effect_meta import Video_scene_effect_type, Video_character_effect_type
 from pyJianYingDraft.metadata.capcut_effect_meta import (
     CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type,
 )
+from util import hex_to_rgb, url_to_hash
 
-# category -> (CapCut-environment enum, JianYing-environment enum), for list_option_values.
-# "audio_effect" isn't here — it merges three enums per environment and carries param info,
-# so it's handled separately in execute_tool.
+# category -> enum, for list_option_values.
+# "audio_effect" isn't here — it merges three enums and carries param info, so it's
+# handled separately in execute_tool.
 OPTION_CATEGORIES = {
-    "transition": (CapCut_Transition_type, Transition_type),
-    "mask": (CapCut_Mask_type, Mask_type),
-    "font": (Font_type, Font_type),
-    "text_intro": (CapCut_Text_intro, Text_intro),
-    "text_outro": (CapCut_Text_outro, Text_outro),
-    "text_loop_anim": (CapCut_Text_loop_anim, Text_loop_anim),
-    "video_scene_effect": (CapCut_Video_scene_effect_type, Video_scene_effect_type),
-    "video_character_effect": (CapCut_Video_character_effect_type, Video_character_effect_type),
-    "intro_animation": (CapCut_Intro_type, Intro_type),
-    "outro_animation": (CapCut_Outro_type, Outro_type),
-    "combo_animation": (CapCut_Group_animation_type, Group_animation_type),
+    "transition": CapCut_Transition_type,
+    "mask": CapCut_Mask_type,
+    "font": Font_type,
+    "text_intro": CapCut_Text_intro,
+    "text_outro": CapCut_Text_outro,
+    "text_loop_anim": CapCut_Text_loop_anim,
+    "video_scene_effect": CapCut_Video_scene_effect_type,
+    "video_character_effect": CapCut_Video_character_effect_type,
+    "intro_animation": CapCut_Intro_type,
+    "outro_animation": CapCut_Outro_type,
+    "combo_animation": CapCut_Group_animation_type,
 }
 ALL_OPTION_CATEGORIES = sorted(OPTION_CATEGORIES) + ["audio_effect"]
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# Where CapCut/JianYing actually looks for local drafts on this machine.
-DEFAULT_DRAFT_FOLDER = os.path.expanduser(
-    "~/Movies/CapCut/User Data/Projects/com.lveditor.draft"
-    if IS_CAPCUT_ENV
-    else "~/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-)
+# Where CapCut actually looks for local drafts on this machine.
+DEFAULT_DRAFT_FOLDER = os.path.expanduser("~/Movies/CapCut/User Data/Projects/com.lveditor.draft")
 
 # Full tool registry. This is what search_tools searches and invoke_tool dispatches to.
 TOOLS: List[Dict[str, Any]] = [
@@ -575,19 +561,11 @@ def place_draft_locally(draft_id: str) -> Optional[str]:
 def list_option_values(category: str) -> Dict[str, Any]:
     """Enumerate the valid string values for one enum-typed parameter category."""
     if category == "audio_effect":
-        groups = (
-            [
-                (CapCut_Voice_filters_effect_type, "Voice_filters"),
-                (CapCut_Voice_characters_effect_type, "Voice_characters"),
-                (CapCut_Speech_to_song_effect_type, "Speech_to_song"),
-            ]
-            if IS_CAPCUT_ENV
-            else [
-                (Tone_effect_type, "Tone"),
-                (Audio_scene_effect_type, "Audio_scene"),
-                (Speech_to_song_type, "Speech_to_song"),
-            ]
-        )
+        groups = [
+            (CapCut_Voice_filters_effect_type, "Voice_filters"),
+            (CapCut_Voice_characters_effect_type, "Voice_characters"),
+            (CapCut_Speech_to_song_effect_type, "Speech_to_song"),
+        ]
         values = []
         for enum_cls, group_name in groups:
             for name, member in enum_cls.__members__.items():
@@ -603,10 +581,9 @@ def list_option_values(category: str) -> Dict[str, Any]:
                 values.append({"name": name, "type": group_name, "params": params})
         return {"category": category, "values": values, "count": len(values)}
 
-    pair = OPTION_CATEGORIES.get(category)
-    if not pair:
+    enum_cls = OPTION_CATEGORIES.get(category)
+    if not enum_cls:
         return {"error": f"Unknown category '{category}'. Valid categories: {ALL_OPTION_CATEGORIES}"}
-    enum_cls = pair[0] if IS_CAPCUT_ENV else pair[1]
     values = [{"name": name} for name in enum_cls.__members__]
     return {"category": category, "values": values, "count": len(values)}
 

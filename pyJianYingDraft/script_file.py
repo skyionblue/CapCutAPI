@@ -19,8 +19,7 @@ from .effect_segment import Effect_segment, Filter_segment
 from .text_segment import Text_segment, Text_style, TextBubble, Text_border, Text_background, TextEffect
 from .track import Track_type, Base_track, Track
 
-from settings.local import IS_CAPCUT_ENV
-from .metadata import Video_scene_effect_type, Video_character_effect_type, Filter_type, Font_type
+from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, Filter_type, Font_type
 
 class Script_material:
     """草稿文件中的素材信息部分"""
@@ -146,12 +145,8 @@ class Script_material:
             "vocal_separations": []
         }
 
-        # 根据IS_CAPCUT_ENV决定使用common_mask还是masks
-        if IS_CAPCUT_ENV:
-            result["common_mask"] = self.masks
-        else:
-            result["masks"] = self.masks
-            
+        result["common_mask"] = self.masks
+
         return result
 
 class Script_file:
@@ -409,13 +404,13 @@ class Script_file:
 
         return self
 
-    def add_effect(self, effect: Union[Video_scene_effect_type, Video_character_effect_type],
+    def add_effect(self, effect: Union[CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type],
                    t_range: Timerange, track_name: Optional[str] = None, *,
                    params: Optional[List[Optional[float]]] = None) -> "Script_file":
         """向指定的特效轨道中添加一个特效片段
 
         Args:
-            effect (`Video_scene_effect_type` or `Video_character_effect_type`): 特效类型
+            effect (`CapCut_Video_scene_effect_type` or `CapCut_Video_character_effect_type`): 特效类型
             t_range (`Timerange`): 特效片段的时间范围
             track_name (`str`, optional): 添加到的轨道名称. 当特效轨道仅有一条时可省略.
             params (`List[Optional[float]]`, optional): 特效参数列表, 参数列表中未提供或为None的项使用默认值.

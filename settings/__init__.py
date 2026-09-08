@@ -17,13 +17,10 @@ __all__ = [
 def get_platform_info():
     """
     获取平台信息，用于script_file.py中的dumps方法，cap_cut需要返回platform信息
-    
+
     Returns:
         dict: 平台信息字典
     """
-    if not IS_CAPCUT_ENV:
-        return None
-        
     return {
         "app_id": 359289,
         "app_source": "cc",

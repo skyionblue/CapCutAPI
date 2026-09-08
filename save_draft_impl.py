@@ -20,7 +20,7 @@ import time
 import requests # Import requests for making HTTP calls
 import logging
 # Import configuration
-from settings import IS_CAPCUT_ENV, IS_UPLOAD_DRAFT
+from settings import IS_UPLOAD_DRAFT
 
 # --- Get your Logger instance ---
 # The name here must match the logger name you configured in app.py
@@ -91,9 +91,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
         # Save draft
         current_dir = os.path.dirname(os.path.abspath(__file__))
         draft_folder_for_duplicate = draft.Draft_folder(current_dir)
-        # Choose different template directory based on configuration
-        template_dir = "template" if IS_CAPCUT_ENV else "template_jianying"
-        draft_folder_for_duplicate.duplicate_as_template(template_dir, draft_id)
+        draft_folder_for_duplicate.duplicate_as_template("template", draft_id)
         
         # Update task status
         update_task_field(task_id, "message", "Updating media file metadata")
@@ -575,7 +573,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
 
     logger.info(f"Starting to download draft: {draft_id} to folder: {draft_folder}")
     # Copy template to target directory
-    template_path = os.path.join("./", 'template') if IS_CAPCUT_ENV else os.path.join("./", 'template_jianying')
+    template_path = os.path.join("./", 'template')
     new_draft_path = os.path.join(draft_folder, draft_id)
     if os.path.exists(new_draft_path):
         logger.warning(f"Deleting existing draft target folder: {new_draft_path}")

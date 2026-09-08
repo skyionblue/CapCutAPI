@@ -17,7 +17,6 @@ from .local_materials import Audio_material
 from .keyframe import Keyframe_property, Keyframe_list
 
 from .metadata import Effect_param_instance
-from .metadata import Audio_scene_effect_type, Tone_effect_type, Speech_to_song_type
 
 class Audio_fade:
     """音频淡入淡出效果"""
@@ -61,7 +60,7 @@ class Audio_effect:
 
     audio_adjust_params: List[Effect_param_instance]
 
-    def __init__(self, effect_meta: Union[Audio_scene_effect_type, Tone_effect_type, Speech_to_song_type, CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
+    def __init__(self, effect_meta: Union[CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
                  params: Optional[List[Optional[float]]] = None):
         """根据给定的音效元数据及参数列表构造一个音频特效对象, params的范围是0~100"""
 
@@ -70,16 +69,7 @@ class Audio_effect:
         self.resource_id = effect_meta.value.resource_id
         self.audio_adjust_params = []
 
-        if isinstance(effect_meta, Audio_scene_effect_type):
-            self.category_id = "sound_effect"
-            self.category_name = "场景音"
-        elif isinstance(effect_meta, Tone_effect_type):
-            self.category_id = "tone"
-            self.category_name = "音色"
-        elif isinstance(effect_meta, Speech_to_song_type):
-            self.category_id = "speech_to_song"
-            self.category_name = "声音成曲"
-        elif isinstance(effect_meta, CapCut_Voice_filters_effect_type):
+        if isinstance(effect_meta, CapCut_Voice_filters_effect_type):
             self.category_id = "sound_effect"
             self.category_name = "Voice filters"
         elif isinstance(effect_meta, CapCut_Voice_characters_effect_type):
@@ -159,13 +149,13 @@ class Audio_segment(Media_segment):
         self.fade = None
         self.effects = []
 
-    def add_effect(self, effect_type: Union[Audio_scene_effect_type, Tone_effect_type, Speech_to_song_type, CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
+    def add_effect(self, effect_type: Union[CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
                    params: Optional[List[Optional[float]]] = None,
                    effect_id: Optional[str] = None) -> "Audio_segment":
         """为音频片段添加一个作用于整个片段的音频效果, 目前"声音成曲"效果不能自动被剪映所识别
 
         Args:
-            effect_type (`Audio_scene_effect_type` | `Tone_effect_type` | `Speech_to_song_type`): 音效类型, 一类音效只能添加一个.
+            effect_type (`CapCut_Voice_filters_effect_type` | `CapCut_Voice_characters_effect_type` | `CapCut_Speech_to_song_effect_type`): 音效类型, 一类音效只能添加一个.
             params (`List[Optional[float]]`, optional): 音效参数列表, 参数列表中未提供或为None的项使用默认值.
                 参数取值范围(0~100)与剪映中一致. 某个特效类型有何参数以及具体参数顺序以枚举类成员的annotation为准.
             effect_id (`str`, optional): 音效的ID, 如果不提供则自动生成.

@@ -2,7 +2,6 @@ import os
 import uuid
 import pyJianYingDraft as draft
 import time
-from settings.local import IS_CAPCUT_ENV
 from util import generate_draft_url, is_windows_path, url_to_hash
 from pyJianYingDraft import trange, Clip_settings
 import re
@@ -160,10 +159,7 @@ def add_image_impl(
     intro_animation_duration = intro_animation_duration if intro_animation_duration is not None else animation_duration
     if intro_anim:
         try:
-            if IS_CAPCUT_ENV:
-                animation_type = getattr(draft.CapCut_Intro_type, intro_anim)
-            else:
-                animation_type = getattr(draft.Intro_type, intro_anim)
+            animation_type = getattr(draft.CapCut_Intro_type, intro_anim)
             image_segment.add_animation(animation_type, intro_animation_duration * 1e6)  # Use microsecond unit for animation duration
         except AttributeError:
             raise ValueError(f"Warning: Unsupported entrance animation type {intro_anim}, this parameter will be ignored")
@@ -171,10 +167,7 @@ def add_image_impl(
     # Add exit animation
     if outro_animation:
         try:
-            if IS_CAPCUT_ENV:
-                outro_type = getattr(draft.CapCut_Outro_type, outro_animation)
-            else:
-                outro_type = getattr(draft.Outro_type, outro_animation)
+            outro_type = getattr(draft.CapCut_Outro_type, outro_animation)
             image_segment.add_animation(outro_type, outro_animation_duration * 1e6)  # Use microsecond unit for animation duration
         except AttributeError:
             raise ValueError(f"Warning: Unsupported exit animation type {outro_animation}, this parameter will be ignored")
@@ -182,10 +175,7 @@ def add_image_impl(
     # Add combo animation
     if combo_animation:
         try:
-            if IS_CAPCUT_ENV:
-                combo_type = getattr(draft.CapCut_Group_animation_type, combo_animation)
-            else:
-                combo_type = getattr(draft.Group_animation_type, combo_animation)
+            combo_type = getattr(draft.CapCut_Group_animation_type, combo_animation)
             image_segment.add_animation(combo_type, combo_animation_duration * 1e6)  # Use microsecond unit for animation duration
         except AttributeError:
             raise ValueError(f"Warning: Unsupported combo animation type {combo_animation}, this parameter will be ignored")
@@ -193,10 +183,7 @@ def add_image_impl(
     # Add transition effect
     if transition:
         try:
-            if IS_CAPCUT_ENV:
-                transition_type = getattr(draft.CapCut_Transition_type, transition)
-            else:
-                transition_type = getattr(draft.Transition_type, transition)
+            transition_type = getattr(draft.CapCut_Transition_type, transition)
             # Convert seconds to microseconds (multiply by 1000000)
             duration_microseconds = int(transition_duration * 1000000) if transition_duration is not None else None
             image_segment.add_transition(transition_type, duration=duration_microseconds)
@@ -206,10 +193,7 @@ def add_image_impl(
     # Add mask effect
     if mask_type:
         try:
-            if IS_CAPCUT_ENV:
-                mask_type_enum = getattr(draft.CapCut_Mask_type, mask_type)
-            else:
-                mask_type_enum = getattr(draft.Mask_type, mask_type)
+            mask_type_enum = getattr(draft.CapCut_Mask_type, mask_type)
             image_segment.add_mask(
                 script,
                 mask_type_enum,  # Remove keyword name, pass as positional argument

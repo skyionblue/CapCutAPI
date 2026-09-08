@@ -14,7 +14,6 @@ from .segment import Clip_settings, Visual_segment
 from .animation import Segment_animations, Text_animation
 
 from .metadata import Font_type, Effect_meta
-from .metadata import Text_intro, Text_outro, Text_loop_anim
 
 class Text_style:
     """字体样式类"""
@@ -383,25 +382,24 @@ class Text_segment(Visual_segment):
 
         return new_segment
 
-    def add_animation(self, animation_type: Union[Text_intro, Text_outro, Text_loop_anim,
-                                                  CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim],
+    def add_animation(self, animation_type: Union[CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim],
                       duration: Union[str, float] = 500000) -> "Text_segment":
         """将给定的入场/出场/循环动画添加到此片段的动画列表中, 出入场动画的持续时间可以自行设置, 循环动画则会自动填满其余无动画部分
 
         注意: 若希望同时使用循环动画和入出场动画, 请**先添加出入场动画再添加循环动画**
 
         Args:
-            animation_type (`Text_intro`, `Text_outro` or `Text_loop_anim`): 文本动画类型.
+            animation_type (`CapCut_Text_intro`, `CapCut_Text_outro` or `CapCut_Text_loop_anim`): 文本动画类型.
             duration (`str` or `float`, optional): 动画持续时间, 单位为微秒, 仅对入场/出场动画有效.
                 若传入字符串则会调用`tim()`函数进行解析. 默认为0.5秒
         """
         duration = min(tim(duration), self.target_timerange.duration)
 
-        if (isinstance(animation_type, Text_intro) or isinstance(animation_type, CapCut_Text_intro)):
+        if isinstance(animation_type, CapCut_Text_intro):
             start = 0
-        elif (isinstance(animation_type, Text_outro) or isinstance(animation_type, CapCut_Text_outro)):
+        elif isinstance(animation_type, CapCut_Text_outro):
             start = self.target_timerange.duration - duration
-        elif (isinstance(animation_type, Text_loop_anim) or isinstance(animation_type, CapCut_Text_loop_anim)):
+        elif isinstance(animation_type, CapCut_Text_loop_anim):
             intro_trange = self.animations_instance and self.animations_instance.get_animation_trange("in")
             outro_trange = self.animations_instance and self.animations_instance.get_animation_trange("out")
             start = intro_trange.start if intro_trange else 0

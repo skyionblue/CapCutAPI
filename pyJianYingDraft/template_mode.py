@@ -12,7 +12,7 @@ from .local_materials import Video_material, Audio_material
 from .video_segment import Video_segment, Clip_settings
 from .audio_segment import Audio_segment
 from .keyframe import Keyframe_list, Keyframe_property, Keyframe
-from .metadata import Audio_scene_effect_type, Tone_effect_type, Speech_to_song_type, Effect_param_instance
+from .metadata import CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type, Effect_param_instance
 
 from typing import List, Dict, Any
 
@@ -308,13 +308,18 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
                     if "audio_effects" in imported_materials and imported_materials["audio_effects"]:
                         effect_data = imported_materials["audio_effects"][0]
                         # 根据资源ID查找对应的效果类型
-                        for effect_type in Audio_scene_effect_type:
-                            if effect_type.value.resource_id == effect_data["resource_id"]:
-                                # 将参数值从0-1映射到0-100
-                                params = []
-                                for param in effect_data["audio_adjust_params"]:
-                                    params.append(param["value"] * 100)
-                                segment.add_effect(effect_type, params,effect_id=effect_data["id"])
+                        for effect_enum in (CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type):
+                            found = False
+                            for effect_type in effect_enum:
+                                if effect_type.value.resource_id == effect_data["resource_id"]:
+                                    # 将参数值从0-1映射到0-100
+                                    params = []
+                                    for param in effect_data["audio_adjust_params"]:
+                                        params.append(param["value"] * 100)
+                                    segment.add_effect(effect_type, params,effect_id=effect_data["id"])
+                                    found = True
+                                    break
+                            if found:
                                 break
                     segment.common_keyframes = common_keyframes
                     track.segments.append(segment)

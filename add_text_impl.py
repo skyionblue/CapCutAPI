@@ -1,5 +1,4 @@
 import pyJianYingDraft as draft
-from settings.local import IS_CAPCUT_ENV
 from util import generate_draft_url, hex_to_rgb
 from pyJianYingDraft import trange, Font_type
 from typing import Optional, List  # 修复List导入
@@ -241,10 +240,7 @@ def add_text_impl(
     # Add intro animation
     if intro_animation:
         try:
-            if IS_CAPCUT_ENV:
-                animation_type = getattr(draft.CapCut_Text_intro, intro_animation)
-            else:
-                animation_type = getattr(draft.Text_intro, intro_animation)
+            animation_type = getattr(draft.CapCut_Text_intro, intro_animation)
             # Convert seconds to microseconds
             duration_microseconds = int(intro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add intro animation, set duration
@@ -254,10 +250,7 @@ def add_text_impl(
     # Add outro animation
     if outro_animation:
         try:
-            if IS_CAPCUT_ENV:
-                animation_type = getattr(draft.CapCut_Text_outro, outro_animation)
-            else:
-                animation_type = getattr(draft.Text_outro, outro_animation)
+            animation_type = getattr(draft.CapCut_Text_outro, outro_animation)
             # Convert seconds to microseconds
             duration_microseconds = int(outro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add outro animation, set duration

@@ -6,7 +6,7 @@ from .time_util import Timerange
 from .segment import Base_segment
 from .video_segment import Video_effect, Filter
 
-from .metadata import Video_scene_effect_type, Video_character_effect_type, Filter_type
+from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, Filter_type
 
 class Effect_segment(Base_segment):
     """放置在独立特效轨道上的特效片段"""
@@ -17,7 +17,7 @@ class Effect_segment(Base_segment):
     在放入轨道时自动添加到素材列表中
     """
 
-    def __init__(self, effect_type: Union[Video_scene_effect_type, Video_character_effect_type],
+    def __init__(self, effect_type: Union[CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type],
                  target_timerange: Timerange, params: Optional[List[Optional[float]]] = None):
         self.effect_inst = Video_effect(effect_type, params, apply_target_type=2)  # 作用域为全局
         super().__init__(self.effect_inst.global_id, target_timerange)

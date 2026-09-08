@@ -11,7 +11,6 @@ from typing import Dict, List, Tuple, Any
 
 from pyJianYingDraft.metadata.capcut_effect_meta import CapCut_Video_character_effect_type, CapCut_Video_scene_effect_type
 from pyJianYingDraft.metadata.capcut_mask_meta import CapCut_Mask_type
-from settings import IS_CAPCUT_ENV
 
 from .time_util import tim, Timerange
 from .segment import Visual_segment, Clip_settings
@@ -19,10 +18,8 @@ from .local_materials import Video_material
 from .animation import Segment_animations, Video_animation
 
 from .metadata import Effect_meta, Effect_param_instance
-from .metadata import Mask_meta, Mask_type, Filter_type, Transition_type, CapCut_Transition_type
-from .metadata import Intro_type, Outro_type, Group_animation_type
+from .metadata import Mask_meta, Filter_type, CapCut_Transition_type
 from .metadata import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
-from .metadata import Video_scene_effect_type, Video_character_effect_type
 
 
 class Mask:
@@ -107,7 +104,7 @@ class Video_effect:
 
     adjust_params: List[Effect_param_instance]
 
-    def __init__(self, effect_meta: Union[Video_scene_effect_type, Video_character_effect_type],
+    def __init__(self, effect_meta: Union[CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type],
                  params: Optional[List[Optional[float]]] = None, *,
                  apply_target_type: Literal[0, 2] = 0):
         """根据给定的特效元数据及参数列表构造一个视频特效对象, params的范围是0~100"""
@@ -118,20 +115,12 @@ class Video_effect:
         self.resource_id = effect_meta.value.resource_id
         self.adjust_params = []
 
-        if IS_CAPCUT_ENV:
-            if isinstance(effect_meta, CapCut_Video_scene_effect_type):
-                self.effect_type = "video_effect"
-            elif isinstance(effect_meta, CapCut_Video_character_effect_type):
-                self.effect_type = "face_effect"
-            else:
-                raise TypeError("Invalid effect meta type %s" % type(effect_meta))
+        if isinstance(effect_meta, CapCut_Video_scene_effect_type):
+            self.effect_type = "video_effect"
+        elif isinstance(effect_meta, CapCut_Video_character_effect_type):
+            self.effect_type = "face_effect"
         else:
-            if isinstance(effect_meta, Video_scene_effect_type):
-                self.effect_type = "video_effect"
-            elif isinstance(effect_meta, Video_character_effect_type):
-                self.effect_type = "face_effect"
-            else:
-                raise TypeError("Invalid effect meta type %s" % type(effect_meta))
+            raise TypeError("Invalid effect meta type %s" % type(effect_meta))
 
         self.apply_target_type = apply_target_type
 
@@ -236,7 +225,7 @@ class Transition:
     is_overlap: bool
     """是否与上一个片段重叠(?)"""
 
-    def __init__(self, effect_meta: Union[Transition_type, CapCut_Transition_type], duration: Optional[int] = None):
+    def __init__(self, effect_meta: CapCut_Transition_type, duration: Optional[int] = None):
         """根据给定的转场元数据及持续时间构造一个转场对象"""
         self.name = effect_meta.value.name
         self.global_id = uuid.uuid4().hex
@@ -367,24 +356,24 @@ class Video_segment(Visual_segment):
         self.mask = None
         self.background_filling = None
 
-    def add_animation(self, animation_type: Union[Intro_type, Outro_type, Group_animation_type, CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type],
+    def add_animation(self, animation_type: Union[CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type],
                       duration: Optional[Union[int, str]] = None) -> "Video_segment":
         """将给定的入场/出场/组合动画添加到此片段的动画列表中
 
         Args:
-            animation_type (`Intro_type`, `Outro_type`, or `Group_animation_type`): 动画类型
+            animation_type (`CapCut_Intro_type`, `CapCut_Outro_type`, or `CapCut_Group_animation_type`): 动画类型
             duration (`int` or `str`, optional): 动画持续时间, 单位为微秒. 若传入字符串则会调用`tim()`函数进行解析.
                 若不指定则使用动画类型定义的默认值. 理论上只适用于入场和出场动画.
         """
         if duration is not None:
             duration = tim(duration)
-        if (isinstance(animation_type, Intro_type) or isinstance(animation_type, CapCut_Intro_type)):
+        if isinstance(animation_type, CapCut_Intro_type):
             start = 0
             duration = duration or animation_type.value.duration
-        elif isinstance(animation_type, Outro_type) or isinstance(animation_type, CapCut_Outro_type):
+        elif isinstance(animation_type, CapCut_Outro_type):
             duration = duration or animation_type.value.duration
             start = self.target_timerange.duration - duration
-        elif isinstance(animation_type, Group_animation_type) or isinstance(animation_type, CapCut_Group_animation_type):
+        elif isinstance(animation_type, CapCut_Group_animation_type):
             start = 0
             duration = duration or self.target_timerange.duration
         else:
@@ -398,12 +387,12 @@ class Video_segment(Visual_segment):
 
         return self
 
-    def add_effect(self, effect_type: Union[Video_scene_effect_type, Video_character_effect_type],
+    def add_effect(self, effect_type: Union[CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type],
                    params: Optional[List[Optional[float]]] = None) -> "Video_segment":
         """为视频片段添加一个作用于整个片段的特效
 
         Args:
-            effect_type (`Video_scene_effect_type` or `Video_character_effect_type`): 特效类型
+            effect_type (`CapCut_Video_scene_effect_type` or `CapCut_Video_character_effect_type`): 特效类型
             params (`List[Optional[float]]`, optional): 特效参数列表, 参数列表中未提供或为None的项使用默认值.
                 参数取值范围(0~100)与剪映中一致. 某个特效类型有何参数以及具体参数顺序以枚举类成员的annotation为准.
 
@@ -432,13 +421,13 @@ class Video_segment(Visual_segment):
 
         return self
 
-    def add_mask(self, draft: "Script_file", mask_type: Union[Mask_type, CapCut_Mask_type], *, center_x: float = 0.0, center_y: float = 0.0, size: float = 0.5,
+    def add_mask(self, draft: "Script_file", mask_type: CapCut_Mask_type, *, center_x: float = 0.0, center_y: float = 0.0, size: float = 0.5,
                  rotation: float = 0.0, feather: float = 0.0, invert: bool = False,
                  rect_width: Optional[float] = None, round_corner: Optional[float] = None) -> "Video_segment":
         """为视频片段添加蒙版
 
         Args:
-            mask_type (`Mask_type`): 蒙版类型
+            mask_type (`CapCut_Mask_type`): 蒙版类型
             center_x (`float`, optional): 蒙版中心点X坐标(以素材的像素为单位), 默认设置在素材中心
             center_y (`float`, optional): 蒙版中心点Y坐标(以素材的像素为单位), 默认设置在素材中心
             size (`float`, optional): 蒙版的"主要尺寸"(镜面的可视部分高度/圆形直径/爱心高度等), 以占素材高度的比例表示, 默认为0.5
@@ -454,9 +443,9 @@ class Video_segment(Visual_segment):
 
         if self.mask is not None:
             raise ValueError("当前片段已有蒙版, 不能再添加新的蒙版")
-        if (rect_width is not None or round_corner is not None) and (mask_type != Mask_type.矩形 and mask_type != CapCut_Mask_type.Rectangle):
+        if (rect_width is not None or round_corner is not None) and mask_type != CapCut_Mask_type.Rectangle:
             raise ValueError("`rect_width` 以及 `round_corner` 仅在蒙版类型为矩形时允许设置")
-        if rect_width is None and (mask_type == Mask_type.矩形 or mask_type == CapCut_Mask_type.Rectangle):
+        if rect_width is None and mask_type == CapCut_Mask_type.Rectangle:
             rect_width = size
         if round_corner is None:
             round_corner = 0
@@ -472,11 +461,11 @@ class Video_segment(Visual_segment):
         self.extra_material_refs.append(self.mask.global_id)
         return self
 
-    def add_transition(self, transition_type: Union[Transition_type, CapCut_Transition_type], *, duration: Optional[Union[int, str]] = None) -> "Video_segment":
+    def add_transition(self, transition_type: CapCut_Transition_type, *, duration: Optional[Union[int, str]] = None) -> "Video_segment":
         """为视频片段添加转场, 注意转场应当添加在**前面的**片段上
 
         Args:
-            transition_type (`Transition_type` or `CapCut_Transition_type`): 转场类型
+            transition_type (`CapCut_Transition_type`): 转场类型
             duration (`int` or `str`, optional): 转场持续时间, 单位为微秒. 若传入字符串则会调用`tim()`函数进行解析. 若不指定则使用转场类型定义的默认值.
 
         Raises:

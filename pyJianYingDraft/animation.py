@@ -8,9 +8,7 @@ from typing import Literal, Dict, List, Any
 from .time_util import Timerange
 
 from .metadata.animation_meta import Animation_meta
-from .metadata import Intro_type, Outro_type, Group_animation_type
 from .metadata import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
-from .metadata import Text_intro, Text_outro, Text_loop_anim
 from .metadata import CapCut_Text_intro, CapCut_Text_loop_anim, CapCut_Text_outro
 
 class Animation:
@@ -63,15 +61,15 @@ class Video_animation(Animation):
 
     animation_type: Literal["in", "out", "group"]
 
-    def __init__(self, animation_type: Union[Intro_type, Outro_type, Group_animation_type, CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type],
+    def __init__(self, animation_type: Union[CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type],
                  start: int, duration: int):
         super().__init__(animation_type.value, start, duration)
 
-        if ((isinstance(animation_type, Intro_type) or isinstance(animation_type, CapCut_Intro_type))):
+        if isinstance(animation_type, CapCut_Intro_type):
             self.animation_type = "in"
-        elif isinstance(animation_type, Outro_type) or isinstance(animation_type, CapCut_Outro_type):
+        elif isinstance(animation_type, CapCut_Outro_type):
             self.animation_type = "out"
-        elif isinstance(animation_type, Group_animation_type) or isinstance(animation_type, CapCut_Group_animation_type):
+        elif isinstance(animation_type, CapCut_Group_animation_type):
             self.animation_type = "group"
 
         self.is_video_animation = True
@@ -81,15 +79,15 @@ class Text_animation(Animation):
 
     animation_type: Literal["in", "out", "loop"]
 
-    def __init__(self, animation_type: Union[Text_intro, Text_outro, Text_loop_anim, CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim],
+    def __init__(self, animation_type: Union[CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim],
                  start: int, duration: int):
         super().__init__(animation_type.value, start, duration)
 
-        if (isinstance(animation_type, Text_intro) or isinstance(animation_type, CapCut_Text_intro)):
+        if isinstance(animation_type, CapCut_Text_intro):
             self.animation_type = "in"
-        elif (isinstance(animation_type, Text_outro) or isinstance(animation_type, CapCut_Text_outro)):
+        elif isinstance(animation_type, CapCut_Text_outro):
             self.animation_type = "out"
-        elif (isinstance(animation_type, Text_loop_anim) or isinstance(animation_type, CapCut_Text_loop_anim)):
+        elif isinstance(animation_type, CapCut_Text_loop_anim):
             self.animation_type = "loop"
 
         self.is_video_animation = False
