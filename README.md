@@ -1,17 +1,16 @@
-# 🎬 CapCutAPI - Open source CapCut API tool.
+# 🎬 CapCutAPI
 
 <div align="center">
 
 ![CapCutAPI Logo](https://img.shields.io/badge/CapCutAPI-v1.1.0-blue?style=for-the-badge&logo=video&logoColor=white)
 
-[![GitHub Stars](https://img.shields.io/github/stars/sun-guannan/CapCutAPI?style=for-the-badge&logo=github)](https://github.com/sun-guannan/CapCutAPI/stargazers)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)](LICENSE)
 [![Python Version](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)](https://python.org)
 [![MCP Support](https://img.shields.io/badge/MCP-Supported-orange?style=for-the-badge)](./MCP_Documentation_English.md)
 
-**🚀 Open source CapCut API tool with MCP (Model Context Protocol) support**
+**🚀 CapCut video editing automation with MCP (Model Context Protocol) support**
 
-[🌐 Try Online](https://www.capcutapi.top) • [📖 中文文档](README-zh.md) • [🔧 MCP Docs](./MCP_Documentation_English.md) • [🌍 MCP 中文指南](./MCP_文档_中文.md)
+[🔧 MCP Docs](./MCP_Documentation_English.md)
 
 </div>
 
@@ -58,31 +57,12 @@
 
 **🌍 Cross-platform Compatibility**
 - CapCut International support
-- JianYing China support
 - Windows/macOS compatible
 - Cloud deployment ready
 
 </td>
 </tr>
 </table>
-
----
-
-## 🎥 Product Showcase
-
-<div align="center">
-
-### 🐎 AI Generated Video Cases
-
-[![Horse Video](https://img.youtube.com/vi/IF1RDFGOtEU/hqdefault.jpg)](https://www.youtube.com/watch?v=IF1RDFGOtEU)
-
-### 🎵 Music Video Production
-
-[![Song Video](https://img.youtube.com/vi/rGNLE_slAJ8/hqdefault.jpg)](https://www.youtube.com/watch?v=rGNLE_slAJ8)
-
-*AI-driven video generation powered by CapCutAPI*
-
-</div>
 
 ---
 
@@ -131,7 +111,7 @@
 <details>
 <summary><b>🔧 MCP Tool Set (18 tools, via a 2-tool <code>search_tools</code>/<code>invoke_tool</code> gateway)</b></summary>
 
-This fork's `mcp_server.py` exposes exactly two top-level MCP tools — `search_tools(query)` to discover capabilities and `invoke_tool(name, arguments)` to run one — so the list below is what `invoke_tool` dispatches to, not top-level MCP tools themselves. See `MCP_Documentation_English.md` for the full reference and usage examples.
+`mcp_server.py` exposes exactly two top-level MCP tools — `search_tools(query)` to discover capabilities and `invoke_tool(name, arguments)` to run one — so the list below is what `invoke_tool` dispatches to, not top-level MCP tools themselves. See `MCP_Documentation_English.md` for the full reference and usage examples.
 
 🎬 Project Management
 ├── create_draft           # Create video project
@@ -174,7 +154,7 @@ This fork's `mcp_server.py` exposes exactly two top-level MCP tools — `search_
 </tr>
 <tr>
 <td><b>🎬 CapCut Application</b></td>
-<td>CapCut International or JianYing China</td>
+<td>CapCut International</td>
 </tr>
 <tr>
 <td><b>🎵 FFmpeg</b></td>
@@ -190,7 +170,7 @@ This fork's `mcp_server.py` exposes exactly two top-level MCP tools — `search_
 
 ```bash
 # 1. Clone the project
-git clone https://github.com/sun-guannan/CapCutAPI.git
+git clone git@ghtm:skyionblue/CapCutAPI.git
 cd CapCutAPI
 
 # 2. Create virtual environment (recommended)
@@ -426,12 +406,11 @@ Calling `save_draft` generates a folder starting with `dfd_` in the server's cur
 
 <div align="center">
 
-| 📖 Document Type | 🌍 Language | 📄 Link | 📝 Description |
-|-----------------|-------------|---------|----------------|
-| **MCP Complete Guide** | 🇺🇸 English | [MCP Documentation](./MCP_Documentation_English.md) | Complete MCP server usage guide |
-| **MCP User Manual** | 🇨🇳 Chinese | [MCP 中文文档](./MCP_文档_中文.md) | Detailed Chinese usage instructions |
-| **API Reference** | 🇺🇸 English | [example.py](./example.py) | Code examples and best practices |
-| **REST Testing** | 🌐 Universal | [rest_client_test.http](./rest_client_test.http) | HTTP interface test cases |
+| 📖 Document Type | 📄 Link | 📝 Description |
+|-----------------|---------|----------------|
+| **MCP Complete Guide** | [MCP Documentation](./MCP_Documentation_English.md) | Complete MCP server usage guide |
+| **API Reference** | [example.py](./example.py) | Code examples and best practices |
+| **REST Testing** | [rest_client_test.http](./rest_client_test.http) | HTTP interface test cases |
 
 </div>
 
@@ -459,63 +438,6 @@ Calling `save_draft` generates a folder starting with `dfd_` in the server's cur
 - **🌐 Multi-protocol**: HTTP REST and MCP dual protocol support
 - **☁️ Cloud Deployment**: Containerization and microservice architecture ready
 - **📊 Monitoring Integration**: Complete performance monitoring and metrics collection
-
----
-
-## 🤝 Community & Support
-
-### 💬 Get Help
-
-<div align="center">
-
-| 📞 Support Channel | 🔗 Link | 📝 Description |
-|-------------------|---------|----------------|
-| **🐛 Bug Reports** | [GitHub Issues](https://github.com/sun-guannan/CapCutAPI/issues) | Bug reports and feature requests |
-| **💡 Feature Suggestions** | [Discussions](https://github.com/sun-guannan/CapCutAPI/discussions) | Community discussions and suggestions |
-| **📖 Documentation Feedback** | [Documentation Issues](https://github.com/sun-guannan/CapCutAPI/issues?q=label%3Adocumentation) | Documentation improvement suggestions |
-| **🔧 Technical Support** | [Stack Overflow](https://stackoverflow.com/questions/tagged/capcut-api) | Technical Q&A |
-
-</div>
-
-### 🎯 Contributing Guide
-
-We welcome all forms of contributions!
-
-```bash
-# 1. Fork the project
-git clone https://github.com/your-username/CapCutAPI.git
-
-# 2. Create feature branch
-git checkout -b feature/amazing-feature
-
-# 3. Commit changes
-git commit -m 'Add amazing feature'
-
-# 4. Push branch
-git push origin feature/amazing-feature
-
-# 5. Create Pull Request
-```
-
----
-
-## 📈 Project Statistics
-
-<div align="center">
-
-### ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=sun-guannan/CapCutAPI&type=Date)](https://www.star-history.com/#sun-guannan/CapCutAPI&Date)
-
-### 📊 Project Metrics
-
-![GitHub repo size](https://img.shields.io/github/repo-size/sun-guannan/CapCutAPI?style=flat-square)
-![GitHub code size](https://img.shields.io/github/languages/code-size/sun-guannan/CapCutAPI?style=flat-square)
-![GitHub issues](https://img.shields.io/github/issues/sun-guannan/CapCutAPI?style=flat-square)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/sun-guannan/CapCutAPI?style=flat-square)
-![GitHub last commit](https://img.shields.io/github/last-commit/sun-guannan/CapCutAPI?style=flat-square)
-
-</div>
 
 ---
 
@@ -549,16 +471,6 @@ limitations under the License.
 
 ## 🎉 Get Started Now
 
-**Experience the power of CapCutAPI today!**
-
-[![Get Started](https://img.shields.io/badge/🚀_Get_Started-blue?style=for-the-badge&logo=rocket)](https://www.capcutapi.top)
-[![Download](https://img.shields.io/badge/📥_Download-green?style=for-the-badge&logo=download)](https://github.com/sun-guannan/CapCutAPI/archive/refs/heads/main.zip)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-orange?style=for-the-badge&logo=book)](./MCP_Documentation_English.md)
-
----
-
-**🆕 New Feature**: Now with MCP protocol support for seamless AI assistant integration! Try the MCP server for advanced video editing automation.
-
-*Made with ❤️ by the CapCutAPI Community*
 
 </div>
