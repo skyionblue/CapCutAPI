@@ -8,7 +8,10 @@ Timebase throughout CapCut's draft format is MICROSECONDS.
 
 import json
 import os
+import re
+import subprocess
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
 US = 1_000_000.0
@@ -120,6 +123,41 @@ UNSUPPORTED_COLLECTIONS = {
 }
 
 
+# CapCut rewrites absolute media paths to a relocatable token once it opens a draft.
+_DRAFT_PATH_PLACEHOLDER = re.compile(r"^##_draftpath_placeholder_[^#]*_##[/\\]?")
+
+
+def _resolve_path(path: str, draft_folder: str) -> str:
+    """Expand CapCut's draft-relative path token into a usable absolute path."""
+    if not path:
+        return ""
+    stripped = _DRAFT_PATH_PLACEHOLDER.sub("", path)
+    if stripped != path:
+        return os.path.join(draft_folder, stripped)
+    return path
+
+
+@lru_cache(maxsize=None)
+def _probe_has_audio(path: str) -> bool:
+    """Ask ffprobe whether a file carries an audio stream.
+
+    Drafts written by this API omit ``has_audio`` entirely, so its absence says nothing about
+    the media; CapCut sets it only for drafts it has opened itself. Probing keeps both cases
+    correct. Never raises - on any failure the caller keeps the recorded metadata.
+    """
+    if not path or not os.path.exists(path):
+        return False
+    try:
+        process = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "a",
+             "-show_entries", "stream=codec_type", "-of", "csv=p=0", path],
+            capture_output=True, text=True, timeout=30, check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return "audio" in process.stdout
+
+
 def load_draft(draft_id: str, draft_folder: str) -> Draft:
     """Parse a saved draft into Segments, recording what cannot be rendered."""
     info_path = draft_info_path(draft_id, draft_folder)
@@ -182,14 +220,18 @@ def load_draft(draft_id: str, draft_folder: str) -> Draft:
             if segment.material_id in videos:
                 material = videos[segment.material_id]
                 segment.kind = material.get("type") or "video"   # "video" or "photo"
-                segment.path = material.get("path") or ""
-                segment.has_audio = bool(material.get("has_audio"))
+                segment.path = _resolve_path(material.get("path") or "", draft.folder)
+                recorded_audio = material.get("has_audio")
+                segment.has_audio = (
+                    bool(recorded_audio) if recorded_audio is not None
+                    else _probe_has_audio(segment.path)
+                )
                 segment.width = int(material.get("width") or 0)
                 segment.height = int(material.get("height") or 0)
             elif segment.material_id in audios:
                 material = audios[segment.material_id]
                 segment.kind = "audio"
-                segment.path = material.get("path") or ""
+                segment.path = _resolve_path(material.get("path") or "", draft.folder)
                 segment.has_audio = True
             elif segment.material_id in texts:
                 material = texts[segment.material_id]
