@@ -20,6 +20,7 @@ from add_subtitle_impl import add_subtitle_impl
 from add_image_impl import add_image_impl
 from add_video_keyframe_impl import add_video_keyframe_impl
 from save_draft_impl import save_draft_impl, query_task_status, query_script_impl
+from export_impl import export_video, query_export_status, export_preflight
 from add_effect_impl import add_effect_impl
 from add_sticker_impl import add_sticker_impl
 from create_draft import create_draft
@@ -1170,6 +1171,103 @@ def get_video_character_effect_types():
     except Exception as e:
         result["success"] = False
         result["error"] = f"Error occurred while getting character effect types: {str(e)}"
+        return jsonify(result)
+
+
+@app.route('/export_video', methods=['POST'])
+def export_video_service():
+    data = request.get_json()
+
+    draft_id = data.get('draft_id')
+
+    result = {
+        "success": False,
+        "output": "",
+        "error": ""
+    }
+
+    # Validate required parameters
+    if not draft_id:
+        error_message = "Hi, the required parameter 'draft_id' is missing. Please add it and try again."
+        result["error"] = error_message
+        return jsonify(result)
+
+    try:
+        export_result = export_video(
+            draft_id=draft_id,
+            backend=data.get('backend', 'auto'),
+            output_path=data.get('output_path'),
+            resolution=data.get('resolution'),
+            framerate=data.get('framerate'),
+            bitrate=data.get('bitrate'),
+            draft_folder=data.get('draft_folder')
+        )
+
+        if not export_result.get("success"):
+            result["error"] = export_result.get("error", "Export could not be started")
+            return jsonify(result)
+
+        result["success"] = True
+        result["output"] = export_result
+        return jsonify(result)
+
+    except Exception as e:
+        error_message = f"Error occurred while starting video export: {str(e)}."
+        result["error"] = error_message
+        return jsonify(result)
+
+
+@app.route('/query_export_status', methods=['POST'])
+def query_export_status_service():
+    data = request.get_json()
+
+    task_id = data.get('task_id')
+
+    result = {
+        "success": False,
+        "output": "",
+        "error": ""
+    }
+
+    # Validate required parameters
+    if not task_id:
+        error_message = "Hi, the required parameter 'task_id' is missing. Please add it and try again."
+        result["error"] = error_message
+        return jsonify(result)
+
+    try:
+        task_status = query_export_status(task_id)
+
+        if task_status["status"] == "not_found":
+            error_message = f"Export task with ID {task_id} not found. Please check if the task ID is correct."
+            result["error"] = error_message
+            return jsonify(result)
+
+        result["success"] = True
+        result["output"] = task_status
+        return jsonify(result)
+
+    except Exception as e:
+        error_message = f"Error occurred while querying export status: {str(e)}."
+        result["error"] = error_message
+        return jsonify(result)
+
+
+@app.route('/export_preflight', methods=['GET'])
+def export_preflight_service():
+    result = {
+        "success": False,
+        "output": "",
+        "error": ""
+    }
+
+    try:
+        result["success"] = True
+        result["output"] = export_preflight()
+        return jsonify(result)
+
+    except Exception as e:
+        result["error"] = f"Error occurred while checking export backends: {str(e)}."
         return jsonify(result)
 
 

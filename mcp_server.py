@@ -39,6 +39,7 @@ from add_video_keyframe_impl import add_video_keyframe_impl
 from get_duration_impl import get_video_duration
 from save_draft_impl import save_draft_impl, query_script_impl, query_task_status, build_asset_path
 from util import generate_draft_url as util_generate_draft_url
+from export_impl import export_video, query_export_status, export_preflight
 from pyJianYingDraft.text_segment import TextStyleRange
 from pyJianYingDraft import Text_style, Video_material, Audio_material
 
@@ -490,6 +491,69 @@ TOOLS: List[Dict[str, Any]] = [
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
+        "name": "export_video",
+        "description": (
+            "Export a saved draft to a finished video file. Call save_draft first — this exports "
+            "what is on disk. Long-running: it returns a task_id immediately, so you MUST poll "
+            "query_export_status with that task_id until status is 'completed' or 'failed'; the "
+            "file does not exist when this returns. Backends: 'capcut' drives the CapCut app and "
+            "preserves every effect, animation, transition and sticker, but needs a macOS GUI "
+            "session with CapCut visible on screen; 'ffmpeg' renders headlessly on a server but "
+            "reproduces only cuts, transforms, audio and text, and reports everything it dropped "
+            "in fidelity_warnings. Use 'auto' unless you have a reason not to. Always report any "
+            "fidelity_warnings from the final status to the user rather than presenting a "
+            "degraded video as if it were complete."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "draft_id": {"type": "string", "description": "Draft ID that has already been saved with save_draft"},
+                "backend": {
+                    "type": "string",
+                    "enum": ["auto", "capcut", "ffmpeg"],
+                    "default": "auto",
+                    "description": "auto picks capcut when a GUI session is available, else ffmpeg",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": "Where to write the finished video. A directory is also accepted. "
+                                   "Defaults to wherever the backend writes it.",
+                },
+                "resolution": {"type": "string", "description": "e.g. '1080p'. Omit for the backend default."},
+                "framerate": {"type": "integer", "description": "e.g. 30. Omit for the backend default."},
+                "bitrate": {"type": "string", "description": "e.g. '8M'. Omit for the backend default."},
+                "draft_folder": {"type": "string", "description": f"Override the CapCut drafts folder. Defaults to {DEFAULT_DRAFT_FOLDER}"},
+            },
+            "required": ["draft_id"],
+        },
+    },
+    {
+        "name": "query_export_status",
+        "description": (
+            "Poll an export started by export_video, using the task_id it returned. Returns status "
+            "(initialized/processing/completed/failed), progress, message, output_path, video_url "
+            "and fidelity_warnings. Keep polling while status is 'initialized' or 'processing'. "
+            "When it completes, output_path is the finished video; relay any fidelity_warnings to "
+            "the user."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string", "description": "task_id returned by export_video"},
+            },
+            "required": ["task_id"],
+        },
+    },
+    {
+        "name": "export_preflight",
+        "description": (
+            "Report which export backends can actually run in this environment, each one's "
+            "fidelity, and why an unavailable one is unavailable. Call this before export_video "
+            "if you need to tell the user what is possible, or to explain an export failure."
+        ),
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
         "name": "delete_draft",
         "description": (
             "Permanently delete a draft folder from the local CapCut drafts folder. Irreversible — "
@@ -792,6 +856,28 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
                 if "error" in replacement:
                     return {"success": False, "error": replacement["error"]}
                 result = replacement
+
+            elif tool_name == "export_video":
+                result = export_video(
+                    draft_id=arguments.get("draft_id"),
+                    backend=arguments.get("backend", "auto"),
+                    output_path=arguments.get("output_path"),
+                    resolution=arguments.get("resolution"),
+                    framerate=arguments.get("framerate"),
+                    bitrate=arguments.get("bitrate"),
+                    draft_folder=arguments.get("draft_folder") or DEFAULT_DRAFT_FOLDER,
+                )
+                if not result.get("success"):
+                    return {"success": False, "error": result.get("error", "Export could not be started")}
+
+            elif tool_name == "query_export_status":
+                status = query_export_status(arguments.get("task_id", ""))
+                if status.get("status") == "not_found":
+                    return {"success": False, "error": f"Export task {arguments.get('task_id')!r} not found."}
+                result = status
+
+            elif tool_name == "export_preflight":
+                result = export_preflight()
 
             elif tool_name == "list_drafts":
                 result = list_drafts()

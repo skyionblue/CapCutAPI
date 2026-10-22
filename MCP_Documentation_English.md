@@ -18,7 +18,7 @@ This keeps the top-level MCP tool count fixed at 2 no matter how much CapCut fun
 - **Precise Control**: Timeline, layer stacking order, and full mask/animation parameter access
 - **Discoverability**: Enum lookups so effect/mask/font/transition names never have to be guessed
 
-### 🛠️ Available Tools (18 tools, via `invoke_tool`)
+### 🛠️ Available Tools (21 tools, via `invoke_tool`)
 
 | Tool Name | Description | Key Parameters |
 |-----------|-------------|----------------|
@@ -39,6 +39,9 @@ This keeps the top-level MCP tool count fixed at 2 no matter how much CapCut fun
 | `generate_draft_url` | Format the cloud preview URL for a `draft_id` (only meaningful if the OSS/cloud-preview flow is configured) | `draft_id` |
 | `replace_material` | Swap the video/audio/image file behind an *existing* material in place, without touching that segment's transforms, masks, effects, or keyframes | `draft_id`, `material_name`, `new_url`, `material_type`, `duration`, `replace_crop` |
 | `list_drafts` | Enumerate drafts sitting in the local CapCut drafts folder | *(none)* |
+| `export_video` | Export a saved draft to a video file. Async — returns a `task_id`; poll `query_export_status`. `capcut` backend is full fidelity but needs a visible macOS GUI session; `ffmpeg` is headless but renders only a subset and reports what it dropped in `fidelity_warnings` | `draft_id`, `backend`, `output_path`, `resolution`, `framerate`, `bitrate`, `draft_folder` |
+| `query_export_status` | Poll an export started by `export_video`; returns `status`, `progress`, `output_path`, `video_url`, `fidelity_warnings` | `task_id` |
+| `export_preflight` | Report which export backends can run here, their fidelity, and why any are unavailable | *(none)* |
 | `delete_draft` | Permanently remove a draft folder from the local CapCut drafts folder (path-traversal guarded) | `draft_id` |
 
 ## Installation & Setup

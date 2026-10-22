@@ -3,3 +3,5 @@ psutil
 flask
 requests
 oss2
+# macOS only: required by the CapCut GUI export backend (CoreGraphics clicks)
+pyobjc-framework-Quartz; sys_platform == "darwin"

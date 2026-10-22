@@ -93,7 +93,10 @@
 ├── POST /save_draft          # Save draft file
 ├── POST /query_script        # Get a draft's full current timeline as JSON
 ├── POST /query_draft_status  # Poll a save task's status
-└── POST /generate_draft_url  # Format the cloud preview URL for a draft_id
+├── POST /generate_draft_url  # Format the cloud preview URL for a draft_id
+├── POST /export_video        # Export a saved draft to a video file (async)
+├── POST /query_export_status # Poll an export task's status by task_id
+└── GET  /export_preflight    # Report which export backends are available here
 
 🎥 Media Assets
 ├── POST /add_video           # Add video material
@@ -136,7 +139,10 @@
 ├── list_drafts             # Enumerate drafts in the local drafts folder
 ├── delete_draft            # Remove a draft folder (path-traversal guarded)
 ├── query_draft_status      # Poll a save task's status by task_id
-└── generate_draft_url      # Format the cloud preview URL for a draft_id
+├── generate_draft_url      # Format the cloud preview URL for a draft_id
+├── export_video            # Export a saved draft to a video file (async)
+├── query_export_status     # Poll an export task's status by task_id
+└── export_preflight        # Report which export backends are available here
 
 🎥 Media Editing
 ├── add_video               # Video track + transitions + full mask control + keyframable properties

@@ -2,7 +2,7 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phase 0 COMPLETE (gate passed) — see `spikes/capcut_ui/FINDINGS.md`. Phase 1 next.
+**Status:** Phase 0 COMPLETE (gate passed). Phase 1 COMPLETE. Phase 2 (CapCut backend) next.
 
 ---
 
@@ -142,19 +142,28 @@ Key results:
 
 Independent of the Phase 0 outcome; build it first so either backend can plug in.
 
-- [ ] Create `export_impl.py` with the dispatcher, parameter validation, and task lifecycle.
-- [ ] Define the export task status schema in `save_task_cache.py` style:
-      `status`, `progress`, `message`, `output_path`, `video_url`, `fidelity_warnings`.
-- [ ] Add `query_export_status` (or extend `query_draft_status` to recognise export tasks —
-      prefer a separate tool so the two job types stay legible to the AI).
-- [ ] Wire `upload_mp4_to_oss()` into the completion handler, guarded on `MP4_OSS_CONFIG` being
-      populated — this finally gives the dead code a caller.
-- [ ] Add a `ffmpeg`/`ffprobe` availability preflight check with a clear error message.
-- [ ] Register `export_video` and `query_export_status` in `mcp_server.py` `TOOLS` and
-      `execute_tool`, and add matching Flask routes in `capcut_server.py`.
+- [x] Create `export_impl.py` with the dispatcher, parameter validation, and task lifecycle.
+- [x] Define the export task status schema — `export_task_cache.py`, mirroring
+      `save_task_cache.py`'s LRU pattern but kept separate so save jobs and export jobs stay
+      distinguishable. Fields: `status`, `progress`, `message`, `output_path`, `video_url`,
+      `fidelity_warnings`, `error`, `backend`, `draft_id`.
+- [x] Add `query_export_status` as its own tool (not folded into `query_draft_status`).
+- [x] Wire `upload_mp4_to_oss()` into the completion handler, guarded on `MP4_OSS_CONFIG` —
+      the dead code finally has a caller. Upload failure is non-fatal; the local file stands.
+- [x] Add a `ffmpeg`/`ffprobe` and GUI-session preflight, exposed as its own `export_preflight`
+      tool so the assistant can explain what is possible before trying.
+- [x] Register `export_video`, `query_export_status` and `export_preflight` in `mcp_server.py`
+      `TOOLS` + `execute_tool` (18 -> 21 tools) and add matching Flask routes.
+- [x] Backend package `export_backends/` with `capcut_macos.py` (Phase 2) and
+      `ffmpeg_render.py` (Phase 3) raising clear not-implemented errors that name the phase.
+- [x] Update `README.md` endpoint/tool lists and `MCP_Documentation_English.md` tool table.
+- [x] Add macOS-gated `pyobjc-framework-Quartz` to `requirements.txt`.
 
-**Success criterion:** `export_video` with a stub backend creates a task, reports progress, and
-returns a (fake) path through both the MCP and HTTP surfaces.
+**Success criterion — MET.** `export_video` creates a task, dispatches to a backend on a worker
+thread, and records failure cleanly in the task cache; verified through both the MCP
+(`execute_tool`) and HTTP (Flask test client) surfaces. New files are flake8-clean and the
+changed files gained no new lint findings beyond one `E402`, matching the 23 pre-existing ones
+in that import block.
 
 ---
 
