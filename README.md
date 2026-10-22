@@ -82,11 +82,12 @@
 | 🎭 **Sticker System** | ✅ | ✅ | Sticker assets, position control, animation effects |
 | 🎯 **Keyframes** | ✅ | ✅ | Property animations, timeline control, easing functions |
 | 📊 **Media Analysis** | ✅ | ✅ | Video duration detection, format analysis |
+| 🎞️ **Video Export** | ✅ | ✅ | Render a draft to a finished MP4 — full fidelity via CapCut, or headless via ffmpeg |
 
 ### 🛠️ API Interface Overview
 
 <details>
-<summary><b>📡 HTTP API Endpoints (25 endpoints)</b></summary>
+<summary><b>📡 HTTP API Endpoints (28 endpoints)</b></summary>
 
 🎬 Draft Management
 ├── POST /create_draft        # Create new draft
@@ -129,7 +130,7 @@
 </details>
 
 <details>
-<summary><b>🔧 MCP Tool Set (18 tools, via a 2-tool <code>search_tools</code>/<code>invoke_tool</code> gateway)</b></summary>
+<summary><b>🔧 MCP Tool Set (21 tools, via a 2-tool <code>search_tools</code>/<code>invoke_tool</code> gateway)</b></summary>
 
 `mcp_server.py` exposes exactly two top-level MCP tools — `search_tools(query)` to discover capabilities and `invoke_tool(name, arguments)` to run one — so the list below is what `invoke_tool` dispatches to, not top-level MCP tools themselves. See `MCP_Documentation_English.md` for the full reference and usage examples.
 
@@ -286,6 +287,7 @@ python test_mcp_client.py
 | 🔊 **Audio Precision Control** | Volume, speed, audio effects | `volume: 0.8, speed: 1.2` |
 | 📱 **Multi-format Support** | Various video dimensions and formats | `width: 1080, height: 1920` |
 | ⚡ **Real-time Processing** | Instant draft updates and previews | Millisecond response time |
+| 🎞️ **End-to-end Export** | Build *and* render a video with no manual CapCut step | `export_video` → `query_export_status` |
 
 </div>
 
@@ -422,6 +424,66 @@ You can use the `rest_client_test.http` file with REST Client IDE plugins for HT
 Calling `save_draft` generates a folder starting with `dfd_` in the server's current directory. Copy this folder to your CapCut draft directory to access the generated draft in CapCut.
 
 > **Note (MCP gateway):** when using the MCP `save_draft` tool (via `invoke_tool`) rather than the HTTP API, this copy step happens automatically — the result's `local_path` already points inside CapCut's real drafts folder, so no manual copy is needed. Use `list_drafts`/`delete_draft` to manage what accumulates there.
+
+### Video Export
+
+`save_draft` writes a CapCut draft; `export_video` turns that draft into a finished video file,
+so an assistant can take a request all the way to an MP4 with no manual step in CapCut.
+
+Export is **asynchronous** — `export_video` returns a `task_id` immediately and the file does not
+exist yet. Poll `query_export_status` until `status` is `completed` or `failed`.
+
+```bash
+# 1. Start the export (after save_draft)
+curl -X POST http://localhost:9001/export_video \
+  -H "Content-Type: application/json" \
+  -d '{"draft_id": "dfd_...", "backend": "auto", "output_path": "~/Movies/out.mp4"}'
+
+# 2. Poll until it finishes
+curl -X POST http://localhost:9001/query_export_status \
+  -H "Content-Type: application/json" \
+  -d '{"task_id": "export-dfd_...-1a2b3c4d"}'
+
+# Which backends can run here, and why one cannot
+curl http://localhost:9001/export_preflight
+```
+
+#### Choosing a backend
+
+| | `capcut` | `ffmpeg` |
+|---|---|---|
+| **Fidelity** | **Full** — every effect, filter, mask, animation, transition and sticker | **Subset** — cuts, trims, placement, transforms, audio, basic text |
+| **Needs a GUI?** | Yes: macOS with CapCut installed **and visible on the active Space** | No — works on servers, CI and containers |
+| **`resolution`/`framerate`/`bitrate`** | Not settable (reported in `fidelity_warnings`) | Honoured |
+| **Use it when** | The output is the deliverable | There is no GUI, or you want a quick preview |
+
+`backend: "auto"` (the default) picks `capcut` when a GUI session is available and falls back to
+`ffmpeg` otherwise.
+
+#### Fidelity warnings
+
+Every export result carries a `fidelity_warnings` list. CapCut's effects, filters, masks,
+animations, transitions and stickers are stored only as CapCut effect IDs and are resolved by
+CapCut's own renderer, so the `ffmpeg` backend cannot reproduce them — it reports each one it
+dropped rather than quietly returning a degraded video. **Always surface these to the user.**
+
+#### Requirements for the `capcut` backend
+
+| Permission | Why | Where |
+|---|---|---|
+| **Accessibility** | Read CapCut's UI and drive its menus | System Settings → Privacy & Security → Accessibility |
+| **Automation → CapCut** | Bring CapCut to the foreground | Granted on first use |
+
+It also needs `pyobjc-framework-Quartz` (installed automatically from `requirements.txt` on macOS).
+
+> **Safe alongside other apps.** Every click is hit-tested against the window actually on screen
+> and is refused unless it belongs to CapCut, so an export aborts with a clear error rather than
+> clicking into whatever else you are doing — a screen-recorded call included. CapCut does need to
+> be visible on the active Space while the export runs, and exports are serialised because they
+> share one GUI.
+
+> **Encoder settings:** the `capcut` backend cannot operate CapCut's export-dialog dropdowns. Set
+> your preferred resolution/format once by hand in CapCut and it persists for later exports.
 
 ---
 
