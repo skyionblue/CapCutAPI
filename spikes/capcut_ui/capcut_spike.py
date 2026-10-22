@@ -4,11 +4,20 @@ import subprocess, json, sys, time
 
 APP = "CapCut"
 
-def osa(script, timeout=60):
-    p = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=timeout)
-    if p.returncode != 0:
-        raise RuntimeError(p.stderr.strip())
-    return p.stdout.strip()
+# CEF re-renders mutate the AX tree mid-enumeration; these are transient.
+TRANSIENT = ("-1719", "-1728", "Invalid index", "can\u2019t get", "Can\u2019t get")
+
+def osa(script, timeout=60, retries=4):
+    last = None
+    for attempt in range(retries):
+        p = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=timeout)
+        if p.returncode == 0:
+            return p.stdout.strip()
+        last = p.stderr.strip()
+        if not any(t in last for t in TRANSIENT):
+            break
+        time.sleep(0.4 * (attempt + 1))
+    raise RuntimeError(last)
 
 def menu_item_enabled(menu, item):
     s = f'''tell application "System Events" to tell process "{APP}"

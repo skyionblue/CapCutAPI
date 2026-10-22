@@ -2,7 +2,7 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phase 0 in progress — see `spikes/capcut_ui/FINDINGS.md`
+**Status:** Phase 0 COMPLETE (gate passed) — see `spikes/capcut_ui/FINDINGS.md`. Phase 1 next.
 
 ---
 
@@ -108,27 +108,33 @@ Everything in Phase 2 depends on the answer. Timebox this before committing to t
 unattended, twice in a row.
 
 
-#### Phase 0 Outcome (2026-10-22) — PARTIAL, gate not yet passed
+#### Phase 0 Outcome (2026-10-22) — GATE PASSED
 
-Full results: **`spikes/capcut_ui/FINDINGS.md`**. Summary:
+Full results: **`spikes/capcut_ui/FINDINGS.md`**.
 
-- **Confirmed working:** Accessibility is granted and CapCut 9.3.0 exposes named automation
-  elements (`HomePageDraftTitle:<folder>`, `MainWindowTitleBarExportBtn`, `ExportOkBtn`, …);
-  File → Export is **Cmd+E**; the export dialog is an `AXSheet` and is fully mapped; opening a
-  draft by CGEvent double-click works in ~1s; the Export menu item's `enabled` state is a usable
-  state probe.
-- **Confirmed broken:** System Events `click at` does nothing (CEF) — CoreGraphics events with a
-  real cursor move are required (`pyobjc-framework-Quartz`); window indices are unstable; export
-  dialog text fields cannot be focused or typed into; Screen Recording is not granted.
-- **BLOCKER:** `tell application "CapCut" to activate` silently fails when another app is
-  frontmost, so injected clicks and keystrokes can land **in the wrong application**. No export
-  was successfully triggered. Every synthetic event must be gated on a frontmost assertion, and
-  bare keystrokes must not be used at all.
-- **Design change adopted:** do not set the output path in the dialog. Read the planned path from
-  the AX tree, export, then move the file to the caller's `output_path`.
+**Two consecutive unattended exports of draft `1019` succeeded**, verified with `ffprobe`
+(H.264 720x1280 @30fps, AAC, 15.066667 s — matching the draft's registry duration exactly).
 
-**Gate decision:** CapCut backend is *not* promoted to primary yet. Resolve the focus problem and
-validate the completion signal first; meanwhile start Phase 1 and Phase 3, which carry no GUI risk.
+Key results:
+
+- CapCut 9.3.0 exposes named automation elements (`HomePageDraftTitle:<draft_id>`,
+  `ExportOkBtn`, `automationcloseBtn`, …). `File > Export` is a real menu item (Cmd+E).
+- **Root cause of early failures was macOS Spaces, not permissions.** `frontmost` returned
+  `true` while CapCut was on a non-visible Space, so positional clicks landed in another
+  application. **AX frontmost alone is unsafe and must never be relied on.**
+- **Fix:** hit-test every click against `CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly)`
+  and refuse to click unless the target pixel belongs to CapCut. Validated both directions.
+  This makes the backend safe to run alongside other apps, including a screen-recorded call.
+- `AXPress` works on native menus but **not** on CEF buttons — those need real CGEvent clicks
+  (`pyobjc-framework-Quartz`). Window geometry changes mid-session, so coordinates must be
+  re-read immediately before every click.
+- A **post-export success panel** persists and blocks the next export; it must be dismissed via
+  `automationcloseBtn`.
+- **Design confirmed:** read the planned output path from the AX tree rather than setting it —
+  CapCut auto-renames on collision (`1019(1).mp4`) and the AX value reflects that.
+
+**Gate decision:** CapCut backend is **promoted to primary**, as originally intended. Phase 1
+(plumbing) is next; Phase 3 (ffmpeg) remains valuable for headless/server use.
 
 ---
 
