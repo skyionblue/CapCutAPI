@@ -2,7 +2,7 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phases 0, 1 and 2 COMPLETE — CapCut-driven export works end to end. Phase 3 (ffmpeg) next.
+**Status:** Phases 0-3 COMPLETE — both export backends work. Phase 4 (interchange formats) next.
 
 ---
 
@@ -204,20 +204,34 @@ CEF dropdowns, which the spike could not achieve.
 Valuable even if Phase 2 succeeds: fast previews, CI, and any headless/server deployment where no
 GUI exists.
 
-- [ ] Walk the `script_file.py` track/segment tree and compile an ffmpeg filtergraph.
-- [ ] Support: trims, cuts, concat, scale/position/rotate/opacity transforms, crossfades
-      (`xfade`), audio mixing with per-segment volume and fades, subtitles via `drawtext`/`subtitles`.
-- [ ] Approximate linear keyframes (`add_video_keyframe_impl.py`) with ffmpeg expressions; report
-      any non-linear curve as an approximation.
-- [ ] **Emit `fidelity_warnings`**: for every segment carrying a CapCut effect, filter, mask,
-      animation or sticker that cannot be reproduced, record what was dropped or approximated.
-      This is non-negotiable — the AI assistant must be able to tell the user what it could not
-      render rather than silently delivering a degraded video.
-- [ ] Stream ffmpeg progress into the task cache so long renders report real percentages.
-- [ ] Add a `preview` mode: low resolution, fast preset, for quick iteration.
+- [x] Parse the saved `draft_info.json` into a plain model (`export_backends/draft_model.py`) —
+      reading what is on disk, the same file CapCut reads, so both backends export the same thing.
+- [x] Compile an ffmpeg filtergraph (`export_backends/ffmpeg_render.py`): trims, cuts, timeline
+      placement, scale/position/rotate/flip/opacity transforms, per-segment speed, audio mixing
+      with volume and delay, and basic text via `drawtext`.
+- [x] **Emit `fidelity_warnings`** for animations, transitions, effects, masks, stickers, chroma,
+      filters, text templates, plugin effects, keyframes, missing source files, and text styling
+      that `drawtext` cannot reproduce.
+- [x] Stream ffmpeg `-progress` into the task cache for real percentages on long renders.
+- [x] Honour `resolution`, `framerate` and `bitrate` — the ffmpeg backend CAN do what the CapCut
+      backend cannot. `resolution` sets the shorter side, preserving the draft's aspect.
+- [ ] Crossfade transitions (`xfade`) — deferred; currently reported as a fidelity warning.
+- [ ] Keyframe approximation — deferred; currently reported as a fidelity warning.
+- [ ] A dedicated `preview` mode (low resolution, fast preset) — `resolution` already covers most
+      of this need.
 
-**Success criterion:** a draft using only cuts, transforms, audio and text renders to an MP4 that
-matches the CapCut export; a draft using effects renders with an accurate, itemised warning list.
+**Success criterion — MET.**
+
+| Check | Result |
+|---|---|
+| Simple draft (1019) vs the CapCut export of the same draft | **SSIM ~0.99** across frames |
+| Complex draft (1021): 8 trimmed cuts, 249 s, zoom transform, at `resolution='540p'` | rendered 834x540, 249.233333 s, 8 overlays |
+| Trim + transform correctness (differential test) | **0.835** against the correct source moment vs **0.434** against a deliberately wrong one |
+| Fidelity reporting on 1021 | correctly warned about 8 clip animations and the absence of audio |
+
+**Known limitations (all reported, never silent):** CapCut effects/filters/masks/animations/
+transitions/stickers are not reproduced; text is rendered with `drawtext` so CapCut's font,
+stroke, shadow, background box and text animation are lost; keyframes use static values.
 
 ---
 

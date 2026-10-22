@@ -519,9 +519,20 @@ TOOLS: List[Dict[str, Any]] = [
                     "description": "Where to write the finished video. A directory is also accepted. "
                                    "Defaults to wherever the backend writes it.",
                 },
-                "resolution": {"type": "string", "description": "e.g. '1080p'. Omit for the backend default."},
-                "framerate": {"type": "integer", "description": "e.g. 30. Omit for the backend default."},
-                "bitrate": {"type": "string", "description": "e.g. '8M'. Omit for the backend default."},
+                "resolution": {
+                    "type": "string",
+                    "description": "e.g. '1080p' — sets the SHORTER side, preserving the draft's aspect "
+                                   "(so 1920x1080 landscape, 1080x1920 portrait). Honoured by the ffmpeg "
+                                   "backend only; the capcut backend reports it in fidelity_warnings.",
+                },
+                "framerate": {
+                    "type": "integer",
+                    "description": "e.g. 30. ffmpeg backend only; capcut reports it in fidelity_warnings.",
+                },
+                "bitrate": {
+                    "type": "string",
+                    "description": "e.g. '8M'. ffmpeg backend only; capcut reports it in fidelity_warnings.",
+                },
                 "draft_folder": {"type": "string", "description": f"Override the CapCut drafts folder. Defaults to {DEFAULT_DRAFT_FOLDER}"},
             },
             "required": ["draft_id"],
