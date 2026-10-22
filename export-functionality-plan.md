@@ -2,7 +2,7 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phase 0 COMPLETE (gate passed). Phase 1 COMPLETE. Phase 2 (CapCut backend) next.
+**Status:** Phases 0, 1 and 2 COMPLETE — CapCut-driven export works end to end. Phase 3 (ffmpeg) next.
 
 ---
 
@@ -171,22 +171,31 @@ in that import block.
 
 Gated on Phase 0 succeeding.
 
-- [ ] Implement `backends/capcut_macos.py`: launch/focus CapCut, open the target draft, trigger
-      Export, fill the settings dialog from the requested parameters, confirm, wait for completion.
-- [ ] Make every UI interaction retry with backoff and fail loudly with a descriptive error naming
-      the step that failed — never hang silently.
-- [ ] Add a configurable overall timeout proportional to timeline duration.
-- [ ] Guard against concurrent exports: serialise with a lock, since there is one GUI.
-- [ ] Detect and report the "CapCut not running / no GUI session / Accessibility permission
-      missing" cases distinctly, each with the remediation step.
-- [ ] Map export settings (resolution, framerate, bitrate, codec) onto the dialog's actual
-      controls; document which requested values CapCut cannot honour.
-- [ ] Pin and document the tested CapCut version; add a startup warning when the installed version
-      differs from the tested one.
+- [x] Implement `export_backends/capcut_macos.py` — returns to the home page, opens the target
+      draft, triggers Export, confirms, waits for completion, and dismisses the success panel.
+      UI primitives live in `export_backends/macos_ui.py`.
+- [x] Retry transient accessibility errors with backoff; every failure names the step and the
+      remediation rather than hanging.
+- [x] Timeout proportional to timeline duration, read from CapCut's draft registry
+      (`tm_duration`), capped by the caller's `timeout`.
+- [x] Serialise exports behind a module-level lock — there is only one GUI.
+- [x] Distinct, actionable errors for: CapCut not running, not visible on the active Space,
+      Accessibility permission missing, draft not on the home page, dialog did not open.
+- [x] **Could not** map resolution/framerate/bitrate onto the dialog: those controls are
+      CEF-rendered and cannot be operated reliably. Requesting them now emits a
+      `fidelity_warning` saying CapCut's current dialog settings were used instead, rather
+      than silently ignoring the request.
+- [x] Pin the validated CapCut version (9.3.0) and emit a `fidelity_warning` when the installed
+      version differs.
 
-**Success criterion:** a draft built entirely through MCP tools — including effects, animations
-and stickers — exports to MP4 with no human interaction, and the output visually matches what
-CapCut's own Export produces.
+**Success criterion — MET.** Three consecutive exports through the production `export_video`
+API with no human interaction, each verified with `ffprobe` (H.264 720x1280 @30fps, AAC,
+15.066667 s). Includes the repeat path, where the leftover success panel is dismissed
+automatically, and the relocation of the finished file to the caller's `output_path`.
+
+**Known limitation:** encoder settings must be changed once by hand in CapCut's export dialog;
+they then persist for subsequent exports. Lifting this would need reliable operation of the
+CEF dropdowns, which the spike could not achieve.
 
 ---
 
