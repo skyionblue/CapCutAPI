@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Proposed — not started
+**Status:** Tier A COMPLETE and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. Tier B and remaining Tier C proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -27,65 +27,48 @@ each can be re-checked rather than taken on trust. They fall into three tiers:
 
 Small, independent, and wrong in ways a reviewer or new user will hit immediately.
 
-### Phase A1 — Fix packaging metadata
+### Phase A1 — Fix packaging metadata — **COMPLETE (2026-10-23)**
 
-`pyproject.toml` declares eight dependencies that are imported **nowhere** in the project, and
-omits every dependency that is actually used. `pip install .` therefore produces a non-working
-install.
+- [x] Replaced `[project].dependencies` — it declared `fastapi`, `uvicorn`, `pydantic`,
+      `Pillow`, `numpy`, `opencv-python`, `ffmpeg-python` and `websockets`, none of which the
+      project imports — with the real set, mirroring `requirements.txt`.
+- [x] Carried over the macOS-gated `pyobjc-framework-Quartz`.
+- [x] `mcp` extra now mirrors `requirements-mcp.txt`; added a `dev` extra (`pytest`, `flake8`).
+- [x] Noted in the file that `ffmpeg`/`ffprobe` are required at runtime but are external
+      binaries that cannot be installed from here.
+- [x] **Additional defect found: `pip install .` had never worked at all.** The build failed
+      with *"Multiple top-level packages discovered in a flat-layout"* — setuptools cannot
+      auto-discover this project's mix of top-level modules and packages. Discovery is now
+      declared explicitly under `[tool.setuptools]`.
 
-Declared but unused: `fastapi`, `uvicorn[standard]`, `pydantic`, `Pillow`, `numpy`,
-`opencv-python`, `ffmpeg-python`, `websockets` (verified by grepping for each import).
-Actually used, but only present in `requirements.txt`: `flask`, `requests`, `oss2`, `imageio`,
-`psutil`.
+**Validated:** a clean venv (Python 3.14) installed `.[mcp]` successfully, then imported
+`capcut_server`, `mcp_server` and `export_impl` — 29 url rules, 21 MCP tools, preflight
+resolving a backend.
 
-- [ ] Replace `[project].dependencies` with the real runtime set.
-- [ ] Carry over the macOS-gated `pyobjc-framework-Quartz; sys_platform == "darwin"` already in
-      `requirements.txt` (needed by the CapCut export backend).
-- [ ] Reconcile `requirements.txt` / `requirements-mcp.txt` with `pyproject.toml` so there is one
-      source of truth; keep the `mcp` extra for the MCP-only dependencies.
-- [ ] Decide whether `ffmpeg` (the binary, not the Python package) belongs in documented
-      prerequisites — it is a hard runtime dependency of `downloader.py`,
-      `get_duration_impl.py` and the ffmpeg export backend, but cannot be pip-installed.
+**Still open (deliberately not changed):** `psutil` is declared in `requirements.txt` but
+imported nowhere, and `aiohttp`/`pydantic` arrive transitively through `mcp`. Left in place so
+this phase did not silently alter anyone's environment; worth verifying before removal.
 
-**Validation:** `pip install .` into a clean venv, then start both servers and run one
-`create_draft` → `add_video` → `save_draft` cycle.
+### Phase A2 — Licence — **RESOLVED (2026-10-23): claims removed, decision deferred**
 
-**Completion criteria:** a clean-venv install from `pyproject.toml` alone runs the servers with
-no `ModuleNotFoundError`.
+Owner decision: assert nothing until the upstream position is confirmed. A derivative cannot be
+licensed more permissively than what it derives from, and this project descends from
+`sun-guannan/CapCutAPI` while vendoring `pyJianYingDraft`.
 
-### Phase A2 — Resolve the licence inconsistency
+- [x] Removed the Apache 2.0 README badge, which linked to a `LICENSE` file that did not exist.
+- [x] Replaced the README licence section — which reproduced the full Apache 2.0 notice — with
+      an explicit statement that no licence is currently granted.
+- [x] Removed the contradicting `License :: OSI Approved :: MIT License` classifier.
+- [x] No `LICENSE` file created.
+- [ ] **Follow-up:** confirm the licences of `sun-guannan/CapCutAPI` and of the vendored
+      `pyJianYingDraft`, then adopt a compatible licence and restore the badge.
 
-Three sources disagree and the referenced file does not exist:
+### Phase A3 — Remove the remaining fork references — **COMPLETE (2026-10-23)**
 
-| Source | Says |
-|---|---|
-| `README.md:7` (badge) and `README.md:533` | Apache 2.0, linking to `LICENSE` |
-| `pyproject.toml:14` | `License :: OSI Approved :: MIT License` |
-| Repository root | **No `LICENSE` file at all** |
-
-- [ ] Confirm the intended licence (the README asserts Apache 2.0 in two places, so that is the
-      likely intent — **owner decision required**).
-- [ ] Add the full licence text as `LICENSE`.
-- [ ] Correct the `pyproject.toml` classifier to match.
-- [ ] Check `pyJianYingDraft/` and `template/` for third-party licence obligations that need
-      attribution.
-
-**Completion criteria:** one licence asserted consistently in all three places, with the file present.
-
-### Phase A3 — Remove the remaining fork references
-
-Fork references were cleaned from the README in `28dec9c` and from the MCP docs in `2563d2d`, but
-`pyproject.toml` was missed:
-
-- `pyproject.toml:43` `Homepage = "https://github.com/ashreo/CapCutAPI"`
-- `pyproject.toml:44` `Repository = ".../ashreo/CapCutAPI.git"`
-- `pyproject.toml:45` `Issues = ".../ashreo/CapCutAPI/issues"`
-
-- [ ] Repoint all three at `skyionblue/CapCutAPI`.
-- [ ] Sweep the tree for any other stale upstream references
-      (`grep -ri "ashreo\|upstream" --include=* .`).
-
-**Completion criteria:** no references to the upstream repository remain outside git history.
+- [x] `pyproject.toml:43-45` `Homepage`/`Repository`/`Issues` repointed from
+      `ashreo/CapCutAPI` to `skyionblue/CapCutAPI`.
+- [x] Swept the tree: no references to the upstream repository remain outside git history and
+      this plan.
 
 ---
 
@@ -150,33 +133,56 @@ progress through `query_draft_status`.
 
 ## Tier C — Engineering quality
 
-### Phase C1 — Add a test suite and CI
+### Phase C1 — Add a test suite — **COMPLETE (2026-10-23)**
 
-There are no automated tests. `test_mcp_client.py` is a manual connectivity script, not a suite.
-Everything in the export work was verified by hand and none of it is repeatable.
+Delivered on `feature/tests-and-ci`. **63 tests, running in ~0.2 s, with no CapCut installed.**
 
-The export code is unusually well suited to testing because its core is **pure**: given a draft
-JSON, `draft_model.load_draft` produces a parsed model and `ffmpeg_render.build_command` produces
-an argv list — no GUI, no rendering, no network.
+- [x] `pytest` added, with config in `pyproject.toml` (`testpaths`, `pythonpath`, a `gui`
+      marker excluded by default).
+- [x] `tests/conftest.py` builds draft fixtures in **both shapes**: as this API writes them
+      (no `has_audio` key, real paths) and as CapCut rewrites them (`has_audio` set,
+      `##_draftpath_placeholder_<uuid>_##` paths). Testing only the second shape is precisely
+      how the two defects in `e2a4b75` reached main.
+- [x] Tiny real media generated with ffmpeg at session scope, so audio probing is exercised
+      for real rather than mocked.
+- [x] `test_draft_model.py` (16) — including **regression tests for both `e2a4b75` defects**.
+- [x] `test_ffmpeg_render.py` (29) — overlay count, input seeking against source ranges, audio
+      mapping, the resolution "shorter side" rule in both orientations, even-dimension
+      enforcement, `_atempo_chain` outside 0.5–2.0, drawtext escaping.
+- [x] `test_export_task_cache.py` (11) — LRU eviction and refresh, warning accumulation,
+      snapshot isolation.
+- [x] `test_export_impl.py` (12) — backend resolution, validation, async contract, failure
+      recording.
+- [x] Documented in the README so the suite is discoverable without a pipeline.
+- [~] **CI deferred.** There is no build pipeline for this project at present, by
+      decision. A GitHub Actions workflow was written and removed again: with no
+      runner it only produced a failed check on every push and implied a safety net
+      that did not exist. The suite is fast and dependency-light precisely so it
+      stays useful when run by hand.
 
-- [ ] Add `pytest` (dev dependency) and a `tests/` package.
-- [ ] Unit tests for `draft_model.load_draft`: canvas/fps/duration parsing, segment trims and
-      transforms, and that each unsupported material collection produces a fidelity warning.
-- [ ] Unit tests for `ffmpeg_render.build_command`: overlay count matches visible segments,
-      `-ss`/`-t` match segment source ranges, `_output_size` resolution maths (including the
-      "shorter side" rule in both orientations), and `_atempo_chain` outside the 0.5–2.0 range.
-- [ ] Unit tests for `export_task_cache`: LRU eviction, `fidelity_warnings` accumulation,
-      `not_found` for unknown ids.
-- [ ] Tests for `export_impl.resolve_backend` using monkeypatched availability probes.
-- [ ] Commit a small fixture draft JSON so tests need no CapCut installation.
-- [ ] Mark anything requiring a GUI as `@pytest.mark.gui` and exclude it by default.
-- [ ] GitHub Actions workflow running `flake8` and `pytest` on push and PR.
+**The regression tests were verified against the broken code**, not just the fixed code: both
+fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either way proves nothing.
 
-**Why this first among Tier C:** it protects the export work from a silent CapCut draft-format
-change, which would otherwise surface as a corrupted render rather than an error.
+**Two defects found while writing these tests:**
 
-**Completion criteria:** `pytest` passes from a clean checkout with no CapCut installed, and CI
-runs on every PR.
+1. **`export_task_cache` leaked mutable state.** `dict.copy()` is shallow, so every caller shared
+   the `fidelity_warnings` list with the cache and appending to it silently rewrote recorded
+   status. Fixed with a `_snapshot()` helper that copies the list.
+2. **`.flake8` excluded `pyJianYingDraft\metadata\font_meta.py` using Windows separators**, so
+   that exclusion never matched on macOS or Linux, and the `capcut_*` metadata tables were not
+   excluded at all. Replaced with a single directory exclusion; `.venv` is now excluded too
+   (linting it produced 83,566 findings).
+
+### Phase C5 — Burn down the legacy lint debt
+
+With `.venv` and generated metadata excluded, the pre-existing modules carry **836 flake8
+findings** (`example.py` 212, `save_draft_impl.py` 102, `capcut_server.py` 88, …). CI lints the
+export modules and tests **strictly**, and the whole repo **advisorily** (`continue-on-error`), so
+the debt stays visible without CI being red from day one.
+
+- [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
+
+**Completion criteria:** `flake8 .` is clean from the repository root.
 
 ### Phase C2 — Remove the duplicated server layers
 
@@ -222,8 +228,9 @@ Carried over from `export-functionality-plan.md`, all optional:
 A1, A2, A3  ── independent, any order
 B1          ── independent; highest value
 B2          ── best after B1 (persistence makes async safer)
-C1          ── independent; prerequisite for C2
-C2          ── REQUIRES C1
+C1          ── DONE; prerequisite for C2
+C2          ── REQUIRES C1 (now unblocked)
+C5          ── independent; pairs naturally with C2
 C3          ── only before non-local exposure
 C4          ── independent, optional
 ```

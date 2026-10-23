@@ -11,35 +11,54 @@ requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
+# Mirrors requirements.txt. Note that ffmpeg and ffprobe are also required at runtime
+# (downloader.py, get_duration_impl.py, the ffmpeg export backend) but are external
+# binaries and cannot be installed from here.
 dependencies = [
-    "requests>=2.28.0",
-    "Pillow>=9.0.0",
-    "numpy>=1.21.0",
-    "opencv-python>=4.6.0",
-    "ffmpeg-python>=0.2.0",
-    "pydantic>=2.0.0",
-    "fastapi>=0.100.0",
-    "uvicorn[standard]>=0.23.0",
+    "flask",
+    "requests",
+    "oss2",
+    "imageio",
+    "psutil",
+    # Required by the CapCut GUI export backend, which drives the app with CoreGraphics events.
+    'pyobjc-framework-Quartz; sys_platform == "darwin"',
 ]
 
 [project.optional-dependencies]
+# Mirrors requirements-mcp.txt.
 mcp = [
     "mcp>=1.0.0",
     "aiohttp>=3.8.0",
-    "websockets>=11.0",
-    "jsonrpc-base>=2.2.0",
-    "jsonrpc-websocket>=3.1.0",
-    "jsonrpc-async>=2.1.0",
+    "pydantic>=2.0.0",
+]
+dev = [
+    "pytest",
+    "flake8",
 ]
 
 [project.urls]
-Homepage = "https://github.com/ashreo/CapCutAPI"
-Repository = "https://github.com/ashreo/CapCutAPI.git"
-Issues = "https://github.com/ashreo/CapCutAPI/issues"
+Homepage = "https://github.com/skyionblue/CapCutAPI"
+Repository = "https://github.com/skyionblue/CapCutAPI.git"
+Issues = "https://github.com/skyionblue/CapCutAPI/issues"
+
+# This project is a flat layout: top-level modules alongside several packages. Setuptools
+# cannot auto-discover that, so discovery is declared explicitly -- without this,
+# `pip install .` fails with "Multiple top-level packages discovered in a flat-layout".
+[tool.setuptools]
+packages = ["export_backends", "pyJianYingDraft", "settings"]
+py-modules = ["add_audio_track", "add_effect_impl", "add_image_impl", "add_sticker_impl", "add_subtitle_impl", "add_text_impl", "add_video_keyframe_impl", "add_video_track", "capcut_server", "create_draft", "downloader", "draft_cache", "export_impl", "export_task_cache", "get_duration_impl", "mcp_server", "oss", "save_draft_impl", "save_task_cache", "util"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Keep the repository root importable so tests can import the top-level modules.
+pythonpath = ["."]
+markers = [
+    "gui: requires a macOS GUI session with CapCut installed (excluded by default)",
+]
+addopts = "-m 'not gui'"
