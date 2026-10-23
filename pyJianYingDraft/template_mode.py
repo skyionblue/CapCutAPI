@@ -1,4 +1,4 @@
-"""与模板模式相关的类及函数等"""
+"""Template-mode types and helpers."""
 
 from enum import Enum
 from copy import deepcopy
@@ -17,38 +17,38 @@ from .metadata import CapCut_Voice_filters_effect_type, CapCut_Voice_characters_
 from typing import List, Dict, Any
 
 class Shrink_mode(Enum):
-    """处理替换素材时素材变短情况的方法"""
+    """Strategies for when a replacement material is shorter than the original."""
 
     cut_head = "cut_head"
-    """裁剪头部, 即后移片段起始点"""
+    """Trim the head, moving the segment's start point later."""
     cut_tail = "cut_tail"
-    """裁剪尾部, 即前移片段终止点"""
+    """Trim the tail, moving the segment's end point earlier."""
 
     cut_tail_align = "cut_tail_align"
-    """裁剪尾部并消除间隙, 即前移片段终止点, 后续片段也依次前移"""
+    """Trim the tail and close the gap, pulling the following segments earlier too."""
 
     shrink = "shrink"
-    """保持中间点不变, 两端点向中间靠拢"""
+    """Keep the midpoint fixed, drawing both ends inward."""
 
 class Extend_mode(Enum):
-    """处理替换素材时素材变长情况的方法"""
+    """Strategies for when a replacement material is longer than the original."""
 
     cut_material_tail = "cut_material_tail"
-    """裁剪素材尾部(覆盖`source_timerange`参数), 使得片段维持原长不变, 此方法总是成功"""
+    """Trim the material's tail (overriding `source_timerange`) so the segment keeps its length. Always succeeds."""
 
     extend_head = "extend_head"
-    """延伸头部, 即尝试前移片段起始点, 与前续片段重合时失败"""
+    """Extend the head, moving the start point earlier; fails if it would overlap the previous segment."""
     extend_tail = "extend_tail"
-    """延伸尾部, 即尝试后移片段终止点, 与后续片段重合时失败"""
+    """Extend the tail, moving the end point later; fails if it would overlap the next segment."""
 
     push_tail = "push_tail"
-    """延伸尾部, 若有必要则依次后移后续片段, 此方法总是成功"""
+    """Extend the tail, pushing the following segments later if needed. Always succeeds."""
 
 class ImportedSegment(Base_segment):
-    """导入的片段"""
+    """An imported segment."""
 
     raw_data: Dict[str, Any]
-    """原始json数据"""
+    """The original JSON data."""
 
     __DATA_ATTRS = ["material_id", "target_timerange"]
     def __init__(self, json_data: Dict[str, Any]):
@@ -62,10 +62,10 @@ class ImportedSegment(Base_segment):
         return json_data
 
 class ImportedMediaSegment(ImportedSegment):
-    """导入的视频/音频片段"""
+    """An imported video or audio segment."""
 
     source_timerange: Timerange
-    """片段取用的素材时间范围"""
+    """The portion of the material this segment uses."""
 
     __DATA_ATTRS = ["source_timerange"]
     def __init__(self, json_data: Dict[str, Any]):
@@ -80,10 +80,10 @@ class ImportedMediaSegment(ImportedSegment):
 
 
 class ImportedTrack(Base_track):
-    """模板模式下导入的轨道"""
+    """A track imported in template mode."""
 
     raw_data: Dict[str, Any]
-    """原始轨道数据"""
+    """The original track data."""
 
     def __init__(self, json_data: Dict[str, Any]):
         self.track_type = Track_type.from_name(json_data["type"])
@@ -102,31 +102,31 @@ class ImportedTrack(Base_track):
         return ret
 
 class EditableTrack(ImportedTrack):
-    """模板模式下导入且可修改的轨道(音视频及文本轨道)"""
+    """An imported track that may still be modified: audio, video and text tracks."""
 
     segments: List[ImportedSegment]
-    """该轨道包含的片段列表"""
+    """The segments on this track."""
 
     def __len__(self):
         return len(self.segments)
 
     @property
     def start_time(self) -> int:
-        """轨道起始时间, 微秒"""
+        """Track start time, in microseconds."""
         if len(self.segments) == 0:
             return 0
         return self.segments[0].target_timerange.start
 
     @property
     def end_time(self) -> int:
-        """轨道结束时间, 微秒"""
+        """Track end time, in microseconds."""
         if len(self.segments) == 0:
             return 0
         return self.segments[-1].target_timerange.end
 
     def export_json(self) -> Dict[str, Any]:
         ret = super().export_json()
-        # 为每个片段写入render_index
+        # Write render_index onto each segment
         segment_exports = [seg.export_json() for seg in self.segments]
         for seg in segment_exports:
             seg["render_index"] = self.render_index
@@ -134,24 +134,24 @@ class EditableTrack(ImportedTrack):
         return ret
 
 class ImportedTextTrack(EditableTrack):
-    """模板模式下导入的文本轨道"""
+    """A text track imported in template mode."""
 
     def __init__(self, json_data: Dict[str, Any]):
         super().__init__(json_data)
         self.segments = [ImportedSegment(seg) for seg in json_data["segments"]]
 
 class ImportedMediaTrack(EditableTrack):
-    """模板模式下导入的音频/视频轨道"""
+    """An audio or video track imported in template mode."""
 
     segments: List[ImportedMediaSegment]
-    """该轨道包含的片段列表"""
+    """The segments on this track."""
 
     def __init__(self, json_data: Dict[str, Any]):
         super().__init__(json_data)
         self.segments = [ImportedMediaSegment(seg) for seg in json_data["segments"]]
 
     def check_material_type(self, material: object) -> bool:
-        """检查素材类型是否与轨道类型匹配"""
+        """Check the material type matches the track type."""
         if self.track_type == Track_type.video and isinstance(material, Video_material):
             return True
         if self.track_type == Track_type.audio and isinstance(material, Audio_material):
@@ -160,11 +160,11 @@ class ImportedMediaTrack(EditableTrack):
 
     def process_timerange(self, seg_index: int, src_timerange: Timerange,
                           shrink: Shrink_mode, extend: List[Extend_mode]) -> None:
-        """处理素材替换的时间范围变更"""
+        """Apply the time-range change caused by replacing a material."""
         seg = self.segments[seg_index]
         new_duration = src_timerange.duration
 
-        # 时长变短
+        # The replacement is shorter
         delta_duration = abs(new_duration - seg.duration)
         if new_duration < seg.duration:
             if shrink == Shrink_mode.cut_head:
@@ -173,14 +173,14 @@ class ImportedMediaTrack(EditableTrack):
                 seg.duration -= delta_duration
             elif shrink == Shrink_mode.cut_tail_align:
                 seg.duration -= delta_duration
-                for i in range(seg_index + 1, len(self.segments)):  # 后续片段也依次前移相应值（保持间隙）
+                for i in range(seg_index + 1, len(self.segments)):  # shift the following segments, preserving gaps
                     self.segments[i].start -= delta_duration
             elif shrink == Shrink_mode.shrink:
                 seg.duration -= delta_duration
                 seg.start += delta_duration // 2
             else:
                 raise ValueError(f"Unsupported shrink mode: {shrink}")
-        # 时长变长
+        # The replacement is longer
         elif new_duration > seg.duration:
             success_flag = False
             prev_seg_end = int(0) if seg_index == 0 else self.segments[seg_index - 1].target_timerange.end
@@ -197,7 +197,7 @@ class ImportedMediaTrack(EditableTrack):
                 elif mode == Extend_mode.push_tail:
                     shift_duration = max(0, seg.target_timerange.end + delta_duration - next_seg_start)
                     seg.duration += delta_duration
-                    if shift_duration > 0:  # 有必要时后移后续片段
+                    if shift_duration > 0:  # push the following segments later when needed
                         for i in range(seg_index + 1, len(self.segments)):
                             self.segments[i].start += shift_duration
                     success_flag = True
@@ -210,18 +210,18 @@ class ImportedMediaTrack(EditableTrack):
                 if success_flag:
                     break
             if not success_flag:
-                raise exceptions.ExtensionFailed(f"未能将片段延长至 {new_duration}μs, 尝试过以下方法: {extend}")
+                raise exceptions.ExtensionFailed(f"Could not extend the segment to {new_duration}us; tried: {extend}")
 
-        # 写入素材时间范围
+        # Write the material time range
         seg.source_timerange = src_timerange
 
 def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] = None) -> Track:
-    """导入轨道
-    :param json_data: 轨道数据
-    :param imported_materials: 已导入的素材数据，用于创建片段的material实例
+    """Import a track.
+    :param json_data: the track data
+    :param imported_materials: already-imported material data, used to build each segment's material
     """
     track_type = Track_type.from_name(json_data["type"])
-    # 创建新的Track实例，保留所有原始属性
+    # Build the Track, preserving every original attribute
     track = Track(
         track_type=track_type,
         name=json_data["name"],
@@ -229,23 +229,23 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
         mute=bool(json_data.get("attribute", 0))
     )
 
-    # 设置track_id，使用原始ID
+    # Keep the original track id
     track.track_id = json_data.get("id")
 
-    # 如果轨道类型允许修改，导入所有片段
+    # Import the segments when the track type allows modification
     if track_type.value.allow_modify and imported_materials:
         for segment_data in json_data.get("segments", []):
             material_id = segment_data.get("material_id")
             material = None
 
-            # 处理关键帧信息
+            # Keyframes
             common_keyframes = []
             for kf_list_data in segment_data.get("common_keyframes", []):
-                # 创建关键帧列表
+                # Build the keyframe list
                 kf_list = Keyframe_list(Keyframe_property(kf_list_data["property_type"]))
                 kf_list.list_id = kf_list_data["id"]
 
-                # 添加关键帧
+                # Add the keyframe
                 for kf_data in kf_list_data["keyframe_list"]:
                     keyframe = Keyframe(kf_data["time_offset"], kf_data["values"][0])
                     keyframe.kf_id = kf_data["id"]
@@ -254,16 +254,16 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
 
                 common_keyframes.append(kf_list)
 
-            # 根据轨道类型查找对应的素材
+            # Find the material matching the track type
             if track_type == Track_type.video:
-                # 从imported_materials中查找视频素材
+                # Look the video material up in imported_materials
                 for video_material in imported_materials.get("videos", []):
                     if video_material["id"] == material_id:
                         material = Video_material.from_dict(video_material)
                         break
 
                 if material:
-                    # 创建视频片段
+                    # Build the video segment
                     segment = Video_segment(
                         material=material,
                         target_timerange=Timerange(
@@ -288,14 +288,14 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
                     track.segments.append(segment)
 
             elif track_type == Track_type.audio:
-                # 从imported_materials中查找音频素材
+                # Look the audio material up in imported_materials
                 for audio_material in imported_materials.get("audios", []):
                     if audio_material["id"] == material_id:
                         material = Audio_material.from_dict(audio_material)
                         break
 
                 if material:
-                    # 创建音频片段
+                    # Build the audio segment
                     segment = Audio_segment(
                         material=material,
                         target_timerange=Timerange(
@@ -304,15 +304,15 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
                         ),
                         volume=segment_data.get("volume", 1.0)
                     )
-                    # 添加音频效果
+                    # Add the audio effect
                     if "audio_effects" in imported_materials and imported_materials["audio_effects"]:
                         effect_data = imported_materials["audio_effects"][0]
-                        # 根据资源ID查找对应的效果类型
+                        # Find the effect type by resource id
                         for effect_enum in (CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type):
                             found = False
                             for effect_type in effect_enum:
                                 if effect_type.value.resource_id == effect_data["resource_id"]:
-                                    # 将参数值从0-1映射到0-100
+                                    # Map the parameter from 0-1 onto 0-100
                                     params = []
                                     for param in effect_data["audio_adjust_params"]:
                                         params.append(param["value"] * 100)
@@ -324,7 +324,7 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
                     segment.common_keyframes = common_keyframes
                     track.segments.append(segment)
             else:
-                # 其他类型片段保持原样
+                # Other segment types are left as they are
                 segment = ImportedSegment(segment_data)
                 segment.common_keyframes = common_keyframes
                 track.segments.append(segment)
