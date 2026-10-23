@@ -294,15 +294,21 @@ feature, not an afterthought.
 
 ## 7. Validation
 
-- [ ] Existing flows unchanged: `create_draft` → adds → `save_draft` still produces a draft CapCut
-      opens correctly.
-- [ ] End-to-end natural-language test: describe a video, let the AI build and export it, confirm
-      the MP4 matches the description without human intervention.
+- [x] Existing flows unchanged: `create_draft` → adds → `save_draft` still produces a draft CapCut
+      opens correctly. Confirmed by the end-to-end run below; CapCut opened and exported the draft.
+- [x] End-to-end natural-language test: describe a video, let the AI build and export it, confirm
+      the MP4 matches the description without human intervention. Run through the gateway only
+      (`search_tools`/`invoke_tool`): `create_draft` 1080x1920 → 2x `add_video` → `add_audio` →
+      `add_text` → `add_subtitle` → `query_script` → `save_draft` → `export_subtitles` →
+      `export_video`. Produced `promo.mp4`, 12.000s, 1080x1920, h264+aac, 1,332,462 bytes, with
+      both clips, the title and the captions confirmed in sampled frames. The run found two real
+      bugs -- a hardcoded subtitle width and home detection failing on an empty drafts folder --
+      both fixed in PR #16.
 - [x] Both backends exercised against the same draft; differences match the declared fidelity
       warnings.
 - [ ] Error paths tested: CapCut closed, permission missing, ffmpeg absent, bad `draft_id`,
       concurrent export requests.
-- [ ] `flake8` clean per `.flake8`.
+- [x] `flake8` clean per `.flake8`. Clean from the repository root; 198 tests pass, 1 skipped.
 
 ---
 
