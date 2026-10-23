@@ -29,4 +29,3 @@ class Transition_meta:
 
         self.default_duration = int(round(default_duration * 1e6))
         self.is_overlap = is_overlap
-

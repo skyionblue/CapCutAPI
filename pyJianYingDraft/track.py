@@ -94,7 +94,7 @@ class Track(Base_track, Generic[Seg_type]):
 
     def add_pending_keyframe(self, property_type: str, time: float, value: str) -> None:
         """添加待处理的关键帧
-        
+
         Args:
             property_type: 关键帧属性类型
             time: 关键帧时间点（秒）

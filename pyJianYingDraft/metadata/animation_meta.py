@@ -16,4 +16,3 @@ class Animation_meta:
         self.resource_id = resource_id
         self.effect_id = effect_id
         self.md5 = md5
-

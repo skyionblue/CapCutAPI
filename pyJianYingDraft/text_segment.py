@@ -260,7 +260,7 @@ class TextStyleRange:
 
     def __init__(self, start: int, end: int, style: Text_style, border: Optional[Text_border] = None, font_str: str = None):
         """创建文本样式范围
-        
+
         Args:
             start (`int`): 起始位置（包含）
             end (`int`): 结束位置（不包含）
@@ -282,7 +282,7 @@ class TextStyleRange:
 
     def get_range(self) -> List[int]:
         """获取范围列表
-        
+
         Returns:
             `List[int]`: [start, end] 形式的范围列表
         """

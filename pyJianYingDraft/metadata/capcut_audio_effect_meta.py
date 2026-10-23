@@ -141,4 +141,3 @@ class CapCut_Speech_to_song_effect_type(Effect_enum):
     """CapCut自带的Speech to song特效类型"""
 
     Folk         = Effect_meta("Folk", False, "7413437147539164421", "9A9C3804-5241-44E9-AF56-1BE8271083F2", "", [])
-

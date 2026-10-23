@@ -201,7 +201,7 @@ def add_sticker_impl(resource_id, start, end, draft_id=None, transform_x=0, tran
 def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None, value=None,
                            property_types=None, times=None, values=None):
     """API call to add video keyframe
-    
+
     Supports two modes:
     1. Single keyframe: using property_type, time, value parameters
     2. Batch keyframes: using property_types, times, values parameters (in list form)
@@ -828,7 +828,7 @@ def query_draft_status_impl(task_id):
 def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
     """
     Poll for draft download status, implemented with async thread to avoid blocking the main thread
-    
+
     :param task_id: task ID returned by save_draft_impl
     :param timeout: timeout in seconds, default 5 minutes
     :param callback: optional callback function called when task completes, fails or times out, with final status as parameter

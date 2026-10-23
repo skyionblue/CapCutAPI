@@ -47,4 +47,3 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
         height=height,
     )
     return generate_draft_id, script
-

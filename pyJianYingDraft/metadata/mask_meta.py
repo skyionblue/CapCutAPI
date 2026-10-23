@@ -27,4 +27,3 @@ class Mask_meta:
         self.md5 = md5
 
         self.default_aspect_ratio = default_aspect_ratio
-

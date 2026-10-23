@@ -329,7 +329,7 @@ def save_draft_impl(draft_id: str, draft_folder: str = None, wait: bool = True,
 def update_media_metadata(script, task_id=None):
     """
     Update metadata for all media files in the script (duration, width/height, etc.)
-    
+
     :param script: Draft script object
     :param task_id: Optional task ID for updating task status
     :return: None
@@ -571,7 +571,7 @@ def update_media_metadata(script, task_id=None):
 def query_script_impl(draft_id: str, force_update: bool = True):
     """
     Query draft script object, with option to force refresh media metadata
-    
+
     :param draft_id: Draft ID
     :param force_update: Whether to force refresh media metadata, default is True
     :return: Script object

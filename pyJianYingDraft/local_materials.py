@@ -206,10 +206,10 @@ class Video_material:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Video_material":
         """从字典创建视频素材对象
-        
+
         Args:
             data (Dict[str, Any]): 包含素材信息的字典
-            
+
         Returns:
             Video_material: 新创建的视频素材对象
         """
@@ -288,13 +288,13 @@ class Audio_material:
     def __init__(self, path: Optional[str] = None, replace_path=None, material_name: Optional[str] = None,
                  remote_url: Optional[str] = None, duration: Optional[float] = None):
         """从指定位置加载音频素材, 注意视频文件不应该作为音频素材使用
-    
+
         Args:
             path (`str`, optional): 素材文件路径, 支持mp3, wav等常见音频文件.
             material_name (`str`, optional): 素材名称, 如果不指定, 默认使用URL中的文件名作为素材名称.
             remote_url (`str`, optional): 远程URL地址.
             duration (`float`, optional): 音频时长（秒），如果提供则跳过ffprobe检测.
-    
+
         Raises:
             `ValueError`: 不支持的素材文件类型或缺少必要参数.
         """
@@ -386,10 +386,10 @@ class Audio_material:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Audio_material":
         """从字典创建音频素材对象
-        
+
         Args:
             data (Dict[str, Any]): 包含素材信息的字典
-            
+
         Returns:
             Audio_material: 新创建的音频素材对象
         """

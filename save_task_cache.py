@@ -8,7 +8,7 @@ MAX_TASKS_CACHE_SIZE = 1000
 
 def update_tasks_cache(task_id: str, task_status: dict) -> None:
     """Update task status LRU cache
-    
+
     :param task_id: Task ID
     :param task_status: Task status information dictionary
     """
@@ -24,7 +24,7 @@ def update_tasks_cache(task_id: str, task_status: dict) -> None:
 
 def update_task_field(task_id: str, field: str, value: Any) -> None:
     """Update a single field in the task status
-    
+
     :param task_id: Task ID
     :param field: Field name to update
     :param value: New value for the field
@@ -55,7 +55,7 @@ def update_task_field(task_id: str, field: str, value: Any) -> None:
 
 def update_task_fields(task_id: str, **fields) -> None:
     """Update multiple fields in the task status
-    
+
     :param task_id: Task ID
     :param fields: Fields to update and their values, provided as keyword arguments
     """
@@ -87,7 +87,7 @@ def update_task_fields(task_id: str, **fields) -> None:
 
 def increment_task_field(task_id: str, field: str, increment: int = 1) -> None:
     """Increment a numeric field in the task status
-    
+
     :param task_id: Task ID
     :param field: Field name to increment
     :param increment: Value to increment by, default is 1
@@ -105,7 +105,7 @@ def increment_task_field(task_id: str, field: str, increment: int = 1) -> None:
 
 def get_task_status(task_id: str) -> dict:
     """Get task status
-    
+
     :param task_id: Task ID
     :return: Task status information dictionary
     """
@@ -127,7 +127,7 @@ def get_task_status(task_id: str) -> dict:
 
 def create_task(task_id: str) -> None:
     """Create a new task and initialize its status
-    
+
     :param task_id: Task ID
     """
     task_status = {

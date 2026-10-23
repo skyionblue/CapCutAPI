@@ -290,14 +290,14 @@ class Script_file:
 
     def _get_track_and_imported_track(self, segment_type: Type[Base_segment], track_name: Optional[str]) -> List[Track]:
         """获取指定类型的所有轨道（包括普通轨道和导入的轨道）
-        
+
         Args:
             segment_type (Type[Base_segment]): 片段类型
             track_name (Optional[str]): 轨道名称，如果指定则只返回该名称的轨道
-            
+
         Returns:
             List[Track]: 符合条件的轨道列表
-            
+
         Raises:
             NameError: 指定了轨道名称但未找到对应轨道
         """
