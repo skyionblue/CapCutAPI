@@ -13,8 +13,8 @@ from pyJianYingDraft.text_segment import TextBubble, TextEffect, TextStyleRange
 
 def add_text_impl(
     text: str,
-    start: float,
-    end: float,
+    start: float = 0,
+    end: float = 5.0,
     draft_id: str | None = None,  # Python 3.10+ 新语法
     transform_y: float = 0,
     transform_x: float = 0,

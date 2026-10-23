@@ -1,19 +1,13 @@
-"""Characterization tests for the two dispatch surfaces.
+"""Tests that the two dispatch surfaces behave as one.
 
-The HTTP layer and the MCP layer wire the same implementation functions, but differently:
+The HTTP layer used to re-declare every parameter with its own defaults while MCP forwarded
+arguments straight through. The two sets drifted apart, and the same logical call produced
+different output depending on the transport.
 
-* MCP forwards the caller's arguments straight through — `add_video_track(**arguments)` — so
-  an omitted argument gets the implementation's own default.
-* HTTP re-declares every parameter with `data.get(name, default)`, so an omitted argument gets
-  whatever default `capcut_server.py` happens to specify.
-
-Those two sets of defaults have **already drifted apart**: the same logical call produces
-different output depending on which transport made it. These tests pin the current behaviour
-down so a refactor cannot change it silently, and each known divergence is marked DIVERGENCE
-with both values.
-
-They are characterization tests: they record what the code does today, not what it should do.
-Resolving the divergences is a deliberate, user-facing decision.
+Both now go through `tool_registry`: HTTP forwards only the keys the caller actually sent, so
+every default comes from the implementation. These tests hold that line — they check that the
+implementations carry the decided values and that the HTTP layer does not quietly reintroduce
+defaults of its own.
 """
 
 import inspect
@@ -21,6 +15,7 @@ import inspect
 import pytest
 
 import capcut_server
+import tool_registry
 
 # route -> (capcut_server attribute holding the impl, minimal valid payload)
 ROUTES = {
@@ -28,6 +23,7 @@ ROUTES = {
     "/add_audio": ("add_audio_track", {"audio_url": "https://example.invalid/a.mp3"}),
     "/add_text": ("add_text_impl", {"text": "hello", "start": 0, "end": 1}),
     "/add_image": ("add_image_impl", {"image_url": "https://example.invalid/i.png"}),
+    # Sent under the legacy name on purpose: the alias must keep working.
     "/add_subtitle": ("add_subtitle_impl", {"srt": "1\n00:00:00,000 --> 00:00:01,000\nhi\n"}),
     "/add_effect": ("add_effect_impl", {"effect_type": "Bling"}),
     # NOTE: HTTP reads "sticker_id" here, while MCP and the implementation call it
@@ -40,17 +36,26 @@ ROUTES = {
 @pytest.fixture
 def capture(monkeypatch):
     """Replace an impl with a recorder and return what the route forwarded to it."""
-    def run(route):
-        attr, payload = ROUTES[route]
+    def run(route, payload=None):
+        attr, default_payload = ROUTES[route]
+        payload = default_payload if payload is None else payload
         seen = {}
+        called = []
 
         def recorder(*args, **kwargs):
+            called.append(True)
             seen.update(kwargs)
             return {"draft_id": "d1", "draft_url": ""}
 
-        monkeypatch.setattr(capcut_server, attr, recorder)
+        monkeypatch.setattr(tool_registry, attr, recorder)
         client = capcut_server.app.test_client()
         client.post(route, json=payload)
+        # Without this, a route that bypasses the shared dispatch would leave `seen` empty and
+        # every "the route does not send X" assertion would pass for the wrong reason.
+        assert called, (
+            f"{route} did not reach tool_registry.{attr}; it is not going through the shared "
+            f"dispatch, so this test proves nothing"
+        )
         return seen
     return run
 
@@ -62,135 +67,120 @@ def impl_default(attr, param):
     return inspect.signature(func).parameters[param].default
 
 
-# --------------------------------------------------------------- known divergences
-#
-# Each entry is (route, parameter, value the HTTP layer sends, value MCP would send).
-# These are the 11 places where the two transports disagree today.
+# --------------------------------------------------------------- decided defaults
 
-# Still divergent: the HTTP layer declares its own default, so these resolve only once
-# capcut_server stops re-declaring parameters and inherits the implementation's.
-DIVERGENCES = [
-    ("/add_text", "font_color", "#FF0000", "#ffffff"),
-    ("/add_subtitle", "font_size", 5.0, 8.0),
-]
-
-# Resolved (Phase C2 decisions): the implementation now carries the agreed value, and the
-# HTTP layer already sent it. Each entry asserts the two sides AGREE — the inverse of the
-# divergence tests these were converted from.
-RESOLVED = [
+# Every parameter the two surfaces once disagreed on, with the value decided in Phase C2.
+# The HTTP layer no longer declares any of these; the implementation is the single source.
+DECIDED = [
     ("/add_video", "track_name", "video_main"),
     ("/add_image", "track_name", "image_main"),
     ("/add_video_keyframe", "track_name", "video_main"),
     ("/add_text", "transform_y", 0),
     ("/add_text", "background_style", 0),
+    ("/add_text", "font_color", "#ffffff"),
     ("/add_subtitle", "vertical", False),
     ("/add_subtitle", "alpha", 1),
     ("/add_subtitle", "background_style", 0),
+    ("/add_subtitle", "font_size", 8.0),
     ("/add_sticker", "end", 5.0),
 ]
 
 
-@pytest.mark.parametrize("route,param,http_value,mcp_value", DIVERGENCES)
-def test_known_divergence_between_http_and_mcp_defaults(capture, route, param, http_value, mcp_value):
-    """DIVERGENCE: the same call yields different results over HTTP than over MCP.
+@pytest.mark.parametrize("route,param,value", DECIDED)
+def test_decided_default_lives_in_the_implementation(route, param, value):
+    assert impl_default(ROUTES[route][0], param) == value
 
-    Pinned, not endorsed. Unifying these changes behaviour for one transport and is a
-    deliberate decision — see enhancements-plan.md, Phase C2.
+
+@pytest.mark.parametrize("route,param,value", DECIDED)
+def test_http_does_not_override_the_decided_default(capture, route, param, value):
+    """The regression that matters.
+
+    Re-adding `data.get(name, something)` to a route would restart exactly the drift this
+    phase removed, and would be invisible in review.
     """
     forwarded = capture(route)
-    assert forwarded[param] == http_value, (
-        f"HTTP default for {route} {param} changed; it was {http_value!r}"
+    assert param not in forwarded, (
+        f"the HTTP layer is supplying its own {param}; defaults must come from the "
+        f"implementation so both transports agree"
     )
 
-    attr = ROUTES[route][0]
-    assert impl_default(attr, param) == mcp_value, (
-        f"implementation default for {param} changed; MCP callers were getting {mcp_value!r}"
-    )
-    assert http_value != mcp_value, "this entry is no longer a divergence — remove it"
+
+@pytest.mark.parametrize("route", sorted(ROUTES))
+def test_http_forwards_only_what_the_caller_sent(capture, route):
+    """No parameter should reach the implementation unless the caller asked for it."""
+    _attr, payload = ROUTES[route]
+    forwarded = capture(route)
+    # A legacy key is renamed to the canonical one on the way through, so compare post-alias.
+    aliases = capcut_server.PARAMETER_ALIASES.get(route.lstrip("/"), {})
+    sent = {aliases.get(key, key) for key in payload}
+    unexpected = set(forwarded) - sent
+    assert not unexpected, f"{route} invented arguments the caller never sent: {sorted(unexpected)}"
+
+
+def test_caller_supplied_values_still_reach_the_implementation(capture):
+    forwarded = capture("/add_video", {
+        "video_url": "https://example.invalid/v.mp4", "track_name": "custom", "scale_x": 2.0,
+    })
+    assert forwarded["track_name"] == "custom"
+    assert forwarded["scale_x"] == 2.0
+
+
+def test_add_subtitle_accepts_both_parameter_names(capture):
+    """The route read `srt`; the catalogue and implementation call it `srt_path`.
+
+    Found only because the capture fixture started asserting it had actually intercepted the
+    call -- these tests had been passing vacuously, with the request rejected as missing a
+    required parameter before dispatch was ever reached.
+    """
+    for name in ("srt", "srt_path"):
+        forwarded = capture("/add_subtitle", {name: "sub.srt"})
+        assert forwarded.get("srt_path") == "sub.srt", f"{name} was not accepted"
 
 
 def test_add_sticker_accepts_both_parameter_names(capture):
     """Regression: HTTP read only `sticker_id`, while MCP and the implementation use
-    `resource_id`, so an HTTP caller following the MCP schema was told the parameter was
-    missing. Both names now work, with `resource_id` canonical.
+    `resource_id`. Both names still work through the shared dispatch, `resource_id` canonical.
     """
-    import mcp_server
-    schema = [t for t in mcp_server.TOOLS if t["name"] == "add_sticker"][0]["inputSchema"]
-    assert "resource_id" in schema["properties"]
-
-    client = capcut_server.app.test_client()
     for name in ("resource_id", "sticker_id"):
-        seen = {}
-
-        def recorder(*args, **kwargs):
-            seen.update(kwargs)
-            return {"draft_id": "d1"}
-
-        original = capcut_server.add_sticker_impl
-        capcut_server.add_sticker_impl = recorder
-        try:
-            client.post("/add_sticker", json={name: "abc"})
-        finally:
-            capcut_server.add_sticker_impl = original
-        assert seen.get("resource_id") == "abc", f"{name} was not accepted"
+        forwarded = capture("/add_sticker", {name: "abc"})
+        assert forwarded.get("resource_id") == "abc", f"{name} was not accepted"
 
 
-def test_add_sticker_error_names_the_canonical_parameter(capture):
-    client = capcut_server.app.test_client()
-    body = client.post("/add_sticker", json={}).get_json()
+def test_add_sticker_error_names_the_canonical_parameter():
+    body = capcut_server.app.test_client().post("/add_sticker", json={}).get_json()
     assert body["success"] is False
     assert "resource_id" in body["error"]
 
 
-@pytest.mark.parametrize("route,param,value", RESOLVED)
-def test_resolved_divergences_now_agree(capture, route, param, value):
-    """Both surfaces send the decided value.
-
-    Converted from the divergence tests rather than deleted: each still checks both sides, so
-    a regression on either one fails here and names the parameter.
-    """
-    forwarded = capture(route)
-    assert forwarded[param] == value, f"HTTP no longer sends the decided value for {param}"
-
-    attr = ROUTES[route][0]
-    assert impl_default(attr, param) == value, (
-        f"the implementation no longer defaults {param} to the decided value"
-    )
-
-
-def test_add_sticker_end_is_no_longer_required_by_the_implementation(capture):
-    """Resolved: the implementation took HTTP's 5.0 convenience default, so an omitted `end`
-    behaves the same over both transports instead of erroring over MCP.
-    """
-    import mcp_server
-    schema = [t for t in mcp_server.TOOLS if t["name"] == "add_sticker"][0]["inputSchema"]
+def test_add_sticker_end_is_no_longer_required_by_the_implementation():
+    schema = [t for t in tool_registry.TOOLS if t["name"] == "add_sticker"][0]["inputSchema"]
     assert "end" not in schema["required"]
-    assert schema["properties"]["end"].get("default") == 5.0
     assert impl_default("add_sticker_impl", "end") == 5.0
 
 
-# --------------------------------------------------------------- agreed defaults
+def test_no_route_declares_its_own_parameter_defaults():
+    """Structural guard: the converted routes must stay thin.
 
-AGREED = [
-    ("/add_video", "scale_x", 1),
-    ("/add_video", "scale_y", 1),
-    ("/add_video", "speed", 1.0),
-    ("/add_video", "volume", 1.0),
-    ("/add_video", "transform_x", 0),
-    ("/add_video", "target_start", 0),
-    ("/add_video", "transition_duration", 0.5),
-    ("/add_audio", "volume", 1.0),
-    ("/add_audio", "speed", 1.0),
-    ("/add_text", "font_size", 8.0),
-    ("/add_image", "scale_x", 1),
-    ("/add_sticker", "scale_x", 1.0),
-]
+    A `data.get('x', default)` creeping back into one of them is how the surfaces drifted the
+    first time, so it fails here rather than being noticed months later.
+    """
+    import ast
 
-
-@pytest.mark.parametrize("route,param,value", AGREED)
-def test_defaults_the_two_surfaces_agree_on(capture, route, param, value):
-    forwarded = capture(route)
-    assert forwarded[param] == value
+    source = open("capcut_server.py").read()
+    tree = ast.parse(source)
+    offenders = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        route = next((d.args[0].value.lstrip("/") for d in node.decorator_list
+                      if isinstance(d, ast.Call) and getattr(d.func, "attr", "") == "route"), None)
+        if route is None or f"/{route}" not in ROUTES:
+            continue
+        for call in ast.walk(node):
+            if (isinstance(call, ast.Call) and getattr(call.func, "attr", "") == "get"
+                    and getattr(call.func.value, "id", "") == "data" and len(call.args) > 1):
+                offenders.append(f"{route}:{getattr(call.args[0], 'value', '?')}")
+    assert not offenders, f"routes reintroduced their own defaults: {offenders}"
 
 
 # --------------------------------------------------------------- shared contract
@@ -211,12 +201,14 @@ def test_every_route_returns_the_http_envelope(capture, route):
 @pytest.mark.parametrize("route", sorted(ROUTES))
 def test_missing_required_parameter_is_rejected_without_calling_the_impl(monkeypatch, route):
     attr, _ = ROUTES[route]
+    schema = next(t for t in tool_registry.TOOLS if t["name"] == route.lstrip("/"))["inputSchema"]
+    if not schema.get("required"):
+        pytest.skip(f"{route} has no required parameter")
+
     called = []
-    monkeypatch.setattr(capcut_server, attr, lambda *a, **k: called.append(1))
-    client = capcut_server.app.test_client()
-    body = client.post(route, json={}).get_json()
-    if route == "/add_video_keyframe":
-        pytest.skip("add_video_keyframe has no strictly required parameter")
+    monkeypatch.setattr(tool_registry, attr, lambda *a, **k: called.append(1))
+    body = capcut_server.app.test_client().post(route, json={}).get_json()
+
     assert body["success"] is False
     assert body["error"]
     assert not called, "validation must run before the implementation is invoked"
@@ -250,15 +242,16 @@ def test_generate_draft_url_still_requires_a_draft_id():
 
 # --------------------------------------------------------------- add_video end regression
 
-def test_add_video_without_end_forwards_none_not_zero(capture):
+def test_add_video_without_end_does_not_send_a_zero(capture):
     """Regression: the route defaulted `end` to 0.
 
     The implementation computes source_duration = end - start and treats None as "use the
-    whole video", so a literal 0 produced a ZERO-LENGTH clip over HTTP while the same call
-    over MCP produced the full video.
+    whole video", so a literal 0 produced a zero-length clip over HTTP. The route now sends
+    nothing, leaving the implementation's None in place.
     """
     forwarded = capture("/add_video")
-    assert forwarded["end"] is None
+    assert "end" not in forwarded
+    assert impl_default("add_video_track", "end") is None
 
 
 def test_add_video_end_none_uses_the_full_duration(tmp_path, monkeypatch):
