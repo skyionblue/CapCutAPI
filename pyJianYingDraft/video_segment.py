@@ -7,7 +7,10 @@ import uuid
 from copy import deepcopy
 
 from typing import Optional, Literal, Union
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:  # import cycle at runtime; needed only so the annotation resolves
+    from .script_file import Script_file
 
 from pyJianYingDraft.metadata.capcut_effect_meta import CapCut_Video_character_effect_type, CapCut_Video_scene_effect_type
 from pyJianYingDraft.metadata.capcut_mask_meta import CapCut_Mask_type
