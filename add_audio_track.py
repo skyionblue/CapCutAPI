@@ -1,4 +1,4 @@
-# 导入必要的模块
+# Imports
 import os
 import pyJianYingDraft as draft
 from util import generate_draft_url, is_windows_path, url_to_hash

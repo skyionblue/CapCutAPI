@@ -385,13 +385,13 @@ class Audio_material:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Audio_material":
-        """从字典创建音频素材对象
+        """Create an audio material object from a dictionary.
 
         Args:
-            data (Dict[str, Any]): 包含素材信息的字典
+            data (Dict[str, Any]): dictionary holding the material's information
 
         Returns:
-            Audio_material: 新创建的音频素材对象
+            Audio_material: the newly created audio material object
         """
         # 创建实例但不调用__init__
         instance = cls.__new__(cls)

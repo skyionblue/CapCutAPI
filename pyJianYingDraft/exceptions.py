@@ -1,23 +1,23 @@
-"""自定义异常类"""
+"""Custom exception types."""
 
 class TrackNotFound(NameError):
-    """未找到满足条件的轨道"""
+    """No track matched the given criteria."""
 class AmbiguousTrack(ValueError):
-    """找到多个满足条件的轨道"""
+    """More than one track matched the given criteria."""
 class SegmentOverlap(ValueError):
-    """新片段与已有的轨道片段重叠"""
+    """The new segment overlaps an existing one on the track."""
 
 class MaterialNotFound(NameError):
-    """未找到满足条件的素材"""
+    """No material matched the given criteria."""
 class AmbiguousMaterial(ValueError):
-    """找到多个满足条件的素材"""
+    """More than one material matched the given criteria."""
 
 class ExtensionFailed(ValueError):
-    """替换素材时延伸片段失败"""
+    """Could not extend the segment while replacing its material."""
 
 class DraftNotFound(NameError):
-    """未找到草稿"""
+    """Draft not found."""
 class AutomationError(Exception):
-    """自动化操作失败"""
+    """An automation step failed."""
 class ExportTimeout(Exception):
-    """导出超时"""
+    """The export timed out."""

@@ -1,21 +1,21 @@
 import pyJianYingDraft as draft
 from util import generate_draft_url, hex_to_rgb
 from pyJianYingDraft import trange, Font_type
-from typing import Optional, List  # 修复List导入
+from typing import Optional, List
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
 from pyJianYingDraft.text_segment import TextBubble, TextEffect, TextStyleRange
 
-# 使用Python 3.10+的新特性：Union类型可以用 | 替代
+# Python 3.10+: unions can be written with |
 # from typing import Union
-# 可以写成: str | None 而不是 Optional[str]
+# i.e. str | None rather than Optional[str]
 
 def add_text_impl(
     text: str,
     start: float = 0,
     end: float = 5.0,
-    draft_id: str | None = None,  # Python 3.10+ 新语法
+    draft_id: str | None = None,
     transform_y: float = 0,
     transform_x: float = 0,
     font: str = "文轩体",
@@ -58,7 +58,7 @@ def add_text_impl(
     fixed_width: float = -1,
     fixed_height: float = -1,
     # Multi-style text parameters
-    text_styles: List[TextStyleRange] | None = None,  # 使用新语法
+    text_styles: List[TextStyleRange] | None = None,
 ):
     """
     Add text subtitle to the specified draft (configurable parameter version)
@@ -80,17 +80,17 @@ def add_text_impl(
     :param background_color: Background color (default black)
     :param background_style: Background style (default 1)
     :param background_alpha: Background transparency (default 0.0, no background display)
-    :param background_round_radius: 背景圆角半径，范围0.0-1.0（默认0.0）
-    :param background_height: 背景高度，范围0.0-1.0（默认0.14）
-    :param background_width: 背景宽度，范围0.0-1.0（默认0.14）
-    :param background_horizontal_offset: 背景水平偏移，范围0.0-1.0（默认0.5）
-    :param background_vertical_offset: 背景垂直偏移，范围0.0-1.0（默认0.5）
-    :param shadow_enabled: 是否启用阴影（默认False）
-    :param shadow_alpha: 阴影透明度，范围0.0-1.0（默认0.9）
-    :param shadow_angle: 阴影角度，范围-180.0-180.0（默认-45.0）
-    :param shadow_color: 阴影颜色（默认黑色）
-    :param shadow_distance: 阴影距离（默认5.0）
-    :param shadow_smoothing: 阴影平滑度，范围0.0-1.0（默认0.15）
+    :param background_round_radius: background corner radius, 0.0-1.0 (default 0.0)
+    :param background_height: background height, 0.0-1.0 (default 0.14)
+    :param background_width: background width, 0.0-1.0 (default 0.14)
+    :param background_horizontal_offset: background horizontal offset, 0.0-1.0 (default 0.5)
+    :param background_vertical_offset: background vertical offset, 0.0-1.0 (default 0.5)
+    :param shadow_enabled: enable the drop shadow (default False)
+    :param shadow_alpha: shadow opacity, 0.0-1.0 (default 0.9)
+    :param shadow_angle: shadow angle, -180.0 to 180.0 (default -45.0)
+    :param shadow_color: shadow colour (default black)
+    :param shadow_distance: shadow distance (default 5.0)
+    :param shadow_smoothing: shadow smoothing, 0.0-1.0 (default 0.15)
     :param bubble_effect_id: Bubble effect ID
     :param bubble_resource_id: Bubble resource ID
     :param effect_effect_id: Text effect ID
@@ -102,7 +102,7 @@ def add_text_impl(
     :param height: Video height (pixels)
     :param fixed_width: Text fixed width ratio, range 0.0-1.0, default -1 means not fixed
     :param fixed_height: Text fixed height ratio, range 0.0-1.0, default -1 means not fixed
-    :param text_styles: 文本的不同部分的样式列表，每个元素是一个TextStyleRange
+    :param text_styles: per-range styling; each element is a TextStyleRange
     :return: Updated draft information
     """
     # Validate if font is in Font_type
@@ -169,7 +169,7 @@ def add_text_impl(
             vertical_offset=background_vertical_offset
         )
 
-    # 创建text_shadow (阴影)
+    # Build the text shadow
     text_shadow = None
     if shadow_enabled:
         text_shadow = draft.Text_shadow(
@@ -224,14 +224,14 @@ def add_text_impl(
         fixed_height=pixel_fixed_height
     )
 
-    # 应用多样式文本设置
+    # Apply per-range text styling
     if text_styles:
         for style_range in text_styles:
-            # 验证范围有效性
+            # Validate the range
             if style_range.start < 0 or style_range.end > len(text) or style_range.start >= style_range.end:
-                raise ValueError(f"无效的文本范围: [{style_range.start}, {style_range.end}), 文本长度: {len(text)}")
+                raise ValueError(f"Invalid text range [{style_range.start}, {style_range.end}); text length is {len(text)}")
 
-            # 应用样式到特定文本范围
+            # Apply the style to that range
             text_segment.add_text_style(style_range)
 
     if text_bubble:

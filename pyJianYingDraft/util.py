@@ -1,4 +1,4 @@
-"""辅助函数，主要与模板模式有关"""
+"""Helper functions, mostly for template mode."""
 
 import inspect
 
@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 JsonExportable = Union[int, float, bool, str, List["JsonExportable"], Dict[str, "JsonExportable"]]
 
 def provide_ctor_defaults(cls: Type) -> Dict[str, Any]:
-    """为构造函数提供默认值，以绕开构造函数的参数限制"""
+    """Supply constructor defaults, to work around the constructor's required arguments."""
 
     signature = inspect.signature(cls.__init__)
     provided_defaults: Dict[str, Any] = {}
@@ -29,9 +29,9 @@ def provide_ctor_defaults(cls: Type) -> Dict[str, Any]:
     return provided_defaults
 
 def assign_attr_with_json(obj: object, attrs: List[str], json_data: Dict[str, Any]):
-    """根据json数据赋值给指定的对象属性
+    """Assign JSON data onto the named attributes of an object.
 
-    若有复杂类型，则尝试调用其`import_json`方法进行构造
+    Complex types are constructed by calling their `import_json` method.
     """
     type_hints: Dict[str, Type] = {}
     for cls in obj.__class__.__mro__:
@@ -45,9 +45,9 @@ def assign_attr_with_json(obj: object, attrs: List[str], json_data: Dict[str, An
             obj.__setattr__(attr, type_hints[attr](json_data[attr]))
 
 def export_attr_to_json(obj: object, attrs: List[str]) -> Dict[str, JsonExportable]:
-    """将对象属性导出为json数据
+    """Export the named object attributes as JSON data.
 
-    若有复杂类型，则尝试调用其`export_json`方法进行导出
+    Complex types are exported by calling their `export_json` method.
     """
     json_data: Dict[str, Any] = {}
     for attr in attrs:
