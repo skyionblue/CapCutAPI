@@ -210,6 +210,22 @@ cp config.json.example config.json
 # Edit config.json as needed
 ```
 
+#### Configuration reference
+
+| Key | Default | What it does |
+|---|---|---|
+| `is_capcut_env` | `true` | CapCut International mode. This project only runs in CapCut mode. |
+| `port` | `9000` | Port the HTTP server listens on. |
+| `draft_store_dir` | `./drafts_store` | Where drafts are persisted after every edit, so a server restart cannot lose in-progress work. |
+| `draft_domain` | — | Base URL used to build draft preview links. |
+| `preview_router` | `/draft/downloader` | Path appended to `draft_domain` for preview links. |
+| `is_upload_draft` | `false` | Upload the zipped draft to `oss_config` storage on save. |
+| `oss_config` | — | Object storage for **draft archives**, used when `is_upload_draft` is true. |
+| `mp4_oss_config` | — | Object storage for **exported videos**. When set, a finished `export_video` is uploaded here and the task's `video_url` carries a signed link valid for 24 hours. Leave it out to keep exports local — `output_path` still works either way. |
+
+> `oss_config` and `mp4_oss_config` are separate on purpose: one holds draft archives, the other
+> finished video files, and they can point at different buckets or domains.
+
 ### 🚀 Start Services
 
 <table>

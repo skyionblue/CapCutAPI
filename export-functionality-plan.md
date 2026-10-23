@@ -2,7 +2,9 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phases 0-3 COMPLETE — both export backends work. Phase 4 (interchange formats) next.
+**Status:** Phases 0, 1, 2, 3 and 5 COMPLETE — both export backends work and the docs are current.
+Phase 4 (interchange formats) is the remaining optional work. Checkboxes audited 2026-10-23;
+what is still unticked is genuinely outstanding.
 
 ---
 
@@ -89,19 +91,19 @@ export_impl.py
 
 Everything in Phase 2 depends on the answer. Timebox this before committing to the approach.
 
-- [ ] Confirm Accessibility permission can be granted to the process running the MCP server
+- [x] Confirm Accessibility permission can be granted to the process running the MCP server
       (Terminal / the MCP host app) and document the exact steps for the user.
-- [ ] Dump CapCut's UI element tree with System Events while a draft is open; record the element
+- [x] Dump CapCut's UI element tree with System Events while a draft is open; record the element
       paths for: draft list entry, Export button, export settings dialog (resolution, framerate,
       bitrate, output path fields), the confirm button, and the completion state.
-- [ ] Determine whether CapCut can be launched directly into a specific draft (URL scheme,
+- [x] Determine whether CapCut can be launched directly into a specific draft (URL scheme,
       command-line argument, or `root_meta_info.json` manipulation) or whether the automation must
       navigate the draft list by name.
-- [ ] Identify a reliable **completion signal**: a UI state change, the output file reaching a
+- [x] Identify a reliable **completion signal**: a UI state change, the output file reaching a
       stable size, or a CapCut log file. Polling the output file for size stability is the most
       robust fallback.
-- [ ] Record the CapCut version tested (automation is version-fragile).
-- [ ] **Decision gate:** if UI automation proves unworkable, Phase 2 is dropped and Phase 3
+- [x] Record the CapCut version tested (automation is version-fragile).
+- [x] **Decision gate:** if UI automation proves unworkable, Phase 2 is dropped and Phase 3
       (ffmpeg) becomes the primary path, with the fidelity limits documented as a hard constraint.
 
 **Success criterion:** a throwaway script exports one existing draft to a known MP4 path,
@@ -254,15 +256,15 @@ stroke, shadow, background box and text animation are lost; keyframes use static
 The AI assistant is the primary consumer of this surface, so tool descriptions are part of the
 feature, not an afterthought.
 
-- [ ] Write `export_video`'s tool description so the model chooses the right backend unprompted:
+- [x] Write `export_video`'s tool description so the model chooses the right backend unprompted:
       state plainly that `capcut` is full-fidelity but needs a GUI session, and `ffmpeg` is
       headless but drops CapCut-specific effects.
-- [ ] Document the async contract in the description — the model must know to poll
+- [x] Document the async contract in the description — the model must know to poll
       `query_export_status` rather than assume the file exists on return.
-- [ ] Update `README.md`'s feature matrix and HTTP endpoint list.
-- [ ] Update `MCP_Documentation_English.md` with the new tools and its changelog.
-- [ ] Document the macOS Accessibility permission setup as a prerequisite.
-- [ ] Add `mp4_oss_config` usage notes — it is finally live.
+- [x] Update `README.md`'s feature matrix and HTTP endpoint list.
+- [x] Update `MCP_Documentation_English.md` with the new tools and its changelog.
+- [x] Document the macOS Accessibility permission setup as a prerequisite.
+- [x] Add `mp4_oss_config` usage notes — it is finally live.
 
 ---
 
@@ -296,7 +298,7 @@ feature, not an afterthought.
       opens correctly.
 - [ ] End-to-end natural-language test: describe a video, let the AI build and export it, confirm
       the MP4 matches the description without human intervention.
-- [ ] Both backends exercised against the same draft; differences match the declared fidelity
+- [x] Both backends exercised against the same draft; differences match the declared fidelity
       warnings.
 - [ ] Error paths tested: CapCut closed, permission missing, ffmpeg absent, bad `draft_id`,
       concurrent export requests.
@@ -320,6 +322,6 @@ feature, not an afterthought.
 
 - [ ] Should `export_video` auto-call `save_draft` when the draft isn't yet on disk, or require it
       first? (Leaning: auto-save, since it removes a step the AI could forget.)
-- [ ] Default backend when the caller doesn't specify: `capcut` when a GUI session is detected,
+- [x] Default backend when the caller doesn't specify: `capcut` when a GUI session is detected,
       else `ffmpeg`?
 - [ ] Is OSS upload wanted at all here, or is a local path sufficient for your workflow?
