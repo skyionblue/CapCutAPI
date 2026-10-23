@@ -23,6 +23,11 @@ IS_UPLOAD_DRAFT = False
 # Port
 PORT = 9000
 
+# Interface the HTTP server binds to. Loopback by default and deliberately so: the
+# server has no authentication, and every route will fetch caller-supplied URLs and
+# write files on this machine. Binding anywhere else hands those to the network.
+HOST = "127.0.0.1"
+
 OSS_CONFIG = []
 MP4_OSS_CONFIG = []
 
@@ -46,6 +51,10 @@ if os.path.exists(CONFIG_FILE_PATH):
             # Port
             if "port" in local_config:
                 PORT = local_config["port"]
+
+            # Bind interface
+            if "host" in local_config:
+                HOST = local_config["host"]
 
             # Preview route
             if "preview_router" in local_config:

@@ -19,7 +19,7 @@ from tool_registry import TOOLS, execute_tool
 from create_draft import create_draft
 from util import generate_draft_url as utilgenerate_draft_url
 
-from settings.local import PORT
+from settings.local import HOST, PORT
 
 app = Flask(__name__)
 
@@ -827,4 +827,4 @@ def export_draft_service():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=PORT)
+    app.run(host=HOST, port=PORT)
