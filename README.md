@@ -444,6 +444,27 @@ Calling `save_draft` generates a folder starting with `dfd_` in the server's cur
 
 > **Note (MCP gateway):** when using the MCP `save_draft` tool (via `invoke_tool`) rather than the HTTP API, this copy step happens automatically — the result's `local_path` already points inside CapCut's real drafts folder, so no manual copy is needed. Use `list_drafts`/`delete_draft` to manage what accumulates there.
 
+### Saving Large Drafts
+
+`save_draft` downloads every remote asset the draft references, so a project with a lot of
+media can take long enough to time out an HTTP client or an MCP call. It blocks by default, so
+existing callers are unaffected. For large drafts, run it in the background instead:
+
+```bash
+# Start the save, get a task_id back immediately
+curl -X POST http://localhost:9001/save_draft \
+  -H "Content-Type: application/json" \
+  -d '{"draft_id": "dfd_...", "wait": false}'
+
+# Poll until status is "completed" or "failed"
+curl -X POST http://localhost:9001/query_draft_status \
+  -H "Content-Type: application/json" \
+  -d '{"task_id": "dfd_..."}'
+```
+
+When it completes, the status carries `local_path` — where the draft landed in CapCut's drafts
+folder.
+
 ### Draft Persistence
 
 Drafts are written to disk after every edit, so a server restart — a crash, a config reload, an

@@ -373,7 +373,11 @@ TOOLS: List[Dict[str, Any]] = [
         "name": "save_draft",
         "description": (
             "Render the draft to disk and place it in CapCut's local drafts folder so it appears in the "
-            "CapCut app. Returns local_path, the final on-disk location of the draft."
+            "CapCut app. Returns local_path, the final on-disk location of the draft. Saving downloads "
+            "every remote asset the draft uses, so a project with a lot of media can take a while: pass "
+            "wait=false to get a task_id back immediately and poll query_draft_status until status is "
+            "'completed', at which point that status carries local_path. Leave wait at its default for "
+            "small drafts, where blocking is simpler."
         ),
         "inputSchema": {
             "type": "object",
@@ -382,6 +386,12 @@ TOOLS: List[Dict[str, Any]] = [
                 "draft_folder": {
                     "type": "string",
                     "description": f"Target CapCut drafts folder. Defaults to {DEFAULT_DRAFT_FOLDER}",
+                },
+                "wait": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Block until the save finishes (default). false returns a task_id "
+                                   "immediately; poll query_draft_status for progress and local_path.",
                 },
             },
             "required": ["draft_id"],
@@ -432,8 +442,9 @@ TOOLS: List[Dict[str, Any]] = [
         "name": "query_draft_status",
         "description": (
             "Poll the status/progress of a save_draft task by its task_id (the draft_id used for "
-            "save_draft). Only useful if a save is slow enough to need polling — the gateway's "
-            "save_draft currently returns synchronously, so this is mostly a safety net."
+            "save_draft). Required when save_draft was called with wait=false: keep polling until "
+            "status is 'completed' or 'failed'. On completion the status carries local_path, the "
+            "on-disk location of the saved draft."
         ),
         "inputSchema": {
             "type": "object",
@@ -822,16 +833,35 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
             elif tool_name == "save_draft":
                 draft_id = arguments.get("draft_id")
                 draft_folder = arguments.get("draft_folder") or DEFAULT_DRAFT_FOLDER
-                save_draft_impl(draft_id=draft_id, draft_folder=draft_folder)
-                local_path = place_draft_locally(draft_id)
-                result = {
-                    "local_path": local_path,
-                    "message": (
-                        f"Draft saved to {local_path} — open CapCut and look for it in your drafts."
-                        if local_path
-                        else "Draft render did not produce a local folder; check draft_id."
-                    ),
-                }
+                wait = arguments.get("wait", True)
+                # place_draft_locally must run AFTER the save, so it is handed to the worker
+                # rather than called here — otherwise an async save would move a draft folder
+                # that does not exist yet.
+                saved = save_draft_impl(
+                    draft_id=draft_id,
+                    draft_folder=draft_folder,
+                    wait=wait,
+                    on_complete=place_draft_locally,
+                )
+                if not saved.get("success"):
+                    return {"success": False, "error": saved.get("error", "Save failed")}
+
+                if not wait:
+                    result = {
+                        "task_id": saved.get("task_id"),
+                        "message": saved.get("message"),
+                    }
+                else:
+                    local_path = query_task_status(draft_id).get("local_path")
+                    result = {
+                        "local_path": local_path,
+                        "task_id": saved.get("task_id"),
+                        "message": (
+                            f"Draft saved to {local_path} — open CapCut and look for it in your drafts."
+                            if local_path
+                            else "Draft render did not produce a local folder; check draft_id."
+                        ),
+                    }
 
             elif tool_name == "list_option_values":
                 result = list_option_values(arguments.get("category", ""))

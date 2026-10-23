@@ -657,6 +657,9 @@ def save_draft():
     # Get required parameters
     draft_id = data.get('draft_id')
     draft_folder = data.get('draft_folder')  # Draft folder parameter
+    # Saving downloads every remote asset, so a large draft can outlast an HTTP client's
+    # patience. wait=False returns a task_id to poll via /query_draft_status instead.
+    wait = data.get('wait', True)
     
     result = {
         "success": False,
@@ -672,7 +675,7 @@ def save_draft():
     
     try:
         # Call save_draft_impl method, start background task
-        draft_result = save_draft_impl(draft_id, draft_folder)
+        draft_result = save_draft_impl(draft_id, draft_folder, wait=wait)
         
         result["success"] = True
         result["output"] = draft_result

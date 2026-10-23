@@ -32,10 +32,10 @@ This keeps the top-level MCP tool count fixed at 2 no matter how much CapCut fun
 | `add_sticker` | Add sticker elements | `resource_id`, `transform_x/y`, `scale_x/y`, `alpha`, `rotation`, `flip_horizontal`/`flip_vertical`, `relative_index` |
 | `add_video_keyframe` | Add keyframe animations | `property_type`/`time`/`value` (single) or `property_types`/`times`/`values` (batch) |
 | `get_video_duration` | Probe a video file's duration | `video_url` |
-| `save_draft` | Render the draft and copy it into CapCut's local drafts folder | `draft_id`, `draft_folder` |
+| `save_draft` | Render the draft and copy it into CapCut's local drafts folder. Blocks by default; pass `wait=false` for a `task_id` to poll with `query_draft_status` when a draft has a lot of media | `draft_id`, `draft_folder`, `wait` |
 | `list_option_values` | List valid enum strings for a category (`transition`, `mask`, `font`, `audio_effect`, `text_intro`, `text_outro`, `text_loop_anim`, `video_scene_effect`, `video_character_effect`, `intro_animation`, `outro_animation`, `combo_animation`) — call before guessing a string value | `category` |
 | `query_script` | Get a draft's full current timeline as JSON | `draft_id`, `force_update` |
-| `query_draft_status` | Poll a save task's status by `task_id` (safety net — `save_draft` returns synchronously today) | `task_id` |
+| `query_draft_status` | Poll a save task's status by `task_id`. Required after `save_draft` with `wait=false`; on completion the status carries `local_path` | `task_id` |
 | `generate_draft_url` | Format the cloud preview URL for a `draft_id` (only meaningful if the OSS/cloud-preview flow is configured) | `draft_id` |
 | `replace_material` | Swap the video/audio/image file behind an *existing* material in place, without touching that segment's transforms, masks, effects, or keyframes | `draft_id`, `material_name`, `new_url`, `material_type`, `duration`, `replace_crop` |
 | `list_drafts` | Enumerate drafts sitting in the local CapCut drafts folder | *(none)* |

@@ -259,28 +259,69 @@ def save_draft_background(draft_id, draft_folder, task_id):
 def query_task_status(task_id: str):
     return get_task_status(task_id)
 
-def save_draft_impl(draft_id: str, draft_folder: str = None) -> Dict[str, str]:
-    """Start a background task to save the draft"""
-    logger.info(f"Received save draft request: draft_id={draft_id}, draft_folder={draft_folder}")
+def save_draft_impl(draft_id: str, draft_folder: str = None, wait: bool = True,
+                    on_complete=None) -> Dict[str, str]:
+    """Save a draft, optionally in the background.
+
+    Saving downloads every remote asset the draft references, so a large project can take long
+    enough to time out an HTTP client or an MCP call. `wait=False` returns a task_id straight
+    away and runs the save on a worker thread; poll query_draft_status with that task_id.
+
+    `wait` defaults to True so existing callers keep the synchronous result they already
+    depend on.
+
+    :param draft_id: Draft ID to save
+    :param draft_folder: Target CapCut drafts folder
+    :param wait: Block until the save finishes (default) or return a task_id immediately
+    :param on_complete: Optional callable(draft_id) run after a SUCCESSFUL save, on whichever
+        thread did the work. Anything it returns is recorded on the task as `local_path`, so an
+        async caller can still discover where the draft landed. Its failure is logged and does
+        not fail the save.
+    """
+    logger.info(f"Received save draft request: draft_id={draft_id}, draft_folder={draft_folder}, wait={wait}")
     try:
         # Generate a unique task ID
         task_id = draft_id
         create_task(task_id)
         logger.info(f"Task {task_id} has been created.")
-        
-        # Changed to synchronous execution
-        return {
-            "success": True,
-            "draft_url": save_draft_background(draft_id, draft_folder, task_id)
+
+        def run_save():
+            draft_url = save_draft_background(draft_id, draft_folder, task_id)
+            # save_draft_background swallows its own exceptions and marks the task failed,
+            # so the status is what says whether the follow-up should run.
+            if on_complete is not None and get_task_status(task_id).get("status") == "completed":
+                try:
+                    produced = on_complete(draft_id)
+                    if produced:
+                        update_task_field(task_id, "local_path", produced)
+                except Exception as e:
+                    logger.error(f"Post-save step for draft {draft_id} failed: {e}", exc_info=True)
+            return draft_url
+
+        if wait:
+            return {
+                "success": True,
+                "draft_url": run_save(),
+                "task_id": task_id,
             }
 
-        # # Start a background thread to execute the task
-        # thread = threading.Thread(
-        #     target=save_draft_background,
-        #     args=(draft_id, draft_folder, task_id)
-        # )
-        # thread.start()
-        
+        # Start a background thread to execute the task
+        thread = threading.Thread(
+            target=run_save,
+            name=f"save-draft-{draft_id}",
+            daemon=True,
+        )
+        thread.start()
+        logger.info(f"Task {task_id} started in the background.")
+        return {
+            "success": True,
+            "task_id": task_id,
+            "message": (
+                f"Saving draft {draft_id} in the background. Poll query_draft_status with "
+                f"task_id={task_id!r} until status is 'completed' or 'failed'."
+            ),
+        }
+
     except Exception as e:
         logger.error(f"Failed to start save draft task {draft_id}: {str(e)}", exc_info=True)
         return {
