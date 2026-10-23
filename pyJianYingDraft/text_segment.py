@@ -485,8 +485,8 @@ class Text_segment(Visual_segment):
                             "content": {
                                 "solid": {
                                     "color": [int(self.shadow.color[1:3], 16) / 255,
-                                             int(self.shadow.color[3:5], 16) / 255,
-                                             int(self.shadow.color[5:7], 16) / 255]
+                                              int(self.shadow.color[3:5], 16) / 255,
+                                              int(self.shadow.color[5:7], 16) / 255]
                                 }
                             },
                             "distance": self.shadow.distance,
@@ -659,8 +659,8 @@ class Text_segment(Visual_segment):
                         "content": {
                             "solid": {
                                 "color": [int(self.shadow.color[1:3], 16) / 255,
-                                            int(self.shadow.color[3:5], 16) / 255,
-                                            int(self.shadow.color[5:7], 16) / 255]
+                                          int(self.shadow.color[3:5], 16) / 255,
+                                          int(self.shadow.color[5:7], 16) / 255]
                             }
                         },
                         "distance": self.shadow.distance,
@@ -726,7 +726,7 @@ class Text_segment(Visual_segment):
             # },
             # "shadow_smoothing": 0.45,
 
-                        # Overall font settings
+            # Overall font settings
             "font_category_id": "",
             "font_category_name": "",
             "font_id": "",

@@ -248,8 +248,8 @@ def save_draft_background(draft_id, draft_folder, task_id):
     except Exception as e:
         # Update task status - Failed
         update_task_fields(task_id,
-                          status="failed",
-                          message=f"Failed to save draft: {str(e)}")
+                           status="failed",
+                           message=f"Failed to save draft: {str(e)}")
         logger.error(f"Saving draft {draft_id} task {task_id} failed: {str(e)}", exc_info=True)
         return ""
 

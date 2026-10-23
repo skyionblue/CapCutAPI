@@ -108,11 +108,11 @@ def add_text_impl(text, start, end, font, font_color, font_size, track_name, dra
     return make_request("add_text", data)
 
 def add_image_impl(image_url, width, height, start, end, track_name, draft_id=None,
-                  transform_x=0, transform_y=0, scale_x=1.0, scale_y=1.0, transition=None, transition_duration=None,
-                  # New mask-related parameters
-                  mask_type=None, mask_center_x=0.0, mask_center_y=0.0, mask_size=0.5,
-                  mask_rotation=0.0, mask_feather=0.0, mask_invert=False,
-                  mask_rect_width=None, mask_round_corner=None):
+                   transform_x=0, transform_y=0, scale_x=1.0, scale_y=1.0, transition=None, transition_duration=None,
+                   # New mask-related parameters
+                   mask_type=None, mask_center_x=0.0, mask_center_y=0.0, mask_size=0.5,
+                   mask_rotation=0.0, mask_feather=0.0, mask_invert=False,
+                   mask_rect_width=None, mask_round_corner=None):
     """API call to add image"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -146,7 +146,7 @@ def add_image_impl(image_url, width, height, start, end, track_name, draft_id=No
     return make_request("add_image", data)
 
 def generate_image_impl(prompt, width, height, start, end, track_name, draft_id=None,
-                  transform_x=0, transform_y=0, scale_x=1.0, scale_y=1.0, transition=None, transition_duration=None):
+                        transform_x=0, transform_y=0, scale_x=1.0, scale_y=1.0, transition=None, transition_duration=None):
     """API call to add image"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -170,9 +170,9 @@ def generate_image_impl(prompt, width, height, start, end, track_name, draft_id=
     return make_request("generate_image", data)
 
 def add_sticker_impl(resource_id, start, end, draft_id=None, transform_x=0, transform_y=0,
-                    alpha=1.0, flip_horizontal=False, flip_vertical=False, rotation=0.0,
-                    scale_x=1.0, scale_y=1.0, track_name="sticker_main", relative_index=0,
-                    width=1080, height=1920):
+                     alpha=1.0, flip_horizontal=False, flip_vertical=False, rotation=0.0,
+                     scale_x=1.0, scale_y=1.0, track_name="sticker_main", relative_index=0,
+                     width=1080, height=1920):
     """API call to add sticker"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -199,7 +199,7 @@ def add_sticker_impl(resource_id, start, end, draft_id=None, transform_x=0, tran
     return make_request("add_sticker", data)
 
 def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None, value=None,
-                           property_types=None, times=None, values=None):
+                            property_types=None, times=None, values=None):
     """API call to add video keyframe
 
     Supports two modes:
@@ -274,7 +274,7 @@ def add_video_impl(video_url, start=None, end=None, width=None, height=None, tra
     return make_request("add_video", data)
 
 def add_effect(effect_type, start, end, draft_id=None, track_name="effect_01",
-              params=None, width=1080, height=1920):
+               params=None, width=1080, height=1920):
     """API call to add effect"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -709,7 +709,7 @@ def test_audio03():
             volume=0.8,
             speed=1.0,
             track_name="main_audio101",
-                effect_type="Tremble",
+            effect_type="Tremble",
             effect_params=[90.0, 50.0],
             draft_id=draft_id  # Pass the previous draft_id (None for the first time)
         )
@@ -759,12 +759,12 @@ def test_audio04():
     save_draft_impl(audio_result['output']['draft_id'], draft_folder)
 
 def add_subtitle_impl(srt, draft_id=None, time_offset=0.0, font_size=5.0,
-                    bold=False, italic=False, underline=False, font_color="#ffffff",
-                    transform_x=0.0, transform_y=0.0, scale_x=1.0, scale_y=1.0,
-                    vertical=False, track_name="subtitle", alpha=1,
-                    border_alpha=1.0, border_color="#000000", border_width=0.0,
-                    background_color="#000000", background_style=1, background_alpha=0.0,
-                    rotation=0.0, width=1080, height=1920):
+                      bold=False, italic=False, underline=False, font_color="#ffffff",
+                      transform_x=0.0, transform_y=0.0, scale_x=1.0, scale_y=1.0,
+                      vertical=False, track_name="subtitle", alpha=1,
+                      border_alpha=1.0, border_color="#000000", border_width=0.0,
+                      background_color="#000000", background_style=1, background_alpha=0.0,
+                      rotation=0.0, width=1080, height=1920):
     """API wrapper for add_subtitle service"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -1851,15 +1851,15 @@ def test_generate_image01():
     print(save_draft_impl(image_result['output']['draft_id'], draft_folder))
 
 def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="English",
-                        speaker_id="Skye", azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
-                        end_padding=0.0, interval_time=0.5, volume=1.0, width=1080, height=1920,
-                        add_subtitle=True, text_track_name=None, font="Poppins_Regular",
-                        font_color="#ffffff", font_size=8.0, transform_y=-0.8, transform_x=0,
-                        vertical=False, font_alpha=1.0, border_alpha=1.0, border_color="#000000",
-                        border_width=0.0, background_color="#000000", background_style=1,
-                        background_alpha=0.0, bubble_effect_id=None, bubble_resource_id=None,
-                        effect_effect_id=None, intro_animation=None, intro_duration=0.5,
-                        outro_animation=None, outro_duration=0.5):
+                         speaker_id="Skye", azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
+                         end_padding=0.0, interval_time=0.5, volume=1.0, width=1080, height=1920,
+                         add_subtitle=True, text_track_name=None, font="Poppins_Regular",
+                         font_color="#ffffff", font_size=8.0, transform_y=-0.8, transform_x=0,
+                         vertical=False, font_alpha=1.0, border_alpha=1.0, border_color="#000000",
+                         border_width=0.0, background_color="#000000", background_style=1,
+                         background_alpha=0.0, bubble_effect_id=None, bubble_resource_id=None,
+                         effect_effect_id=None, intro_animation=None, intro_duration=0.5,
+                         outro_animation=None, outro_duration=0.5):
     """Generate TTS speech and add to draft API call"""
     data = {
         "license_key": LICENSE_KEY,  # Using trial version license key
@@ -1946,7 +1946,7 @@ def test_speech_01():
     print("\nTest: Generate TTS speech and add subtitles")
     speech_result = generate_speech_impl(
         texts=["Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic",
-            "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
+               "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
         language="Chinese",
         draft_id="123",
         speaker_id="Skye",

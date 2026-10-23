@@ -519,9 +519,9 @@ class Script_file:
                     seg.font = font_type.value
             else:
                 seg = Text_segment(text, t_range, style=text_style, clip_settings=clip_settings,
-                                  border=border, background=background,
-                                  font=font_type,
-                                  fixed_width=fixed_width)
+                                   border=border, background=background,
+                                   font=font_type,
+                                   fixed_width=fixed_width)
                 # Add the bubble and text effect
                 if bubble:
                     seg.bubble = deepcopy(bubble)
