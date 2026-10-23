@@ -4,6 +4,7 @@ from pyJianYingDraft import trange, Font_type
 from typing import Optional, List  # 修复List导入
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 from pyJianYingDraft.text_segment import TextBubble, TextEffect, TextStyleRange
 
 # 使用Python 3.10+的新特性：Union类型可以用 | 替代
@@ -259,6 +260,9 @@ def add_text_impl(
 
     # Add text segment to track
     script.add_segment(text_segment, track_name=track_name)
+
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
 
     return {
         "draft_id": draft_id,

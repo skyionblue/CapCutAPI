@@ -444,6 +444,24 @@ Calling `save_draft` generates a folder starting with `dfd_` in the server's cur
 
 > **Note (MCP gateway):** when using the MCP `save_draft` tool (via `invoke_tool`) rather than the HTTP API, this copy step happens automatically — the result's `local_path` already points inside CapCut's real drafts folder, so no manual copy is needed. Use `list_drafts`/`delete_draft` to manage what accumulates there.
 
+### Draft Persistence
+
+Drafts are written to disk after every edit, so a server restart — a crash, a config reload, an
+MCP client restart — no longer loses in-progress work. `save_draft`, `query_script` and
+`add_*` all fall back to the store when a draft is no longer in memory, and resuming a known
+`draft_id` returns that draft rather than silently starting a new one.
+
+The store defaults to `drafts_store/` beside the project and is configurable:
+
+```json
+{
+  "draft_store_dir": "./drafts_store"
+}
+```
+
+> A restored draft comes back on the draft library's *imported* tracks. Saving and querying
+> round-trip correctly; further edits append new tracks rather than extending the restored ones.
+
 ### Video Export
 
 `save_draft` writes a CapCut draft; `export_video` turns that draft into a finished video file,

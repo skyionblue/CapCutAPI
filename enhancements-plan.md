@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Tier A COMPLETE and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. Tier B and remaining Tier C proposed.
+**Status:** Tier A, Phase B1 and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. B2 and remaining Tier C proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -74,40 +74,44 @@ licensed more permissively than what it derives from, and this project descends 
 
 ## Tier B — Reliability
 
-### Phase B1 — Persist drafts across restarts *(highest value)*
+### Phase B1 — Persist drafts across restarts — **COMPLETE (2026-10-23)**
 
-**The problem.** `DRAFT_CACHE` is a plain in-memory `OrderedDict` (`draft_cache.py:6`). Nothing
-writes a draft to disk until `save_draft` runs. If the process restarts — a crash, a config
-reload, an MCP client restart — every in-progress draft is unrecoverable:
+- [x] Every mutation writes through to `DRAFT_STORE_DIR/<draft_id>.json`, via a
+      `persist_draft()` call at the end of all eight `add_*` implementations and on creation.
+- [x] Writes are atomic (temp file + `os.replace`), so a crash mid-write cannot leave a
+      half-written draft that would then fail to load.
+- [x] `get_script()` reads cache first, then the store, and warms the cache on a restore.
+      `save_draft_impl` and `query_script_impl` both go through it.
+- [x] **`get_or_create_draft` now restores a known `draft_id` instead of silently creating a
+      new draft under a new id** — the specific behaviour that lost work after a restart.
+      A genuinely unknown id still creates a new draft.
+- [x] The LRU cache keeps its semantics and stays the hot path in front of the store.
+- [x] Persisting never raises: a store failure is logged, the draft stays usable in memory.
+      A corrupt store file is reported rather than thrown.
+- [x] `forget_draft()` clears both cache and store; `list_persisted_drafts()` reports what is
+      recoverable.
+- [x] Store location configurable via `draft_store_dir` in `config.json`; `drafts_store/` is
+      gitignored and documented in the README.
+- [x] Concurrency: all cache and store operations take a re-entrant lock, since mutations
+      arrive from Flask request threads and MCP calls alike.
 
-- `save_draft_impl.py:57` → task fails with *"Draft {id} does not exist in cache"*
-- `save_draft_impl.py:542` → `query_script` returns `None`
+**Validated:**
 
-There is no path to rebuild the lost draft; the assistant must redo every edit from scratch.
+- 14 unit tests (`tests/test_draft_persistence.py`), including corrupt-store and
+  store-unwritable paths.
+- **A genuine cross-process restart**, not just a cleared cache: one interpreter created and
+  edited a draft, a second fresh interpreter with an empty cache restored it with its size,
+  duration and tracks intact, returned the *same* id from `get_or_create_draft`, and served
+  `query_script_impl` successfully.
 
-This is the most consequential gap in the project for AI-driven use, where a single video may be
-assembled over many tool calls spanning minutes.
+**Known limitation (documented in the README):** a restored draft comes back on the draft
+library's *imported* tracks, because `Script_file.load_template` populates
+`imported_tracks`/`imported_materials` rather than the native ones. `dumps()` merges both, so
+saving and querying round-trip correctly, but further edits append new tracks rather than
+extending the restored ones.
 
-- [ ] Choose a persistence point. Preferred: write the draft's script JSON to a working directory
-      (e.g. `drafts/<draft_id>.json`) on every mutation, since `Script_file.dumps()` already
-      produces exactly this.
-- [ ] Rehydrate on cache miss: when `draft_id` is absent from `DRAFT_CACHE`, attempt to load it
-      from disk before failing.
-- [ ] Keep the LRU cache as a hot path in front of the store — do not change its semantics.
-- [ ] Add `draft_id` existence to the error messages so a caller can distinguish "never existed"
-      from "evicted/lost".
-- [ ] Consider a TTL/cleanup policy so the directory does not grow unbounded.
-- [ ] Verify concurrency: mutations may arrive from Flask request threads and MCP calls at once.
-
-**Risk:** rewriting the full draft JSON on every edit could be slow for very large drafts.
-Mitigate by measuring first; if needed, debounce writes or persist on a timer.
-
-**Validation:**
-- [ ] `create_draft` → `add_video` → **restart the server** → `save_draft` succeeds.
-- [ ] `query_script` returns the full timeline after a restart.
-
-**Completion criteria:** no draft is lost to a process restart, and the failure message for a
-genuinely unknown `draft_id` stays clear.
+**Not done:** a TTL/cleanup policy for the store, so it grows unbounded. Worth adding if drafts
+accumulate.
 
 ### Phase B2 — Make `save_draft` asynchronous
 
