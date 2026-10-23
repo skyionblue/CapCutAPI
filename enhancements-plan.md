@@ -242,6 +242,27 @@ has already happened.
       that validation runs before the implementation is invoked. 40 tests.
       They record what the code does today, not what it should do.
 
+#### Design constraint discovered
+
+`mcp_server.py` is **not** a duplicate of the HTTP layer to be merged away. It is a deliberate
+2-tool gateway: 21 catalogue entries, 2 advertised tools. Advertising one tool per capability
+would load every schema into the model's context for the entire session — `add_video` alone
+takes over twenty parameters — so discovery lives behind `search_tools` instead.
+
+This changes the shape of the phase. The shared dispatch layer this plan asked for **already
+exists**: it is `TOOLS` plus `execute_tool`. The MCP side is already thin; the HTTP side is the
+one that re-declares everything. So the work is not "merge the two servers" but "make
+`capcut_server.py` a thin adapter over the catalogue the gateway already uses".
+
+That framing also decides the divergences by construction: if HTTP stops declaring its own
+defaults, it inherits the implementation's — which is exactly the breaking change below.
+
+Constraints any refactor must hold:
+
+- [ ] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
+      and an `execute_tool` branch, never a new registered tool function.
+- [ ] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
+
 #### Blocked
 
 - [ ] **Decide how to resolve each divergence.** Unifying changes behaviour for one transport:
@@ -330,6 +351,12 @@ C4          ── independent, optional
 - The project continues to target localhost / trusted-network use by default.
 - Flask remains the HTTP framework (nothing in the tree uses FastAPI despite the declaration).
 - Existing response shapes are a contract for current callers and must not change silently.
+- **The MCP server advertises exactly two tools, and that is a hard constraint.** Every
+  advertised tool's schema is loaded into the model's context for the whole session, and this
+  toolset is large with detailed schemas, so the gateway keeps the advertised surface at
+  `search_tools`/`invoke_tool` and moves discovery behind them. Any change that registers
+  catalogue entries as individual MCP tools is a regression regardless of how clean the code
+  looks. Enforced by `tests/test_gateway_surface.py`.
 - `ffmpeg`/`ffprobe` remain external binary prerequisites rather than packaged dependencies.
 
 ---

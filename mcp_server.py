@@ -3,11 +3,25 @@
 CapCut API MCP Server (2-tool gateway)
 
 Exposes the full CapCut editing toolset (draft creation, video/audio/image/text/
-subtitle/effect/sticker/keyframe operations) behind two MCP tools instead of one
-per capability, so the tool list stays small:
+subtitle/effect/sticker/keyframe/export operations) behind two MCP tools instead of
+one per capability:
 
   - search_tools(query): discover available editing tools and their input schemas
   - invoke_tool(name, arguments): execute one of them by name
+
+DESIGN CONSTRAINT — do not register the catalogue as individual MCP tools.
+
+Every tool an MCP server advertises is loaded into the model's context for the whole
+session, schemas and all. This project's toolset is large and its schemas are detailed
+(add_video alone takes well over twenty parameters), so advertising one tool per
+capability would spend a substantial slice of the context window before any work began.
+The gateway keeps the advertised surface at two tools and moves discovery to
+search_tools, which returns only the schemas the model actually asks for.
+
+So TOOLS below is an internal catalogue, not an MCP registration list. Adding a
+capability means adding an entry to TOOLS and a branch to execute_tool — never a new
+function decorated as an MCP tool. Only search_tools and invoke_tool are registered that
+way, and that is deliberate; test_gateway_surface.py enforces it.
 
 Runs over stdio using the official `mcp` SDK (FastMCP).
 """
