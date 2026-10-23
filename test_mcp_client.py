@@ -331,7 +331,7 @@ def main():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except:
+        except Exception:
             process.kill()
         print("🔴 MCP服务器已关闭")
 

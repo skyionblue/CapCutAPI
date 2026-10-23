@@ -730,7 +730,6 @@ def generate_draft_url():
 
     # Get required parameters
     draft_id = data.get('draft_id')
-    draft_folder = data.get('draft_folder')  # New draft_folder parameter
 
     result = {
         "success": False,
@@ -745,7 +744,10 @@ def generate_draft_url():
         return jsonify(result)
 
     try:
-        draft_result = { "draft_url" : f"{DRAFT_DOMAIN}{PREVIEW_ROUTER}?={draft_id}"}
+        # Use the shared helper rather than rebuilding the URL here: the hand-rolled version
+        # emitted "?=<id>", a query string with no parameter name, while every other response
+        # from this same server (and the MCP tool) returns "?draft_id=<id>".
+        draft_result = {"draft_url": utilgenerate_draft_url(draft_id)}
 
         result["success"] = True
         result["output"] = draft_result

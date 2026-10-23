@@ -54,7 +54,8 @@ def add_sticker_impl(
     # Add sticker track
     if track_name is not None:
         try:
-            imported_track = script.get_imported_track(draft.Track_type.sticker, name=track_name)
+            # Probe for an existing track; TrackNotFound below means it must be created.
+            script.get_imported_track(draft.Track_type.sticker, name=track_name)
             # If no exception is thrown, the track already exists
         except exceptions.TrackNotFound:
             # Track doesn't exist, create a new track

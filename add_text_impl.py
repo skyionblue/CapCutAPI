@@ -108,7 +108,7 @@ def add_text_impl(
     # Validate if font is in Font_type
     try:
         font_type = getattr(Font_type, font)
-    except:
+    except Exception:
         available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
         raise ValueError(f"Unsupported font: {font}, please use one of the fonts in Font_type: {available_fonts}")
 
@@ -130,7 +130,8 @@ def add_text_impl(
     # Add text track
     if track_name is not None:
         try:
-            imported_track = script.get_imported_track(draft.Track_type.text, name=track_name)
+            # Probe for an existing track; TrackNotFound below means it must be created.
+            script.get_imported_track(draft.Track_type.text, name=track_name)
             # If no exception is thrown, the track already exists
         except exceptions.TrackNotFound:
             # Track doesn't exist, create a new track
@@ -245,7 +246,7 @@ def add_text_impl(
             # Convert seconds to microseconds
             duration_microseconds = int(intro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add intro animation, set duration
-        except:
+        except Exception:
             print(f"Warning: Unsupported intro animation type {intro_animation}, this parameter will be ignored")
 
     # Add outro animation
@@ -255,7 +256,7 @@ def add_text_impl(
             # Convert seconds to microseconds
             duration_microseconds = int(outro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add outro animation, set duration
-        except:
+        except Exception:
             print(f"Warning: Unsupported outro animation type {outro_animation}, this parameter will be ignored")
 
     # Add text segment to track

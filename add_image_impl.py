@@ -102,7 +102,8 @@ def add_image_impl(
     # Add video track (only when track doesn't exist)
     if track_name is not None:
         try:
-            imported_track = script.get_imported_track(draft.Track_type.video, name=track_name)
+            # Probe for an existing track; TrackNotFound below means it must be created.
+            script.get_imported_track(draft.Track_type.video, name=track_name)
             # If no exception is thrown, the track already exists
         except exceptions.TrackNotFound:
             # Track doesn't exist, create a new track
@@ -207,7 +208,7 @@ def add_image_impl(
                 rect_width=mask_rect_width,
                 round_corner=mask_round_corner
             )
-        except:
+        except Exception:
             raise ValueError(f"Unsupported mask type {mask_type}, supported types include: Linear, Mirror, Circle, Rectangle, Heart, Star")
 
     # Add background blur effect

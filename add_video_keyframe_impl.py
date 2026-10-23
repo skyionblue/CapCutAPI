@@ -126,8 +126,9 @@ def _add_single_keyframe(track, property_type: str, time: float, value: str):
     """
     # Convert property type string to enum value, validate if property type is valid
     try:
-        property_enum = getattr(draft.Keyframe_property, property_type)
-    except:
+        # Validation only -- the enum itself is resolved again where it is needed.
+        getattr(draft.Keyframe_property, property_type)
+    except AttributeError:
         raise Exception(f"Unsupported keyframe property type: {property_type}")
 
     # Parse value based on property type
