@@ -61,7 +61,7 @@ def add_sticker_impl(
             script.add_track(draft.Track_type.sticker, track_name=track_name, relative_index=relative_index)
     else:
         script.add_track(draft.Track_type.sticker, relative_index=relative_index)
-    
+
     # Create sticker segment
     sticker_segment = draft.Sticker_segment(
         resource_id,

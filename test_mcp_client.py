@@ -15,17 +15,17 @@ def send_request(process, request_data):
     try:
         request_json = json.dumps(request_data, ensure_ascii=False)
         print(f"发送请求: {request_json}")
-        
+
         # 发送请求
         process.stdin.write(request_json + "\n")
         process.stdin.flush()
-        
+
         # 等待响应
         response_line = process.stdout.readline()
         if not response_line.strip():
             print("❌ 收到空响应")
             return None
-            
+
         try:
             response = json.loads(response_line.strip())
             print(f"收到响应: {json.dumps(response, ensure_ascii=False, indent=2)}")
@@ -34,7 +34,7 @@ def send_request(process, request_data):
             print(f"❌ JSON解析错误: {e}")
             print(f"原始响应: {response_line}")
             return None
-            
+
     except Exception as e:
         print(f"❌ 发送请求时出错: {e}")
         return None
@@ -44,10 +44,10 @@ def send_notification(process, notification_data):
     try:
         notification_json = json.dumps(notification_data, ensure_ascii=False)
         print(f"发送通知: {notification_json}")
-        
+
         process.stdin.write(notification_json + "\n")
         process.stdin.flush()
-        
+
     except Exception as e:
         print(f"❌ 发送通知时出错: {e}")
 
@@ -55,7 +55,7 @@ def main():
     print("🚀 CapCut API MCP 测试客户端 (Complete Version)")
     print("🎯 测试所有CapCut API接口功能")
     print("=" * 60)
-    
+
     # 启动MCP服务器
     try:
         process = subprocess.Popen(
@@ -66,10 +66,10 @@ def main():
             text=True,
             bufsize=0  # 无缓冲
         )
-        
+
         print("✅ MCP服务器已启动 (mcp_server.py)")
         time.sleep(1)  # 等待服务器启动
-        
+
         # 1. 初始化
         init_request = {
             "jsonrpc": "2.0",
@@ -87,14 +87,14 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, init_request)
         if response and "result" in response:
             print("✅ 初始化成功")
         else:
             print("❌ 初始化失败")
             return
-        
+
         # 发送初始化完成通知
         init_notification = {
             "jsonrpc": "2.0",
@@ -102,7 +102,7 @@ def main():
             "params": {}
         }
         send_notification(process, init_notification)
-        
+
         print("\n=== 📋 获取工具列表 ===")
         # 2. 获取工具列表
         tools_request = {
@@ -111,7 +111,7 @@ def main():
             "method": "tools/list",
             "params": {}
         }
-        
+
         response = send_request(process, tools_request)
         if response and "result" in response:
             tools = response["result"]["tools"]
@@ -121,9 +121,9 @@ def main():
         else:
             print("❌ 获取工具列表失败")
             return
-        
+
         print("\n=== 🎬 测试核心功能 ===\n")
-        
+
         # 3. 测试创建草稿
         print("📝 测试创建草稿")
         create_draft_request = {
@@ -138,7 +138,7 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, create_draft_request)
         if response and "result" in response:
             print("✅ 创建草稿成功")
@@ -149,7 +149,7 @@ def main():
         else:
             print("❌ 创建草稿失败")
             draft_id = None
-        
+
         # 4. 测试添加文本（带多样式）
         print("\n📝 测试添加文本（多样式）")
         add_text_request = {
@@ -189,13 +189,13 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, add_text_request)
         if response and "result" in response:
             print("✅ 添加文本成功")
         else:
             print("❌ 添加文本失败")
-        
+
         # 5. 测试添加视频
         print("\n🎬 测试添加视频")
         add_video_request = {
@@ -215,13 +215,13 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, add_video_request)
         if response and "result" in response:
             print("✅ 添加视频成功")
         else:
             print("❌ 添加视频失败")
-        
+
         # 6. 测试添加音频
         print("\n🎵 测试添加音频")
         add_audio_request = {
@@ -239,13 +239,13 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, add_audio_request)
         if response and "result" in response:
             print("✅ 添加音频成功")
         else:
             print("❌ 添加音频失败")
-        
+
         # 7. 测试添加图片
         print("\n🖼️ 测试添加图片")
         add_image_request = {
@@ -264,13 +264,13 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, add_image_request)
         if response and "result" in response:
             print("✅ 添加图片成功")
         else:
             print("❌ 添加图片失败")
-        
+
         # 8. 测试获取视频时长
         print("\n⏱️ 测试获取视频时长")
         get_duration_request = {
@@ -284,13 +284,13 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, get_duration_request)
         if response and "result" in response:
             print("✅ 获取视频时长成功")
         else:
             print("❌ 获取视频时长失败")
-        
+
         # 9. 测试保存草稿
         print("\n💾 测试保存草稿")
         save_draft_request = {
@@ -304,15 +304,15 @@ def main():
                 }
             }
         }
-        
+
         response = send_request(process, save_draft_request)
         if response and "result" in response:
             print("✅ 保存草稿成功")
         else:
             print("❌ 保存草稿失败")
-        
+
         print("\n🎉 所有测试完成！CapCut API MCP服务器功能验证成功！")
-        
+
         print("\n✅ 已验证的功能:")
         print("   • 草稿管理 (创建、保存)")
         print("   • 文本处理 (多样式、阴影、背景)")
@@ -320,12 +320,12 @@ def main():
         print("   • 音频处理 (添加、音量控制)")
         print("   • 图片处理 (添加、动画效果)")
         print("   • 工具信息 (时长获取)")
-        
+
     except Exception as e:
         print(f"❌ 测试过程中出错: {e}")
         import traceback
         traceback.print_exc()
-    
+
     finally:
         # 关闭服务器
         try:

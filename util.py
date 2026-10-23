@@ -12,7 +12,7 @@ def hex_to_rgb(hex_color: str) -> tuple:
     """Convert hexadecimal color code to RGB tuple (range 0.0-1.0)"""
     hex_color = hex_color.lstrip('#')
     if len(hex_color) == 3:
-        hex_color = ''.join([c*2 for c in hex_color])  # Handle shorthand form (e.g. #fff)
+        hex_color = ''.join([c * 2 for c in hex_color])  # Handle shorthand form (e.g. #fff)
     try:
         r = int(hex_color[0:2], 16) / 255.0
         g = int(hex_color[2:4], 16) / 255.0
@@ -50,10 +50,10 @@ def url_to_hash(url, length=16):
     """
     # Ensure URL is bytes type
     url_bytes = url.encode('utf-8')
-    
+
     # Use SHA-256 to generate hash (secure and highly unique)
     hash_object = hashlib.sha256(url_bytes)
-    
+
     # Truncate to specified length of hexadecimal string
     return hash_object.hexdigest()[:length]
 

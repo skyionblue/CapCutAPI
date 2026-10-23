@@ -118,12 +118,12 @@ def get_task_status(task_id: str) -> dict:
         "total_files": 0,
         "draft_url": ""
     })
-    
+
     # If the task is found, update its position in the LRU cache
     if task_id in DRAFT_TASKS:
         # First delete, then add to the end, implementing LRU update
         update_tasks_cache(task_id, task_status)
-        
+
     return task_status
 
 def create_task(task_id: str) -> None:
