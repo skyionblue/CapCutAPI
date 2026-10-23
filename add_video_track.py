@@ -103,6 +103,22 @@ def add_video_track(
         script.add_track(draft.Track_type.video, relative_index=relative_index)
 
     # If duration parameter is passed, use it preferentially; otherwise use default duration of 0 seconds, and get the real duration when downloading the draft
+    #
+    # WHY THE PROBE BELOW IS COMMENTED OUT — do not "fix" this by uncommenting it.
+    #
+    # Probing here would run ffprobe against the remote URL on EVERY add_video call, over the
+    # network, before anything has been downloaded. The real duration is fetched once instead,
+    # in update_media_metadata() during save_draft, which is already downloading the asset.
+    #
+    # Until then the segment deliberately carries a zero or negative source duration, and that
+    # is load-bearing: save_draft corrects a segment only when
+    # `current_source.end > video.duration or current_source.end <= 0`
+    # (save_draft_impl.py). A placeholder clamped to 0 would leave `end` positive for any
+    # segment with start > 0, the correction would not fire, and the clip would stay
+    # zero-length in the finished video.
+    #
+    # The commented block also enforced a 2-minute limit on source videos. Re-enabling the
+    # probe therefore reinstates that restriction as well.
     if duration is not None:
         # Use the passed duration, skip duration retrieval and check
         video_duration = duration

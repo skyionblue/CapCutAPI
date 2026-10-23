@@ -259,3 +259,52 @@ def test_add_video_end_none_uses_the_full_duration(tmp_path, monkeypatch):
 
     assert clip_seconds() == 10.0, "omitting end must use the whole video"
     assert clip_seconds(end=0) == 0.0, "end=0 really does mean a zero-length clip"
+
+
+# --------------------------------------------------------------- deferred duration probe
+
+def test_zero_length_placeholder_is_corrected_at_save_time(tmp_path, monkeypatch):
+    """add_video defers the duration probe to save_draft, on purpose.
+
+    The segment carries a zero or negative source duration until then, and that placeholder is
+    load-bearing: update_media_metadata corrects a segment only when its source end is past the
+    real duration or <= 0. Clamping the placeholder to 0 would leave `end` positive for any
+    segment with start > 0, the correction would not fire, and the clip would stay zero-length.
+    """
+    import json
+    import subprocess
+
+    import draft_cache
+    from add_video_track import add_video_track
+    from save_draft_impl import update_media_metadata
+
+    ffmpeg = __import__("shutil").which("ffmpeg")
+    if not ffmpeg:
+        pytest.skip("ffmpeg not on PATH")
+
+    source = tmp_path / "six.mp4"
+    subprocess.run(
+        [ffmpeg, "-v", "error", "-y", "-f", "lavfi",
+         "-i", "testsrc=size=320x240:rate=30:duration=6",
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", str(source)],
+        check=True,
+    )
+    monkeypatch.setattr(draft_cache, "DRAFT_STORE_DIR", str(tmp_path / "store"))
+
+    def source_timerange(**kwargs):
+        result = add_video_track(video_url=str(source), track_name="t", **kwargs)
+        script = draft_cache.get_script(result["draft_id"])
+        before = [s for t in json.loads(script.dumps())["tracks"]
+                  for s in t.get("segments", [])][0]["source_timerange"]
+        update_media_metadata(script)
+        after = [s for t in json.loads(script.dumps())["tracks"]
+                 for s in t.get("segments", [])][0]["source_timerange"]
+        return before, after
+
+    before, after = source_timerange()
+    assert before["duration"] == 0, "the placeholder is what triggers the correction"
+    assert after["duration"] == 6_000_000, "save must fill in the real duration"
+
+    before, after = source_timerange(start=2)
+    assert before["duration"] < 0, "a start offset makes the placeholder negative, by design"
+    assert after == {"start": 2_000_000, "duration": 4_000_000}
