@@ -134,3 +134,45 @@ def draft_folder(tmp_path):
     folder = tmp_path / "drafts"
     folder.mkdir()
     return folder
+
+
+REAL_DRAFT_FOLDER = os.path.expanduser(
+    "~/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+)
+
+
+def _draft_entries():
+    try:
+        return set(os.listdir(REAL_DRAFT_FOLDER))
+    except OSError:
+        return set()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def isolate_draft_folder(tmp_path_factory):
+    """Keep the suite out of the real CapCut drafts folder.
+
+    Nothing writes there today, but nothing stopped it either, and a test that
+    leaves a draft behind puts it in front of a human in CapCut's project list.
+    So two things happen here. CAPCUT_DRAFT_FOLDER is redirected at a temp
+    directory, which pytest removes on its own, so any test that does resolve a
+    draft folder cleans up after itself by construction. And the real folder is
+    compared before and after the session to catch anything that bypasses the
+    redirect.
+
+    New entries are reported, not deleted. The folder holds the user's own
+    projects, and guessing which of them a test created is not a guess worth
+    making against real work.
+    """
+    before = _draft_entries()
+    os.environ["CAPCUT_DRAFT_FOLDER"] = str(tmp_path_factory.mktemp("capcut_drafts"))
+    yield
+    os.environ.pop("CAPCUT_DRAFT_FOLDER", None)
+    leaked = sorted(_draft_entries() - before)
+    if leaked:
+        raise AssertionError(
+            "The test suite left entries in the real CapCut drafts folder: "
+            + ", ".join(leaked)
+            + f"\nRemove them from {REAL_DRAFT_FOLDER} and make the test write "
+            "to tmp_path or to os.environ['CAPCUT_DRAFT_FOLDER'] instead."
+        )
