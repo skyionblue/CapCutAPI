@@ -43,3 +43,12 @@ mcp = [
 Homepage = "https://github.com/ashreo/CapCutAPI"
 Repository = "https://github.com/ashreo/CapCutAPI.git"
 Issues = "https://github.com/ashreo/CapCutAPI/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Keep the repository root importable so tests can import the top-level modules.
+pythonpath = ["."]
+markers = [
+    "gui: requires a macOS GUI session with CapCut installed (excluded by default)",
+]
+addopts = "-m 'not gui'"

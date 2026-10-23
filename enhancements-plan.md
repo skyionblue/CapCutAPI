@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Proposed — not started
+**Status:** Phase C1 COMPLETE (2026-10-23). Remaining phases proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -150,33 +150,53 @@ progress through `query_draft_status`.
 
 ## Tier C — Engineering quality
 
-### Phase C1 — Add a test suite and CI
+### Phase C1 — Add a test suite and CI — **COMPLETE (2026-10-23)**
 
-There are no automated tests. `test_mcp_client.py` is a manual connectivity script, not a suite.
-Everything in the export work was verified by hand and none of it is repeatable.
+Delivered on `feature/tests-and-ci`. **63 tests, running in ~0.2 s, with no CapCut installed.**
 
-The export code is unusually well suited to testing because its core is **pure**: given a draft
-JSON, `draft_model.load_draft` produces a parsed model and `ffmpeg_render.build_command` produces
-an argv list — no GUI, no rendering, no network.
+- [x] `pytest` added, with config in `pyproject.toml` (`testpaths`, `pythonpath`, a `gui`
+      marker excluded by default).
+- [x] `tests/conftest.py` builds draft fixtures in **both shapes**: as this API writes them
+      (no `has_audio` key, real paths) and as CapCut rewrites them (`has_audio` set,
+      `##_draftpath_placeholder_<uuid>_##` paths). Testing only the second shape is precisely
+      how the two defects in `e2a4b75` reached main.
+- [x] Tiny real media generated with ffmpeg at session scope, so audio probing is exercised
+      for real rather than mocked.
+- [x] `test_draft_model.py` (16) — including **regression tests for both `e2a4b75` defects**.
+- [x] `test_ffmpeg_render.py` (29) — overlay count, input seeking against source ranges, audio
+      mapping, the resolution "shorter side" rule in both orientations, even-dimension
+      enforcement, `_atempo_chain` outside 0.5–2.0, drawtext escaping.
+- [x] `test_export_task_cache.py` (11) — LRU eviction and refresh, warning accumulation,
+      snapshot isolation.
+- [x] `test_export_impl.py` (12) — backend resolution, validation, async contract, failure
+      recording.
+- [x] GitHub Actions on push and PR, Python 3.10 and 3.12, with ffmpeg installed.
 
-- [ ] Add `pytest` (dev dependency) and a `tests/` package.
-- [ ] Unit tests for `draft_model.load_draft`: canvas/fps/duration parsing, segment trims and
-      transforms, and that each unsupported material collection produces a fidelity warning.
-- [ ] Unit tests for `ffmpeg_render.build_command`: overlay count matches visible segments,
-      `-ss`/`-t` match segment source ranges, `_output_size` resolution maths (including the
-      "shorter side" rule in both orientations), and `_atempo_chain` outside the 0.5–2.0 range.
-- [ ] Unit tests for `export_task_cache`: LRU eviction, `fidelity_warnings` accumulation,
-      `not_found` for unknown ids.
-- [ ] Tests for `export_impl.resolve_backend` using monkeypatched availability probes.
-- [ ] Commit a small fixture draft JSON so tests need no CapCut installation.
-- [ ] Mark anything requiring a GUI as `@pytest.mark.gui` and exclude it by default.
-- [ ] GitHub Actions workflow running `flake8` and `pytest` on push and PR.
+**The regression tests were verified against the broken code**, not just the fixed code: both
+fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either way proves nothing.
 
-**Why this first among Tier C:** it protects the export work from a silent CapCut draft-format
-change, which would otherwise surface as a corrupted render rather than an error.
+**Two defects found while writing these tests:**
 
-**Completion criteria:** `pytest` passes from a clean checkout with no CapCut installed, and CI
-runs on every PR.
+1. **`export_task_cache` leaked mutable state.** `dict.copy()` is shallow, so every caller shared
+   the `fidelity_warnings` list with the cache and appending to it silently rewrote recorded
+   status. Fixed with a `_snapshot()` helper that copies the list.
+2. **`.flake8` excluded `pyJianYingDraft\metadata\font_meta.py` using Windows separators**, so
+   that exclusion never matched on macOS or Linux, and the `capcut_*` metadata tables were not
+   excluded at all. Replaced with a single directory exclusion; `.venv` is now excluded too
+   (linting it produced 83,566 findings).
+
+### Phase C5 — Burn down the legacy lint debt
+
+With `.venv` and generated metadata excluded, the pre-existing modules carry **836 flake8
+findings** (`example.py` 212, `save_draft_impl.py` 102, `capcut_server.py` 88, …). CI lints the
+export modules and tests **strictly**, and the whole repo **advisorily** (`continue-on-error`), so
+the debt stays visible without CI being red from day one.
+
+- [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
+- [ ] Flip the advisory whole-repo lint step to blocking once it reaches zero.
+
+**Completion criteria:** `flake8 .` is clean and the advisory CI step is removed in favour of a
+single blocking one.
 
 ### Phase C2 — Remove the duplicated server layers
 
@@ -222,8 +242,9 @@ Carried over from `export-functionality-plan.md`, all optional:
 A1, A2, A3  ── independent, any order
 B1          ── independent; highest value
 B2          ── best after B1 (persistence makes async safer)
-C1          ── independent; prerequisite for C2
-C2          ── REQUIRES C1
+C1          ── DONE; prerequisite for C2
+C2          ── REQUIRES C1 (now unblocked)
+C5          ── independent; pairs naturally with C2
 C3          ── only before non-local exposure
 C4          ── independent, optional
 ```

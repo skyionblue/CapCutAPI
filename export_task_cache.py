@@ -35,6 +35,17 @@ def _default_status(task_id: str = "", draft_id: str = "", backend: str = "") ->
     }
 
 
+def _snapshot(task_status: dict) -> dict:
+    """A copy safe to hand out.
+
+    dict.copy() is shallow, so without this the caller shares the fidelity_warnings list with
+    the cache and appending to it silently rewrites recorded state.
+    """
+    copied = task_status.copy()
+    copied["fidelity_warnings"] = list(task_status.get("fidelity_warnings", []))
+    return copied
+
+
 def create_export_task(task_id: str, draft_id: str = "", backend: str = "") -> None:
     """Create a new export task and initialize its status."""
     with _LOCK:
@@ -54,7 +65,7 @@ def update_export_task(task_id: str, **fields: Any) -> None:
             if len(EXPORT_TASKS) >= MAX_TASKS_CACHE_SIZE:
                 EXPORT_TASKS.popitem(last=False)
         else:
-            task_status = task_status.copy()
+            task_status = _snapshot(task_status)
         task_status.update(fields)
         EXPORT_TASKS[task_id] = task_status
 
@@ -66,8 +77,7 @@ def add_fidelity_warning(task_id: str, warning: str) -> None:
         if task_status is None:
             task_status = _default_status(task_id)
         else:
-            task_status = task_status.copy()
-            task_status["fidelity_warnings"] = list(task_status.get("fidelity_warnings", []))
+            task_status = _snapshot(task_status)
         task_status["fidelity_warnings"].append(warning)
         EXPORT_TASKS[task_id] = task_status
 
@@ -82,10 +92,10 @@ def get_export_task_status(task_id: str) -> Dict[str, Any]:
             missing["message"] = "Export task does not exist"
             return missing
         EXPORT_TASKS[task_id] = task_status
-        return task_status.copy()
+        return _snapshot(task_status)
 
 
 def list_export_tasks() -> List[Dict[str, Any]]:
     """All cached export tasks, most recently used last."""
     with _LOCK:
-        return [status.copy() for status in EXPORT_TASKS.values()]
+        return [_snapshot(status) for status in EXPORT_TASKS.values()]
