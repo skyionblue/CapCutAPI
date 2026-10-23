@@ -27,7 +27,7 @@ def add_subtitle_impl(
 
     # Background parameters
     background_color: str = "#000000",
-    background_style: int = 1,
+    background_style: int = 0,
     background_alpha: float = 0.0,  # Default no background display
 
     # Bubble effect
@@ -43,8 +43,8 @@ def add_subtitle_impl(
     scale_y: float = 1.0,
     rotation: float = 0.0,
     style_reference: draft.Text_segment = None,
-    vertical: bool = True,  # New parameter: whether to display vertically
-    alpha: float = 0.4,
+    vertical: bool = False,  # New parameter: whether to display vertically
+    alpha: float = 1,
     width: int = 1080,  # New parameter
     height: int = 1920  # New parameter
 ):

@@ -22,7 +22,7 @@ def add_image_impl(
     scale_x: float = 1,
     scale_y: float = 1,
     transform_x: float = 0,
-    track_name: str = "main",
+    track_name: str = "image_main",
     relative_index: int = 0,
     animation: Optional[str] = None,  # Entrance animation parameter (backward compatibility)
     animation_duration: float = 0.5,  # Entrance animation duration parameter, default 0.5 seconds

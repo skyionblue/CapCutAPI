@@ -67,17 +67,26 @@ def impl_default(attr, param):
 # Each entry is (route, parameter, value the HTTP layer sends, value MCP would send).
 # These are the 11 places where the two transports disagree today.
 
+# Still divergent: the HTTP layer declares its own default, so these resolve only once
+# capcut_server stops re-declaring parameters and inherits the implementation's.
 DIVERGENCES = [
-    ("/add_video", "track_name", "video_main", "main"),
-    ("/add_text", "transform_y", 0, -0.8),
     ("/add_text", "font_color", "#FF0000", "#ffffff"),
-    ("/add_text", "background_style", 0, 1),
-    ("/add_image", "track_name", "image_main", "main"),
     ("/add_subtitle", "font_size", 5.0, 8.0),
-    ("/add_subtitle", "background_style", 0, 1),
-    ("/add_subtitle", "vertical", False, True),
-    ("/add_subtitle", "alpha", 1, 0.4),
-    ("/add_video_keyframe", "track_name", "video_main", "main"),
+]
+
+# Resolved (Phase C2 decisions): the implementation now carries the agreed value, and the
+# HTTP layer already sent it. Each entry asserts the two sides AGREE — the inverse of the
+# divergence tests these were converted from.
+RESOLVED = [
+    ("/add_video", "track_name", "video_main"),
+    ("/add_image", "track_name", "image_main"),
+    ("/add_video_keyframe", "track_name", "video_main"),
+    ("/add_text", "transform_y", 0),
+    ("/add_text", "background_style", 0),
+    ("/add_subtitle", "vertical", False),
+    ("/add_subtitle", "alpha", 1),
+    ("/add_subtitle", "background_style", 0),
+    ("/add_sticker", "end", 5.0),
 ]
 
 
@@ -133,20 +142,31 @@ def test_add_sticker_error_names_the_canonical_parameter(capture):
     assert "resource_id" in body["error"]
 
 
-def test_add_sticker_end_is_required_by_the_impl_but_defaulted_over_http(capture):
-    """DIVERGENCE: HTTP supplies a default for an argument the implementation requires.
+@pytest.mark.parametrize("route,param,value", RESOLVED)
+def test_resolved_divergences_now_agree(capture, route, param, value):
+    """Both surfaces send the decided value.
 
-    `end` has no default in add_sticker_impl and is listed as required by the MCP schema, but
-    the HTTP route substitutes 5.0, so an omitted `end` silently produces a 5-second sticker
-    over HTTP and an error over MCP.
+    Converted from the divergence tests rather than deleted: each still checks both sides, so
+    a regression on either one fails here and names the parameter.
+    """
+    forwarded = capture(route)
+    assert forwarded[param] == value, f"HTTP no longer sends the decided value for {param}"
+
+    attr = ROUTES[route][0]
+    assert impl_default(attr, param) == value, (
+        f"the implementation no longer defaults {param} to the decided value"
+    )
+
+
+def test_add_sticker_end_is_no_longer_required_by_the_implementation(capture):
+    """Resolved: the implementation took HTTP's 5.0 convenience default, so an omitted `end`
+    behaves the same over both transports instead of erroring over MCP.
     """
     import mcp_server
     schema = [t for t in mcp_server.TOOLS if t["name"] == "add_sticker"][0]["inputSchema"]
-    assert "end" in schema["required"]
-    assert impl_default("add_sticker_impl", "end") is inspect._empty
-
-    forwarded = capture("/add_sticker")
-    assert forwarded["end"] == 5.0
+    assert "end" not in schema["required"]
+    assert schema["properties"]["end"].get("default") == 5.0
+    assert impl_default("add_sticker_impl", "end") == 5.0
 
 
 # --------------------------------------------------------------- agreed defaults

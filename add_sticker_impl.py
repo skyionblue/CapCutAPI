@@ -9,7 +9,7 @@ from util import generate_draft_url
 def add_sticker_impl(
     resource_id: str,
     start: float,
-    end: float,
+    end: float = 5.0,
     draft_id: str = None,
     transform_y: float = 0,
     transform_x: float = 0,

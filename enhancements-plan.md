@@ -294,11 +294,15 @@ than making HTTP callers start supplying it.
 
 #### Remaining work
 
-- [ ] Apply the decided defaults to the implementations and update the MCP schemas to match.
+- [x] Apply the decided defaults to the implementations and update the MCP schemas to match.
+      Also settled `add_subtitle` `background_style` (`1` -> `0`), which appeared in the
+      divergence list but was missed from the decision table; it follows `add_text`'s
+      "no background box" choice and matches what HTTP already sent.
 - [ ] Make `capcut_server.py` a thin adapter over the `TOOLS` catalogue and `execute_tool`.
-- [ ] Convert `tests/test_dispatch_parity.py` divergence-by-divergence: each test that asserts
-      a difference becomes one that asserts agreement. They are the safety net for this
-      refactor, so convert deliberately rather than rewriting the file.
+- [x] Converted `tests/test_dispatch_parity.py` divergence-by-divergence: nine entries moved
+      from DIVERGENCES to RESOLVED, each now asserting both surfaces agree. Two remain
+      divergent (`add_text` `font_color`, `add_subtitle` `font_size`) because the HTTP
+      layer still declares its own default; they resolve with the adapter below.
 - [ ] Preserve both response shapes — HTTP `{success, output, error}`, MCP `{success, result}` —
       and the two-tool advertised surface.
 
