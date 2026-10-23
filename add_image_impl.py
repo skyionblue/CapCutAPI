@@ -132,7 +132,8 @@ def add_image_impl(
 
     # Create image material
     if draft_image_path:
-        image_material = draft.Video_material(path=None, material_type='photo', replace_path=draft_image_path, remote_url=image_url, material_name=material_name)
+        image_material = draft.Video_material(path=None, material_type='photo', replace_path=draft_image_path,
+                                              remote_url=image_url, material_name=material_name)
     else:
         image_material = draft.Video_material(path=None, material_type='photo', remote_url=image_url, material_name=material_name)
 

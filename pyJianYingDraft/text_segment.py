@@ -275,7 +275,7 @@ class TextStyleRange:
         if font_str:
             try:
                 font_type = getattr(Font_type, font_str).value
-            except:
+            except AttributeError:
                 available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
                 raise ValueError(f"Unsupported font: {font_str}. Use one of the fonts in Font_type: {available_fonts}")
             self.font = font_type

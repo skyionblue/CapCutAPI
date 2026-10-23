@@ -12,3 +12,8 @@ exclude =
     ignored,
     pyJianYingDraft/metadata
 max-line-length = 140
+
+# tool_registry imports the project's own modules, which cannot resolve until the
+# sys.path.insert() above them has run. The ordering is deliberate, not an oversight.
+per-file-ignores =
+    tool_registry.py:E402

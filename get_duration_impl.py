@@ -76,7 +76,7 @@ def get_video_duration(video_url):
 
         # Try using remote service to get duration after each local failure
         if not result["success"]:
-            print(f"Local retrieval failed")
+            print("Local retrieval failed")
             # try:
             #     remote_duration = get_duration(video_url)
             #     if remote_duration is not None:

@@ -103,7 +103,8 @@ def add_audio_track(
     # Create audio segment
     if draft_audio_path:
         print('replace_path:', draft_audio_path)
-        audio_material = draft.Audio_material(replace_path=draft_audio_path, remote_url=audio_url, material_name=material_name, duration=audio_duration)
+        audio_material = draft.Audio_material(replace_path=draft_audio_path, remote_url=audio_url,
+                                              material_name=material_name, duration=audio_duration)
     else:
         audio_material = draft.Audio_material(remote_url=audio_url, material_name=material_name, duration=audio_duration)
     audio_segment = draft.Audio_segment(

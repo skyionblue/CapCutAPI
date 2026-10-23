@@ -217,8 +217,8 @@ def test_restore_does_not_duplicate_materials(media):
     after = json.loads(get_script(draft_id).dumps())
 
     assert len(after["materials"]["videos"]) == len(before["materials"]["videos"]) == 1
-    assert sum(len(t.get("segments", [])) for t in after["tracks"]) == \
-    sum(len(t.get("segments", [])) for t in before["tracks"])
+    assert (sum(len(t.get("segments", [])) for t in after["tracks"])
+            == sum(len(t.get("segments", [])) for t in before["tracks"]))
 
 
 @requires_ffmpeg

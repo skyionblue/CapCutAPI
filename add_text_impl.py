@@ -1,7 +1,7 @@
 import pyJianYingDraft as draft
 from util import generate_draft_url, hex_to_rgb
 from pyJianYingDraft import trange, Font_type
-from typing import Optional, List
+from typing import List
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft

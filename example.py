@@ -1341,7 +1341,6 @@ def test_video_track03():
 def test_video_track04():
     """Test adding video track"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Add video track")
     video_result = add_video_impl(
@@ -1564,7 +1563,6 @@ def test_video():
         save_draft_impl(video_result['output']['draft_id'], draft_folder)
 
 def test_video_02():
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
 
     print("\nTest: Adding video")
     video_result = add_video_impl(
@@ -1941,7 +1939,6 @@ def test_generate_image02():
 @timing_decorator('TTS Speech Generation')
 def test_speech_01():
     """Test TTS speech generation and subtitle addition"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
 
     print("\nTest: Generate TTS speech and add subtitles")
     speech_result = generate_speech_impl(

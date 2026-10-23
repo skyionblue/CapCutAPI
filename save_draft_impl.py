@@ -376,7 +376,8 @@ def update_media_metadata(script, task_id=None):
                         update_task_field(task_id, "message", f"Processing audio metadata: {material_name}")
                     # Convert seconds to microseconds
                     audio.duration = int(duration_result["output"] * 1000000)
-                    logger.info(f"Successfully obtained audio {material_name} duration: {duration_result['output']:.2f} seconds ({audio.duration} microseconds).")
+                    logger.info(
+                        f"Successfully obtained audio {material_name} duration: {duration_result['output']:.2f} seconds ({audio.duration} microseconds).")
 
                     # Update timerange for all segments using this audio material
                     for track_name, track in script.tracks.items():
@@ -393,7 +394,8 @@ def update_media_metadata(script, task_id=None):
                                         # Adjust source_timerange to fit the new audio duration
                                         new_source_duration = audio.duration - current_source.start
                                         if new_source_duration <= 0:
-                                            logger.warning(f"Warning: Audio segment {segment.segment_id} start time {current_source.start} exceeds audio duration {audio.duration}, will skip this segment.")
+                                            logger.warning(
+                                                f"Warning: Audio segment {segment.segment_id} start time {current_source.start} exceeds audio duration {audio.duration}, will skip this segment.")
                                             continue
 
                                         # Update source_timerange
@@ -430,7 +432,8 @@ def update_media_metadata(script, task_id=None):
                     video.height, video.width = img.shape[:2]
                     logger.info(f"Successfully set image {material_name} dimensions: {video.width}x{video.height}.")
                 except Exception as e:
-                    logger.error(f"Failed to set image {material_name} dimensions: {str(e)}, using default values 1920x1080.", exc_info=True)
+                    logger.error(
+                        f"Failed to set image {material_name} dimensions: {str(e)}, using default values 1920x1080.", exc_info=True)
                     video.width = 1920
                     video.height = 1080
 
@@ -468,7 +471,8 @@ def update_media_metadata(script, task_id=None):
                             # Prefer stream duration, if not available use format duration
                             duration = stream.get('duration') or info['format'].get('duration', '0')
                             video.duration = int(float(duration) * 1000000)  # Convert to microseconds
-                            logger.info(f"Successfully obtained video {material_name} duration: {float(duration):.2f} seconds ({video.duration} microseconds).")
+                            logger.info(
+                                f"Successfully obtained video {material_name} duration: {float(duration):.2f} seconds ({video.duration} microseconds).")
 
                             # Update timerange for all segments using this video material
                             for track_name, track in script.tracks.items():
@@ -485,7 +489,8 @@ def update_media_metadata(script, task_id=None):
                                                 # Adjust source_timerange to fit the new video duration
                                                 new_source_duration = video.duration - current_source.start
                                                 if new_source_duration <= 0:
-                                                    logger.warning(f"Warning: Video segment {segment.segment_id} start time {current_source.start} exceeds video duration {video.duration}, will skip this segment.")
+                                                    logger.warning(
+                                                        f"Warning: Video segment {segment.segment_id} start time {current_source.start} exceeds video duration {video.duration}, will skip this segment.")
                                                     continue
 
                                                 # Update source_timerange
@@ -495,19 +500,21 @@ def update_media_metadata(script, task_id=None):
                                                 new_target_duration = int(new_source_duration / speed)
                                                 segment.target_timerange = draft.Timerange(current_target.start, new_target_duration)
 
-                                                logger.info(f"Adjusted video segment {segment.segment_id} timerange to fit the new video duration.")
+                                                logger.info(
+                                                    f"Adjusted video segment {segment.segment_id} timerange to fit the new video duration.")
                         else:
                             logger.warning(f"Warning: Unable to get video {material_name} stream information.")
                             # Set default values
                             video.width = 1920
                             video.height = 1080
                     else:
-                        logger.warning(f"Warning: Could not find JSON data in ffprobe output.")
+                        logger.warning("Warning: Could not find JSON data in ffprobe output.")
                         # Set default values
                         video.width = 1920
                         video.height = 1080
                 except Exception as e:
-                    logger.error(f"Error occurred while getting video {material_name} information: {str(e)}, using default values 1920x1080.", exc_info=True)
+                    logger.error(
+                        f"Error occurred while getting video {material_name} information: {str(e)}, using default values 1920x1080.", exc_info=True)
                     # Set default values
                     video.width = 1920
                     video.height = 1080
@@ -518,7 +525,8 @@ def update_media_metadata(script, task_id=None):
                         if duration_result["success"]:
                             # Convert seconds to microseconds
                             video.duration = int(duration_result["output"] * 1000000)
-                            logger.info(f"Successfully obtained video {material_name} duration: {duration_result['output']:.2f} seconds ({video.duration} microseconds).")
+                            logger.info(
+                                f"Successfully obtained video {material_name} duration: {duration_result['output']:.2f} seconds ({video.duration} microseconds).")
                         else:
                             logger.warning(f"Warning: Unable to get video {material_name} duration: {duration_result['error']}.")
                     except Exception as e2:
@@ -545,7 +553,8 @@ def update_media_metadata(script, task_id=None):
                 if track.segments[i].overlaps(track.segments[j]):
                     # Always keep the segment with the smaller index (added first)
                     later_index = max(i, j)
-                    logger.warning(f"Time range conflict between segments {track.segments[min(i, j)].segment_id} and {track.segments[later_index].segment_id} in track {track_name}, deleting the later segment")
+                    logger.warning(
+                        f"Time range conflict between segments {track.segments[min(i, j)].segment_id} and {track.segments[later_index].segment_id} in track {track_name}, deleting the later segment")
                     to_remove.add(later_index)
 
         # Delete marked segments from back to front to avoid index change issues
@@ -634,7 +643,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
             script_data = json.loads(response.json().get('output'))
             logger.info(f"Successfully retrieved script data for draft {draft_id}.")
         else:
-            logger.info(f"Using provided script_data, skipping remote retrieval.")
+            logger.info("Using provided script_data, skipping remote retrieval.")
 
         # Collect download tasks
         download_tasks = []
@@ -734,7 +743,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
         """Write draft file content to file"""
         with open(f"{draft_folder}/{draft_id}/draft_info.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(script_data))
-        logger.info(f"Draft has been saved.")
+        logger.info("Draft has been saved.")
 
         # No draft_url for download, but return success
         return {"success": True, "message": f"Draft {draft_id} and its assets downloaded successfully"}

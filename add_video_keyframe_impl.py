@@ -73,7 +73,8 @@ def add_video_keyframe_impl(
                 raise Exception("In batch mode, parameter lists cannot be empty")
 
             if not (len(property_types) == len(times) == len(values)):
-                raise Exception(f"property_types, times, values must have equal lengths, current lengths are: {len(property_types)}, {len(times)}, {len(values)}")
+                raise Exception(
+                    f"property_types, times, values must have equal lengths, current lengths are: {len(property_types)}, {len(times)}, {len(values)}")
 
             keyframes_to_process = [
                 {
@@ -98,7 +99,8 @@ def add_video_keyframe_impl(
                 _add_single_keyframe(track, kf["property_type"], kf["time"], kf["value"])
                 added_count += 1
             except Exception as e:
-                raise Exception(f"Failed to add keyframe #{i+1} (property_type={kf['property_type']}, time={kf['time']}, value={kf['value']}): {str(e)}")
+                raise Exception(
+                    f"Failed to add keyframe #{i+1} (property_type={kf['property_type']}, time={kf['time']}, value={kf['value']}): {str(e)}")
 
         result = {
             "draft_id": draft_id,
