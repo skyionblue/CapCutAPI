@@ -45,6 +45,9 @@ DRAFT_CARD_DESC = "HomePageDraft"
 EXPORT_OK_BTN = "ExportOkBtn"
 SUCCESS_CLOSE_BTN = "automationcloseBtn"
 EDITOR_MARKER = "MainTimeLine"
+# Present on the home page whether or not any drafts are listed. Detecting "home"
+# by the draft cards alone reports an empty drafts folder as an unknown state.
+HOME_MARKERS = ("HomePageStartProjectName", "HomePageDraft")
 
 TEMP_FOLDER_PREFIX = ".__capcut_export_temp_folder_"
 
@@ -105,7 +108,7 @@ def _current_state(window: int = 0) -> str:
     tags = [(element["name"] or element["desc"]) for element in ui.list_main_elements()]
     if any(EDITOR_MARKER in tag for tag in tags):
         return "editor"
-    if any(DRAFT_CARD_DESC in tag for tag in tags):
+    if any(marker in tag for tag in tags for marker in HOME_MARKERS):
         return "home"
     return "unknown"
 

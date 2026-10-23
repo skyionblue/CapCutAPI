@@ -499,11 +499,10 @@ class Script_file:
             lines = srt_content.splitlines()
 
         def __add_text_segment(text: str, t_range: Timerange) -> None:
-            fixed_width = -1
-            if self.width < self.height:  # portrait
-                fixed_width = int(1080 * 0.6)
-            else:  # landscape
-                fixed_width = int(1920 * 0.7)
+            # Derive the subtitle width from this draft's own canvas. These were hardcoded
+            # to 1080 and 1920, which only happened to be right for a 1080x1920 or 1920x1080
+            # draft; any other size got a width that was too wide or too narrow for its frame.
+            fixed_width = int(self.width * (0.6 if self.width < self.height else 0.7))
 
             if style_reference:
                 seg = Text_segment.create_from_template(text, t_range, style_reference)
