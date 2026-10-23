@@ -4,12 +4,11 @@ from .keyframe import Keyframe_property
 from .time_util import Timerange
 from .audio_segment import Audio_segment
 from .video_segment import Video_segment, Sticker_segment, Clip_settings
-from .effect_segment import Effect_segment, Filter_segment
+from .effect_segment import Effect_segment
 from .text_segment import Text_segment, Text_style, Text_border, Text_background, Text_shadow
 
 from .metadata import Font_type
 from .metadata import CapCut_Mask_type
-from .metadata import Filter_type
 from .metadata import CapCut_Transition_type
 from .metadata import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
 from .metadata import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
@@ -26,7 +25,6 @@ from .time_util import SEC, tim, trange
 __all__ = [
     "Font_type",
     "CapCut_Mask_type",
-    "Filter_type",
     "CapCut_Transition_type",
     "CapCut_Intro_type",
     "CapCut_Outro_type",
@@ -49,7 +47,6 @@ __all__ = [
     "Sticker_segment",
     "Clip_settings",
     "Effect_segment",
-    "Filter_segment",
     "Text_segment",
     "Text_style",
     "Text_border",

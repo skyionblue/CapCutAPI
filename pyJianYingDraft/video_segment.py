@@ -21,7 +21,7 @@ from .local_materials import Video_material
 from .animation import Segment_animations, Video_animation
 
 from .metadata import Effect_meta, Effect_param_instance
-from .metadata import Mask_meta, Filter_type, CapCut_Transition_type
+from .metadata import Mask_meta, CapCut_Transition_type
 from .metadata import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
 
 
@@ -408,19 +408,6 @@ class Video_segment(Visual_segment):
         effect_inst = Video_effect(effect_type, params)
         self.effects.append(effect_inst)
         self.extra_material_refs.append(effect_inst.global_id)
-
-        return self
-
-    def add_filter(self, filter_type: Filter_type, intensity: float = 100.0) -> "Video_segment":
-        """为视频片段添加一个滤镜
-
-        Args:
-            filter_type (`Filter_type`): 滤镜类型
-            intensity (`float`, optional): 滤镜强度(0-100), 仅当所选滤镜能够调节强度时有效. 默认为100.
-        """
-        filter_inst = Filter(filter_type.value, intensity / 100.0)  # 转化为0~1范围
-        self.filters.append(filter_inst)
-        self.extra_material_refs.append(filter_inst.global_id)
 
         return self
 

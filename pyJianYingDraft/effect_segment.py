@@ -1,12 +1,12 @@
-"""Effect and filter segment types."""
+"""Effect segment type."""
 
 from typing import Union, Optional, List
 
 from .time_util import Timerange
 from .segment import Base_segment
-from .video_segment import Video_effect, Filter
+from .video_segment import Video_effect
 
-from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, Filter_type
+from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type
 
 class Effect_segment(Base_segment):
     """An effect segment, placed on its own effect track."""
@@ -21,16 +21,3 @@ class Effect_segment(Base_segment):
                  target_timerange: Timerange, params: Optional[List[Optional[float]]] = None):
         self.effect_inst = Video_effect(effect_type, params, apply_target_type=2)  # global scope
         super().__init__(self.effect_inst.global_id, target_timerange)
-
-class Filter_segment(Base_segment):
-    """A filter segment, placed on its own filter track."""
-
-    material: Filter
-    """The filter material.
-
-    Added to the material list automatically when placed on a track.
-    """
-
-    def __init__(self, meta: Filter_type, target_timerange: Timerange, intensity: float):
-        self.material = Filter(meta.value, intensity)
-        super().__init__(self.material.global_id, target_timerange)

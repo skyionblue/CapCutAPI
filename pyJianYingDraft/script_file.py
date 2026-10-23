@@ -15,11 +15,11 @@ from .local_materials import Video_material, Audio_material
 from .segment import Base_segment, Speed, Clip_settings
 from .audio_segment import Audio_segment, Audio_fade, Audio_effect
 from .video_segment import Video_segment, Sticker_segment, Segment_animations, Video_effect, Transition, Filter, BackgroundFilling
-from .effect_segment import Effect_segment, Filter_segment
+from .effect_segment import Effect_segment
 from .text_segment import Text_segment, Text_style, TextBubble, Text_border, Text_background, TextEffect
 from .track import Track_type, Base_track, Track
 
-from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, Filter_type, Font_type
+from .metadata import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, Font_type
 
 class Script_material:
     """草稿文件中的素材信息部分"""
@@ -431,32 +431,6 @@ class Script_file:
         # 自动添加相关素材
         if segment.effect_inst not in self.materials:
             self.materials.video_effects.append(segment.effect_inst)
-        return self
-
-    def add_filter(self, filter_meta: Filter_type, t_range: Timerange,
-                   track_name: Optional[str] = None, intensity: float = 100.0) -> "Script_file":
-        """向指定的滤镜轨道中添加一个滤镜片段
-
-        Args:
-            filter_meta (`Filter_type`): 滤镜类型
-            t_range (`Timerange`): 滤镜片段的时间范围
-            track_name (`str`, optional): 添加到的轨道名称. 当滤镜轨道仅有一条时可省略.
-            intensity (`float`, optional): 滤镜强度(0-100). 仅当所选滤镜能够调节强度时有效. 默认为100.
-
-        Raises:
-            `NameError`: 未找到指定名称的轨道, 或必须提供`track_name`参数时未提供
-            `TypeError`: 指定的轨道不是滤镜轨道
-            `ValueError`: 新片段与已有片段重叠
-        """
-        target = self.get_track(Filter_segment, track_name)
-
-        # 加入轨道并更新时长
-        segment = Filter_segment(filter_meta, t_range, intensity / 100.0)  # 转换为0-1范围
-        target.add_segment(segment)
-        self.duration = max(self.duration, t_range.end)
-
-        # 自动添加相关素材
-        self.materials.filters.append(segment.material)
         return self
 
     def import_srt(self, srt_content: str, track_name: str, *,
