@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Tier A, Tier B and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. C2 and C5 proposed.
+**Status:** Tier A, Tier B and Phase C1 COMPLETE (2026-10-23); CI deferred by decision. C2 groundwork done but BLOCKED on a behaviour decision. C5 proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -192,6 +192,107 @@ the debt stays visible without CI being red from day one.
 
 **Completion criteria:** `flake8 .` is clean from the repository root.
 
+### Phase C2 — Remove the duplicated server layers — **BLOCKED on a decision**
+
+Groundwork complete; the refactor itself is not, because it cannot be done without changing
+user-facing behaviour.
+
+#### What the investigation found
+
+The two surfaces are not symmetrical duplication:
+
+* **MCP is already thin** — `add_video_track(**arguments)` forwards the caller's arguments
+  straight through, so an omitted argument gets the *implementation's* default.
+* **HTTP re-declares every parameter** — `data.get(name, default)` — so an omitted argument
+  gets whatever default `capcut_server.py` happens to specify.
+
+Those two sets of defaults **have already drifted apart**. The same logical call produces
+different output depending on which transport made it:
+
+| Route | Parameter | HTTP sends | MCP sends |
+|---|---|---|---|
+| `add_video` | `end` | `0` | `None` |
+| `add_video` | `track_name` | `video_main` | `main` |
+| `add_text` | `transform_y` | `0` | `-0.8` |
+| `add_text` | `font_color` | `#FF0000` (red) | `#ffffff` (white) |
+| `add_text` | `background_style` | `0` | `1` |
+| `add_image` | `track_name` | `image_main` | `main` |
+| `add_subtitle` | `font_size` | `5.0` | `8.0` |
+| `add_subtitle` | `background_style` | `0` | `1` |
+| `add_subtitle` | `vertical` | `False` | `True` |
+| `add_subtitle` | `alpha` | `1` | `0.4` |
+| `add_video_keyframe` | `track_name` | `video_main` | `main` |
+
+Two further divergences in `add_sticker`:
+
+* **The required argument has two names.** HTTP reads `sticker_id`; MCP and the implementation
+  call it `resource_id`. An HTTP caller following the MCP schema is told
+  *"the required parameter 'sticker_id' is missing"*.
+* **HTTP defaults an argument the implementation requires.** `end` has no default in
+  `add_sticker_impl` and is `required` in the MCP schema, but the HTTP route substitutes `5.0`
+  — so an omitted `end` silently yields a 5-second sticker over HTTP and an error over MCP.
+
+**13 divergences in total.** This is precisely the drift this phase exists to prevent, and it
+has already happened.
+
+#### Done
+
+- [x] `tests/test_dispatch_parity.py` — characterization tests pinning all 13 divergences plus
+      the defaults the surfaces agree on, the `{success, output, error}` HTTP envelope, and
+      that validation runs before the implementation is invoked. 40 tests.
+      They record what the code does today, not what it should do.
+
+#### Design constraint discovered
+
+`mcp_server.py` is **not** a duplicate of the HTTP layer to be merged away. It is a deliberate
+2-tool gateway: 21 catalogue entries, 2 advertised tools. Advertising one tool per capability
+would load every schema into the model's context for the entire session — `add_video` alone
+takes over twenty parameters — so discovery lives behind `search_tools` instead.
+
+This changes the shape of the phase. The shared dispatch layer this plan asked for **already
+exists**: it is `TOOLS` plus `execute_tool`. The MCP side is already thin; the HTTP side is the
+one that re-declares everything. So the work is not "merge the two servers" but "make
+`capcut_server.py` a thin adapter over the catalogue the gateway already uses".
+
+That framing also decides the divergences by construction: if HTTP stops declaring its own
+defaults, it inherits the implementation's — which is exactly the breaking change below.
+
+Constraints any refactor must hold:
+
+- [ ] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
+      and an `execute_tool` branch, never a new registered tool function.
+- [ ] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
+
+#### Blocked
+
+- [ ] **Decide how to resolve each divergence.** Unifying changes behaviour for one transport:
+      adopting the implementation defaults changes long-standing HTTP behaviour (text turns
+      white instead of red, subtitles become vertical at 0.4 alpha); adopting the HTTP defaults
+      changes what MCP callers get today. This is a user-facing decision, not a refactor
+      detail, and it should be taken divergence by divergence.
+- [ ] Extract the shared dispatch layer once the target behaviour is settled.
+- [ ] Preserve both response shapes exactly — HTTP `{success, output, error}`, MCP
+      `{success, result}`.
+
+**Why not refactor first and unify later:** a shared dispatch layer has to pick one default per
+parameter. Doing that before the decision would silently change behaviour in 13 places, which
+is the opposite of what a refactor should do.
+
+**Coverage note:** the suite covers the export pipeline, draft persistence, save modes and now
+dispatch parity — but still not the internals of the 18 non-export tools. The parity tests make
+the refactor much safer than it was, not risk-free.
+
+### Phase C5 — Burn down the legacy lint debt
+
+With `.venv` and generated metadata excluded, the pre-existing modules carry **836 flake8
+findings** (`example.py` 212, `save_draft_impl.py` 102, `capcut_server.py` 88, …). CI lints the
+export modules and tests **strictly**, and the whole repo **advisorily** (`continue-on-error`), so
+the debt stays visible without CI being red from day one.
+
+- [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
+
+**Completion criteria:** `flake8 .` is clean from the repository root.
+
 ### Phase C2 — Remove the duplicated server layers
 
 `capcut_server.py` (1274 lines) and `mcp_server.py` (944 lines) wire the same implementation
@@ -250,6 +351,12 @@ C4          ── independent, optional
 - The project continues to target localhost / trusted-network use by default.
 - Flask remains the HTTP framework (nothing in the tree uses FastAPI despite the declaration).
 - Existing response shapes are a contract for current callers and must not change silently.
+- **The MCP server advertises exactly two tools, and that is a hard constraint.** Every
+  advertised tool's schema is loaded into the model's context for the whole session, and this
+  toolset is large with detailed schemas, so the gateway keeps the advertised surface at
+  `search_tools`/`invoke_tool` and moves discovery behind them. Any change that registers
+  catalogue entries as individual MCP tools is a regression regardless of how clean the code
+  looks. Enforced by `tests/test_gateway_surface.py`.
 - `ffmpeg`/`ffprobe` remain external binary prerequisites rather than packaged dependencies.
 
 ---
