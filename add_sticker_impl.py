@@ -3,6 +3,7 @@ from pyJianYingDraft import trange
 from typing import Optional, Dict
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 from util import generate_draft_url
 
 def add_sticker_impl(
@@ -79,6 +80,9 @@ def add_sticker_impl(
 
     # Add sticker segment to track
     script.add_segment(sticker_segment, track_name=track_name)
+
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
 
     return {
         "draft_id": draft_id,

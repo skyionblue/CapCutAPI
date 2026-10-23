@@ -1,7 +1,7 @@
 import uuid
 import pyJianYingDraft as draft
 import time
-from draft_cache import DRAFT_CACHE, update_cache
+from draft_cache import DRAFT_CACHE, get_script, persist_draft, update_cache
 
 def create_draft(width=1080, height=1920):
     """
@@ -18,8 +18,9 @@ def create_draft(width=1080, height=1920):
     # Create CapCut draft with specified resolution
     script = draft.Script_file(width, height)
     
-    # Store in global cache
+    # Store in global cache and write through to the durable store
     update_cache(draft_id, script)
+    persist_draft(draft_id, script)
     
     return script, draft_id
 
@@ -33,12 +34,13 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
     """
     global DRAFT_CACHE  # Declare use of global variable
     
-    if draft_id is not None and draft_id in DRAFT_CACHE:
-        # Get existing draft information from cache
-        print(f"Getting draft from cache: {draft_id}")
-        # Update last access time
-        update_cache(draft_id, DRAFT_CACHE[draft_id])
-        return draft_id, DRAFT_CACHE[draft_id]
+    if draft_id is not None:
+        # Cache first, then the durable store: after a restart the draft is no longer in
+        # memory, and silently creating a new one would lose the caller's work.
+        script = get_script(draft_id)
+        if script is not None:
+            print(f"Getting draft: {draft_id}")
+            return draft_id, script
 
     # Create new draft logic
     print("Creating new draft")

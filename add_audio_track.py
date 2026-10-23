@@ -7,6 +7,7 @@ import re
 from typing import Optional, Dict, Tuple, List
 from pyJianYingDraft import exceptions, CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type, trange
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 
 def add_audio_track(
     audio_url: str,
@@ -139,6 +140,9 @@ def add_audio_track(
     # Add audio segment to track
     script.add_segment(audio_segment, track_name=track_name)
     
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
+
     return {
         "draft_id": draft_id,
         "draft_url": generate_draft_url(draft_id)

@@ -1,6 +1,7 @@
 import pyJianYingDraft as draft
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 from typing import Optional, Dict, List
 
 from util import generate_draft_url
@@ -107,7 +108,10 @@ def add_video_keyframe_impl(
         # If in batch mode, return the number of added keyframes
         if property_types is not None:
             result["added_keyframes_count"] = added_count
-        
+
+        # Write the edit through to the draft store so a restart cannot lose it.
+        persist_draft(draft_id)
+
         return result
         
     except exceptions.TrackNotFound:

@@ -26,6 +26,9 @@ PORT = 9000
 OSS_CONFIG = []
 MP4_OSS_CONFIG=[]
 
+# 草稿持久化目录：草稿在每次修改后写入此处，服务重启后可恢复
+DRAFT_STORE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "drafts_store")
+
 # 尝试加载本地配置文件
 if os.path.exists(CONFIG_FILE_PATH):
     try:
@@ -56,6 +59,10 @@ if os.path.exists(CONFIG_FILE_PATH):
             if "oss_config" in local_config:
                 OSS_CONFIG = local_config["oss_config"]
             
+            # 更新草稿持久化目录
+            if "draft_store_dir" in local_config:
+                DRAFT_STORE_DIR = os.path.expanduser(local_config["draft_store_dir"])
+
             # 更新MP4 OSS配置
             if "mp4_oss_config" in local_config:
                 MP4_OSS_CONFIG = local_config["mp4_oss_config"]

@@ -7,6 +7,7 @@ import re
 from typing import Optional, Dict
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 
 def add_video_track(
     video_url: str,
@@ -227,6 +228,9 @@ def add_video_track(
     # else:
     script.add_segment(video_segment, track_name=track_name)
     
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
+
     return {
         "draft_id": draft_id,
         "draft_url": generate_draft_url(draft_id)

@@ -1,6 +1,7 @@
 import pyJianYingDraft as draft
 from util import generate_draft_url, hex_to_rgb
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 from pyJianYingDraft.text_segment import TextBubble, TextEffect
 from typing import Optional
 import requests
@@ -162,6 +163,9 @@ def add_subtitle_impl(
         bubble=text_bubble,
         effect=text_effect
     )
+
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
 
     return {
         "draft_id": draft_id,
