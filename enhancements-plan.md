@@ -1,7 +1,9 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Tier A, Tier B and Phase C1 COMPLETE (2026-10-23); CI deferred by decision. C2 groundwork done but BLOCKED on a behaviour decision. C5 proposed.
+**Status (2026-10-23):** Tier A, Tier B and Phase C1 COMPLETE; CI deferred by decision.
+C2 Group 1 defects fixed, the remaining 11 divergences BLOCKED on a behaviour decision.
+C5 in progress (836 → 479 findings).
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 

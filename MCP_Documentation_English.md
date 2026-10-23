@@ -333,6 +333,57 @@ or, on failure:
 ## Changelog
 
 ### Unreleased
+
+#### Video export
+- Added `export_video`, `query_export_status` and `export_preflight` — a draft can now be
+  rendered to a finished MP4 without opening CapCut by hand
+- Two backends: `capcut` drives the installed CapCut app for full fidelity (every effect,
+  filter, mask, animation, transition and sticker), `ffmpeg` renders headlessly for servers
+  and CI but reproduces only cuts, transforms, audio and basic text
+- Every export carries `fidelity_warnings` listing what a backend could not reproduce, so a
+  degraded render is never reported as a complete one
+- The `ffmpeg` backend honours `resolution`, `framerate` and `bitrate`; the `capcut` backend
+  cannot operate CapCut's export dialog controls and says so in `fidelity_warnings`
+- `mp4_oss_config` is finally live: a finished export is uploaded there when it is configured
+
+#### Reliability
+- Drafts are persisted after every edit and restored on a cache miss, so a server restart no
+  longer makes in-progress work unrecoverable. Previously `save_draft` and `query_script`
+  failed outright, and resuming a known `draft_id` silently created a new draft under a new id
+- `save_draft` can now run in the background: pass `wait=false` for a `task_id` and poll
+  `query_draft_status`, whose result carries `local_path` on completion. The default is
+  unchanged, so existing callers still get a synchronous result
+
+#### Fixes
+- `POST /add_video` without `end` produced a **zero-length clip**: the route defaulted `end` to
+  `0`, which the implementation reads as end-at-zero rather than "use the whole video". The
+  same call over MCP was unaffected
+- `POST /add_sticker` read its required argument as `sticker_id` while this schema and the
+  implementation call it `resource_id`, so a caller following the documented schema was told
+  the parameter was missing. Both names are now accepted
+- `POST /generate_draft_url` returned `?=<draft_id>` — a query string with no parameter name —
+  while every other response from the same server used `?draft_id=<draft_id>`
+- The headless export backend rendered every API-created draft without audio (`has_audio` is
+  never written by this API, so it is now probed) and could not render a draft CapCut had
+  opened (media paths become relocatable placeholder tokens)
+
+#### Project
+- Added a test suite — 140 tests covering export, draft persistence, save modes, dispatch
+  parity and the gateway surface, requiring no CapCut installation
+- The 2-tool gateway is now an enforced design constraint rather than a convention: advertising
+  one tool per capability would load every schema into the model's context for the whole
+  session, so capabilities live in an internal catalogue reachable through `search_tools`
+- `pyproject.toml` declared eight dependencies the project never imported and omitted every
+  real one; `pip install .` also failed outright on package discovery
+- Licence claims removed pending confirmation of the upstream position: the README asserted
+  Apache 2.0, `pyproject.toml` classified MIT, and no `LICENSE` file existed
+
+#### Known divergence
+- The HTTP and MCP surfaces disagree on 11 parameter defaults (text colour, subtitle styling,
+  track names). The same logical call can produce different output depending on the transport.
+  Pinned by tests and awaiting a deliberate decision rather than silently unified
+
+#### Earlier in this release
 - Refactored from one MCP tool per capability into the `search_tools`/`invoke_tool` gateway
 - Expanded every existing tool's schema to expose parameters the underlying implementation already supported but weren't wired up (full mask fine-tuning, text font/border/bubble/animation, subtitle styling, sticker flip, etc.)
 - Added `list_option_values`, `query_script`, `list_drafts`, `delete_draft`, `query_draft_status`, `generate_draft_url`, `replace_material`
