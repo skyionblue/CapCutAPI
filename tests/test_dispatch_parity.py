@@ -68,7 +68,6 @@ def impl_default(attr, param):
 # These are the 11 places where the two transports disagree today.
 
 DIVERGENCES = [
-    ("/add_video", "end", 0, None),
     ("/add_video", "track_name", "video_main", "main"),
     ("/add_text", "transform_y", 0, -0.8),
     ("/add_text", "font_color", "#FF0000", "#ffffff"),
@@ -101,21 +100,37 @@ def test_known_divergence_between_http_and_mcp_defaults(capture, route, param, h
     assert http_value != mcp_value, "this entry is no longer a divergence — remove it"
 
 
-def test_add_sticker_parameter_is_named_differently_per_surface(capture):
-    """DIVERGENCE: the same required argument has two names.
-
-    An HTTP caller following the MCP tool schema and sending `resource_id` is told
-    "the required parameter 'sticker_id' is missing".
+def test_add_sticker_accepts_both_parameter_names(capture):
+    """Regression: HTTP read only `sticker_id`, while MCP and the implementation use
+    `resource_id`, so an HTTP caller following the MCP schema was told the parameter was
+    missing. Both names now work, with `resource_id` canonical.
     """
     import mcp_server
     schema = [t for t in mcp_server.TOOLS if t["name"] == "add_sticker"][0]["inputSchema"]
     assert "resource_id" in schema["properties"]
-    assert "sticker_id" not in schema["properties"]
 
     client = capcut_server.app.test_client()
-    body = client.post("/add_sticker", json={"resource_id": "abc"}).get_json()
+    for name in ("resource_id", "sticker_id"):
+        seen = {}
+
+        def recorder(*args, **kwargs):
+            seen.update(kwargs)
+            return {"draft_id": "d1"}
+
+        original = capcut_server.add_sticker_impl
+        capcut_server.add_sticker_impl = recorder
+        try:
+            client.post("/add_sticker", json={name: "abc"})
+        finally:
+            capcut_server.add_sticker_impl = original
+        assert seen.get("resource_id") == "abc", f"{name} was not accepted"
+
+
+def test_add_sticker_error_names_the_canonical_parameter(capture):
+    client = capcut_server.app.test_client()
+    body = client.post("/add_sticker", json={}).get_json()
     assert body["success"] is False
-    assert "sticker_id" in body["error"]
+    assert "resource_id" in body["error"]
 
 
 def test_add_sticker_end_is_required_by_the_impl_but_defaulted_over_http(capture):
@@ -211,3 +226,36 @@ def test_generate_draft_url_still_requires_a_draft_id():
     body = client.post("/generate_draft_url", json={}).get_json()
     assert body["success"] is False
     assert "draft_id" in body["error"]
+
+
+# --------------------------------------------------------------- add_video end regression
+
+def test_add_video_without_end_forwards_none_not_zero(capture):
+    """Regression: the route defaulted `end` to 0.
+
+    The implementation computes source_duration = end - start and treats None as "use the
+    whole video", so a literal 0 produced a ZERO-LENGTH clip over HTTP while the same call
+    over MCP produced the full video.
+    """
+    forwarded = capture("/add_video")
+    assert forwarded["end"] is None
+
+
+def test_add_video_end_none_uses_the_full_duration(tmp_path, monkeypatch):
+    """The behaviour the route default was silently breaking, exercised for real."""
+    import json
+    import draft_cache
+    from add_video_track import add_video_track
+
+    monkeypatch.setattr(draft_cache, "DRAFT_STORE_DIR", str(tmp_path))
+
+    def clip_seconds(**overrides):
+        kwargs = dict(video_url="https://example.invalid/v.mp4", duration=10.0, track_name="t")
+        kwargs.update(overrides)
+        result = add_video_track(**kwargs)
+        data = json.loads(draft_cache.get_script(result["draft_id"]).dumps())
+        segments = [s for t in data["tracks"] for s in t.get("segments", [])]
+        return segments[0]["source_timerange"]["duration"] / 1_000_000
+
+    assert clip_seconds() == 10.0, "omitting end must use the whole video"
+    assert clip_seconds(end=0) == 0.0, "end=0 really does mean a zero-length clip"

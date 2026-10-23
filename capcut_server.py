@@ -37,7 +37,9 @@ def add_video():
     draft_folder = data.get('draft_folder')
     video_url = data.get('video_url')
     start = data.get('start', 0)
-    end = data.get('end', 0)
+    # No default: the implementation treats None as "use the whole video", while a
+    # literal 0 means end-at-zero and produces a zero-length clip.
+    end = data.get('end')
     width = data.get('width', 1080)
     height = data.get('height', 1920)
     draft_id = data.get('draft_id')
@@ -762,7 +764,9 @@ def generate_draft_url():
 def add_sticker():
     data = request.get_json()
     # Get required parameters
-    resource_id = data.get('sticker_id')
+    # The MCP tool and the implementation both call this resource_id; this route
+    # historically read sticker_id. Accept either, preferring the canonical name.
+    resource_id = data.get('resource_id') or data.get('sticker_id')
     start = data.get('start', 0)
     end = data.get('end', 5.0)  # Default display 5 seconds
     draft_id = data.get('draft_id')
@@ -787,7 +791,8 @@ def add_sticker():
 
     # Validate required parameters
     if not resource_id:
-        error_message = "Hi, the required parameter 'sticker_id' is missing. Please add it and try again. "
+        error_message = ("Hi, the required parameter 'resource_id' is missing. Please add it and "
+                         "try again. (The legacy name 'sticker_id' is also accepted.)")
         result["error"] = error_message
         return jsonify(result)
 
