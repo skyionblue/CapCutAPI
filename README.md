@@ -222,6 +222,7 @@ cp config.json.example config.json
 |---|---|---|
 | `is_capcut_env` | `true` | CapCut International mode. This project only runs in CapCut mode. |
 | `port` | `9000` | Port the HTTP server listens on. |
+| `host` | `127.0.0.1` | Interface the HTTP server binds to. Loopback by default; see [Security](#-security). |
 | `draft_store_dir` | `./drafts_store` | Where drafts are persisted after every edit, so a server restart cannot lose in-progress work. |
 | `draft_domain` | — | Base URL used to build draft preview links. |
 | `preview_router` | `/draft/downloader` | Path appended to `draft_domain` for preview links. |
@@ -615,14 +616,24 @@ It also needs `pyobjc-framework-Quartz` (installed automatically from `requireme
 
 ---
 
-## 🌟 Enterprise Features
+## 🔒 Security
 
-### 🔒 Security
+**Run this on localhost only. It is not built to face a network.**
 
-- **🛡️ Input Validation**: Strict parameter validation and type checking
-- **🔐 Error Handling**: Comprehensive exception catching and error reporting
-- **📊 Logging**: Detailed operation logs and debug information
-- **🚫 Resource Limits**: Memory and processing time limit protection
+The HTTP server binds to `127.0.0.1` by default. You can change that with the `host` config
+key, but read this first, because nothing else here assumes a hostile caller:
+
+- **No authentication.** Every route is open to anyone who can reach the port.
+- **The server fetches URLs you give it.** `add_video`, `add_audio` and `add_image` download
+  caller-supplied URLs from the machine running the server, which can reach hosts your network
+  can but the caller cannot.
+- **The server writes files you name.** Drafts, assets and exports are written to local paths
+  derived from the request.
+- **The CapCut backend drives the GUI.** It moves the real cursor and clicks real windows on
+  the machine running it.
+
+Any one of those is fine on loopback and a liability on `0.0.0.0`. If you need it reachable
+from another machine, put it behind something that authenticates, and do not simply rebind.
 
 ### ⚡ Performance Optimization
 
@@ -635,22 +646,7 @@ It also needs `pyobjc-framework-Quartz` (installed automatically from `requireme
 
 - **🔌 Plugin Architecture**: Modular functionality extension support
 - **🌐 Multi-protocol**: HTTP REST and MCP dual protocol support
-- **☁️ Cloud Deployment**: Containerization and microservice architecture ready
 - **📊 Monitoring Integration**: Complete performance monitoring and metrics collection
-
----
-
-## 📄 License
-
-<div align="center">
-
-**Licence to be determined.**
-
-This project does not currently carry a licence. Until one is added, no usage rights are
-granted. Any licence chosen must be compatible with the upstream project this work derives
-from and with the vendored `pyJianYingDraft` library.
-
-</div>
 
 ---
 

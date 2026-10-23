@@ -62,8 +62,11 @@ licensed more permissively than what it derives from, and this project descends 
       an explicit statement that no licence is currently granted.
 - [x] Removed the contradicting `License :: OSI Approved :: MIT License` classifier.
 - [x] No `LICENSE` file created.
-- [ ] **Follow-up:** confirm the licences of `sun-guannan/CapCutAPI` and of the vendored
-      `pyJianYingDraft`, then adopt a compatible licence and restore the badge.
+- [x] **Closed (2026-10-23):** the owner settled this — the project is for their own and their
+      partner's use and is not being distributed, so it carries no licence at all. The README
+      licence section is gone rather than replaced; there is nothing left asserting terms.
+      Revisit only if the project is ever published, at which point the upstream positions of
+      `sun-guannan/CapCutAPI` and the vendored `pyJianYingDraft` still have to be confirmed first.
 
 ### Phase A3 — Remove the remaining fork references — **COMPLETE (2026-10-23)**
 
@@ -321,14 +324,19 @@ than making HTTP callers start supplying it.
 
 ### Phase C3 — Harden before any non-local exposure
 
-Not urgent for local use; required before the HTTP API is reachable from anywhere else.
+Owner decision (2026-10-23): this runs on localhost only. The bind is now loopback by default
+rather than advice in a document, so the items below are what would have to be done *first* if
+that ever changes — not a backlog to work through now.
 
+- [x] Document explicitly that the server is intended for localhost use. The README's Security
+      section now says so plainly and lists why, and the server binds `127.0.0.1` by default
+      instead of `0.0.0.0`. The `host` config key can override it, which is exactly why the
+      section explains what the caller takes on by doing that.
 - [ ] `add_video`/`add_audio`/`add_image` fetch arbitrary caller-supplied URLs server-side — an
       SSRF vector. Add host allow-listing or outbound restrictions if exposed.
 - [ ] No authentication on any HTTP route.
 - [ ] Review `download_file` write paths for traversal via crafted material names
       (`delete_draft` is already guarded; the download path has not been reviewed).
-- [ ] Document explicitly that the server is intended for localhost use.
 
 ### Phase C4 — Finish the export plan's Tier 4 — **partially delivered**
 
@@ -419,7 +427,7 @@ C4          ── independent, optional
 
 ## 4. Open Questions
 
-- [ ] **Licence:** Apache 2.0 as the README asserts, or MIT as `pyproject.toml` classifies?
+- [x] **Licence:** neither. Not distributed, so no licence is declared anywhere. See Phase A2.
 - [ ] **`save_draft` async:** is a breaking change to the return contract acceptable, or should
       `wait=True` preserve today's behaviour?
 - [ ] **Draft persistence location:** a working directory inside the repo, a configurable path,
