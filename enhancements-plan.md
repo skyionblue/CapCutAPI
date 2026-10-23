@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Tier A, Phase B1 and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. B2 and remaining Tier C proposed.
+**Status:** Tier A, Tier B and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. C2 and C5 proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -113,27 +113,31 @@ extending the restored ones.
 **Not done:** a TTL/cleanup policy for the store, so it grows unbounded. Worth adding if drafts
 accumulate.
 
-### Phase B2 — Make `save_draft` asynchronous
+### Phase B2 — Make `save_draft` asynchronous — **COMPLETE (2026-10-23)**
 
-The async machinery exists but is disabled — the threading block is commented out at
-`save_draft_impl.py:277-282`, with the synchronous return above it. The `save_draft` MCP tool
-description admits the consequence: `query_draft_status` is "mostly a safety net."
+- [x] Re-enabled the background thread that had been commented out at
+      `save_draft_impl.py:277-282`, following the pattern proven by `export_impl.py`.
+- [x] **No breaking change** (owner decision): `wait` defaults to `True`, so every existing
+      HTTP and MCP caller keeps the synchronous result it depends on. `wait=False` returns a
+      `task_id` immediately.
+- [x] Progress continues to flow into `DRAFT_TASKS`; `query_draft_status` is the poll.
+- [x] Rewrote the `save_draft` and `query_draft_status` tool descriptions — the latter had
+      described itself as "mostly a safety net", which actively discouraged the polling the
+      async path depends on.
+- [x] Exposed `wait` on the HTTP route and in the MCP tool schema; documented both in the
+      README and the MCP docs.
 
-A draft with many remote assets blocks the HTTP request (and the MCP call) until every download
-finishes, risking client timeouts on exactly the large projects that need it most.
+**Ordering bug caught and prevented:** `mcp_server` called `place_draft_locally(draft_id)`
+immediately after `save_draft_impl`. Under an async save that would have moved a draft folder
+**before it existed**. `save_draft_impl` now takes an `on_complete` callback that the worker
+runs only after a *successful* save, on whichever thread did the work, recording the result as
+`local_path` on the task so an async caller can still discover where the draft landed. A
+failure in that step is logged and does not fail the save.
 
-- [ ] Re-enable the background thread, following the pattern now proven by `export_impl.py`.
-- [ ] Return a `task_id` immediately; keep progress flowing into `DRAFT_TASKS`.
-- [ ] Update the `save_draft` and `query_draft_status` tool descriptions to tell the model to poll
-      — the current wording actively discourages it.
-- [ ] **Backwards compatibility:** callers today receive a completed result synchronously.
-      Either keep a `wait: bool = True` default, or treat this as a breaking change and say so
-      in the README. **Owner decision required.**
-
-**Validation:** a draft with several large remote assets returns promptly and reports real
-progress through `query_draft_status`.
-
----
+**Validated:** 13 tests (`tests/test_save_draft_async.py`) covering the synchronous default,
+non-blocking return, worker-thread execution, completion, the post-save step running only on
+success, its failure being contained, and — at the MCP dispatch level — that placement observes
+a *completed* save in both modes.
 
 ## Tier C — Engineering quality
 
