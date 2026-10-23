@@ -1,4 +1,4 @@
-"""轨道类及其元数据"""
+"""Track types and their metadata."""
 
 import uuid
 
@@ -18,35 +18,35 @@ from .effect_segment import Effect_segment
 
 @dataclass
 class Track_meta:
-    """与轨道类型关联的轨道元数据"""
+    """Metadata associated with a track type."""
 
     segment_type: Union[Type[Video_segment], Type[Audio_segment],
                         Type[Effect_segment],
                         Type[Text_segment], Type[Sticker_segment], None]
-    """与轨道关联的片段类型"""
+    """The segment type this track holds."""
     render_index: int
-    """默认渲染顺序, 值越大越接近前景"""
+    """Default render order; higher values sit nearer the foreground."""
     allow_modify: bool
-    """当被导入时, 是否允许修改"""
+    """Whether the track may be modified once imported."""
 
 class Track_type(Enum):
-    """轨道类型枚举
+    """Track types.
 
-    变量名对应type属性, 值表示相应的轨道元数据
+    The member name is the `type` attribute; the value is that track type's metadata.
     """
 
     video = Track_meta(Video_segment, 0, True)
     audio = Track_meta(Audio_segment, 0, True)
     effect = Track_meta(Effect_segment, 10000, False)
     sticker = Track_meta(Sticker_segment, 14000, False)
-    text = Track_meta(Text_segment, 15000, True)  # 原本是14000, 避免与sticker冲突改为15000
+    text = Track_meta(Text_segment, 15000, True)  # was 14000; raised to avoid clashing with sticker
 
     adjust = Track_meta(None, 0, False)
-    """仅供导入时使用, 不要尝试新建此类型的轨道"""
+    """Import only -- do not create a track of this type."""
 
     @staticmethod
     def from_name(name: str) -> "Track_type":
-        """根据名称获取轨道类型枚举"""
+        """Look up a track type by name."""
         for t in Track_type:
             if t.name == name:
                 return t
@@ -54,32 +54,32 @@ class Track_type(Enum):
 
 
 class Base_track(ABC):
-    """轨道基类"""
+    """Base class for tracks."""
 
     track_type: Track_type
-    """轨道类型"""
+    """Track type."""
     name: str
-    """轨道名称"""
+    """Track name."""
     track_id: str
-    """轨道全局ID"""
+    """Global track id."""
     render_index: int
-    """渲染顺序, 值越大越接近前景"""
+    """Render order; higher values sit nearer the foreground."""
 
     @abstractmethod
     def export_json(self) -> Dict[str, Any]: ...
 
 Seg_type = TypeVar("Seg_type", bound=Base_segment)
 class Track(Base_track, Generic[Seg_type]):
-    """非模板模式下的轨道"""
+    """A track outside template mode."""
 
     mute: bool
-    """是否静音"""
+    """Whether the track is muted."""
 
     segments: List[Seg_type]
-    """该轨道包含的片段列表"""
+    """The segments on this track."""
 
     pending_keyframes: List[Dict[str, Any]]
-    """待处理的关键帧列表"""
+    """Keyframes queued for processing."""
 
     def __init__(self, track_type: Track_type, name: str, render_index: int, mute: bool):
         self.track_type = track_type
@@ -92,12 +92,12 @@ class Track(Base_track, Generic[Seg_type]):
         self.pending_keyframes = []
 
     def add_pending_keyframe(self, property_type: str, time: float, value: str) -> None:
-        """添加待处理的关键帧
+        """Queue a keyframe for later processing.
 
         Args:
-            property_type: 关键帧属性类型
-            time: 关键帧时间点（秒）
-            value: 关键帧值
+            property_type: the keyframe property type
+            time: the keyframe time, in seconds
+            value: the keyframe value
         """
         self.pending_keyframes.append({
             "property_type": property_type,
@@ -106,7 +106,7 @@ class Track(Base_track, Generic[Seg_type]):
         })
 
     def process_pending_keyframes(self) -> None:
-        """处理所有待处理的关键帧"""
+        """Process every queued keyframe."""
         if not self.pending_keyframes:
             return
 
@@ -116,8 +116,8 @@ class Track(Base_track, Generic[Seg_type]):
             value = kf_info["value"]
 
             try:
-                # 找到时间点对应的片段（时间单位：微秒）
-                target_time = int(time * 1000000)  # 将秒转换为微秒
+                # Find the segment covering this time (microseconds)
+                target_time = int(time * 1000000)  # seconds to microseconds
                 target_segment = next(
                     (segment for segment in self.segments
                      if segment.target_timerange.start <= target_time <= segment.target_timerange.end),
@@ -125,13 +125,13 @@ class Track(Base_track, Generic[Seg_type]):
                 )
 
                 if target_segment is None:
-                    print(f"警告：在轨道 {self.name} 的时间点 {time}s 找不到对应的片段，跳过此关键帧")
+                    print(f"Warning: no segment at {time}s on track {self.name}; skipping this keyframe")
                     continue
 
-                # 将属性类型字符串转换为枚举值
+                # Convert the property type string to its enum value
                 property_enum = getattr(draft.Keyframe_property, property_type)
 
-                # 解析value值
+                # Parse the value
                 if property_type == 'alpha' and value.endswith('%'):
                     float_value = float(value[:-1]) / 100
                 elif property_type == 'volume' and value.endswith('%'):
@@ -148,44 +148,44 @@ class Track(Base_track, Generic[Seg_type]):
                 else:
                     float_value = float(value)
 
-                # 计算时间偏移量
+                # Work out the time offset
                 offset_time = target_time - target_segment.target_timerange.start
 
-                # 添加关键帧
+                # Add the keyframe
                 target_segment.add_keyframe(property_enum, offset_time, float_value)
-                print(f"成功添加关键帧: {property_type} 在 {time}s")
+                print(f"Added keyframe: {property_type} at {time}s")
             except Exception as e:
-                print(f"添加关键帧失败: {str(e)}")
+                print(f"Failed to add keyframe: {str(e)}")
 
-        # 清空待处理的关键帧
+        # Clear the queue
         self.pending_keyframes = []
 
     @property
     def end_time(self) -> int:
-        """轨道结束时间, 微秒"""
+        """Track end time, in microseconds."""
         if len(self.segments) == 0:
             return 0
         return self.segments[-1].target_timerange.end
 
     @property
     def accept_segment_type(self) -> Type[Seg_type]:
-        """返回该轨道允许的片段类型"""
+        """The segment type this track accepts."""
         return self.track_type.value.segment_type  # type: ignore
 
     def add_segment(self, segment: Seg_type) -> "Track[Seg_type]":
-        """向轨道中添加一个片段, 添加的片段必须匹配轨道类型且不与现有片段重叠
+        """Add a segment to the track. It must match the track type and must not overlap an existing segment.
 
         Args:
-            segment (Seg_type): 要添加的片段
+            segment (Seg_type): the segment to add
 
         Raises:
-            `TypeError`: 新片段类型与轨道类型不匹配
-            `SegmentOverlap`: 新片段与现有片段重叠
+            `TypeError`: the segment type does not match the track type
+            `SegmentOverlap`: the new segment overlaps an existing one
         """
         if not isinstance(segment, self.accept_segment_type):
             raise TypeError("New segment (%s) is not of the same type as the track (%s)" % (type(segment), self.accept_segment_type))
 
-        # 检查片段是否重叠
+        # Check for overlap
         for seg in self.segments:
             if seg.overlaps(segment):
                 raise SegmentOverlap("New segment overlaps with existing segment [start: {}, end: {}]"
@@ -195,7 +195,7 @@ class Track(Base_track, Generic[Seg_type]):
         return self
 
     def export_json(self) -> Dict[str, Any]:
-        # 为每个片段写入render_index
+        # Write render_index onto each segment
         segment_exports = [seg.export_json() for seg in self.segments]
         for seg in segment_exports:
             seg["render_index"] = self.render_index
