@@ -15,6 +15,7 @@ from draft_cache import (
     DRAFT_CACHE, forget_draft, get_script, list_persisted_drafts,
     load_persisted_draft, persist_draft, store_path, update_cache,
 )
+from tests.conftest import requires_ffmpeg
 
 
 @pytest.fixture(autouse=True)
@@ -157,3 +158,77 @@ def test_list_persisted_drafts():
 
 def test_list_persisted_drafts_on_a_missing_store_is_empty():
     assert list_persisted_drafts() == []
+
+
+# --------------------------------------------------------------- media survives a restore
+
+def _video_draft(draft_id, source_path):
+    """A draft holding one video material, built the way add_video builds it."""
+    from add_video_track import add_video_track
+    result = add_video_track(video_url=source_path, duration=3.0, track_name="t")
+    return result["draft_id"]
+
+
+@requires_ffmpeg
+def test_restored_draft_keeps_media_materials_reachable(media):
+    """Regression: a restored draft had no native materials, so save_draft downloaded nothing.
+
+    `Script_file.load_template` puts everything on `imported_materials` as plain dicts, but
+    save_draft walks `script.materials.videos` -- objects carrying `remote_url` -- to decide
+    what to fetch. Left as dicts, a draft saved after a restart reached CapCut with every clip
+    missing, and nothing reported a problem.
+    """
+    draft_id = _video_draft("d-media", media["with_audio"])
+    assert len(DRAFT_CACHE[draft_id].materials.videos) == 1
+
+    simulate_restart()
+    restored = get_script(draft_id)
+    assert restored is not None
+    assert len(restored.materials.videos) == 1, (
+        "media materials must be reachable as objects after a restore, or save_draft "
+        "silently produces a draft with no media"
+    )
+
+
+@requires_ffmpeg
+def test_remote_url_survives_a_restore(media):
+    """Regression: from_dict never restored remote_url, though export_json writes it.
+
+    Without it a restored material has no source to fetch from, so even a reachable material
+    downloads nothing.
+    """
+    draft_id = _video_draft("d-url", media["with_audio"])
+    before = DRAFT_CACHE[draft_id].materials.videos[0].remote_url
+    assert before
+
+    simulate_restart()
+    assert get_script(draft_id).materials.videos[0].remote_url == before
+
+
+@requires_ffmpeg
+def test_restore_does_not_duplicate_materials(media):
+    """Promoted materials must leave imported_materials, or dumps() emits them twice."""
+    import json
+
+    draft_id = _video_draft("d-dup", media["with_audio"])
+    before = json.loads(DRAFT_CACHE[draft_id].dumps())
+
+    simulate_restart()
+    after = json.loads(get_script(draft_id).dumps())
+
+    assert len(after["materials"]["videos"]) == len(before["materials"]["videos"]) == 1
+    assert sum(len(t.get("segments", [])) for t in after["tracks"]) == \
+           sum(len(t.get("segments", [])) for t in before["tracks"])
+
+
+@requires_ffmpeg
+def test_restored_draft_round_trips_its_key_fields(media):
+    import json
+
+    draft_id = _video_draft("d-fields", media["with_audio"])
+    before = json.loads(DRAFT_CACHE[draft_id].dumps())["materials"]["videos"][0]
+    simulate_restart()
+    after = json.loads(get_script(draft_id).dumps())["materials"]["videos"][0]
+
+    for field in ("id", "duration", "material_name", "type", "remote_url"):
+        assert after.get(field) == before.get(field), f"{field} was lost on restore"

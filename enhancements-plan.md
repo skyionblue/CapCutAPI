@@ -109,8 +109,17 @@ licensed more permissively than what it derives from, and this project descends 
 **Known limitation (documented in the README):** a restored draft comes back on the draft
 library's *imported* tracks, because `Script_file.load_template` populates
 `imported_tracks`/`imported_materials` rather than the native ones. `dumps()` merges both, so
-saving and querying round-trip correctly, but further edits append new tracks rather than
-extending the restored ones.
+querying round-trips correctly, but further edits append new tracks rather than extending the
+restored ones.
+
+**Correction (2026-10-23):** the original claim that *saving* round-tripped correctly was
+wrong, and the defect was only found by exporting a real draft through CapCut. `save_draft`
+walks `script.materials.videos`/`.audios` -- objects carrying `remote_url` -- to decide what to
+download, and a restored draft had those as plain dicts on `imported_materials` instead. So any
+save after a restart fetched nothing and reached CapCut with every clip missing, silently.
+`load_persisted_draft` now rebuilds media materials as objects, and
+`Video_material.from_dict`/`Audio_material.from_dict` restore `remote_url`, which they never
+did even though `export_json` writes it.
 
 **Not done:** a TTL/cleanup policy for the store, so it grows unbounded. Worth adding if drafts
 accumulate.

@@ -226,6 +226,9 @@ class Video_material:
         instance.width = data["width"]
         instance.material_type = data["type"]
         instance.replace_path = None  # no replacement path by default
+        # export_json writes remote_url, so restoring it keeps the round trip complete.
+        # Without it a restored material has no source to fetch from.
+        instance.remote_url = data.get("remote_url")
 
         # Crop settings
         crop_data = data.get("crop", {})
@@ -402,6 +405,9 @@ class Audio_material:
         instance.path = data["path"]
         instance.duration = data["duration"]
         instance.replace_path = None  # no replacement path by default
+        # export_json writes remote_url, so restoring it keeps the round trip complete.
+        # Without it a restored material has no source to fetch from.
+        instance.remote_url = data.get("remote_url")
         instance.remote_url = data.get("remote_url")
 
         return instance
