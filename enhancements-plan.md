@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. Remaining phases proposed.
+**Status:** Tier A COMPLETE and Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. Tier B and remaining Tier C proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -27,65 +27,48 @@ each can be re-checked rather than taken on trust. They fall into three tiers:
 
 Small, independent, and wrong in ways a reviewer or new user will hit immediately.
 
-### Phase A1 — Fix packaging metadata
+### Phase A1 — Fix packaging metadata — **COMPLETE (2026-10-23)**
 
-`pyproject.toml` declares eight dependencies that are imported **nowhere** in the project, and
-omits every dependency that is actually used. `pip install .` therefore produces a non-working
-install.
+- [x] Replaced `[project].dependencies` — it declared `fastapi`, `uvicorn`, `pydantic`,
+      `Pillow`, `numpy`, `opencv-python`, `ffmpeg-python` and `websockets`, none of which the
+      project imports — with the real set, mirroring `requirements.txt`.
+- [x] Carried over the macOS-gated `pyobjc-framework-Quartz`.
+- [x] `mcp` extra now mirrors `requirements-mcp.txt`; added a `dev` extra (`pytest`, `flake8`).
+- [x] Noted in the file that `ffmpeg`/`ffprobe` are required at runtime but are external
+      binaries that cannot be installed from here.
+- [x] **Additional defect found: `pip install .` had never worked at all.** The build failed
+      with *"Multiple top-level packages discovered in a flat-layout"* — setuptools cannot
+      auto-discover this project's mix of top-level modules and packages. Discovery is now
+      declared explicitly under `[tool.setuptools]`.
 
-Declared but unused: `fastapi`, `uvicorn[standard]`, `pydantic`, `Pillow`, `numpy`,
-`opencv-python`, `ffmpeg-python`, `websockets` (verified by grepping for each import).
-Actually used, but only present in `requirements.txt`: `flask`, `requests`, `oss2`, `imageio`,
-`psutil`.
+**Validated:** a clean venv (Python 3.14) installed `.[mcp]` successfully, then imported
+`capcut_server`, `mcp_server` and `export_impl` — 29 url rules, 21 MCP tools, preflight
+resolving a backend.
 
-- [ ] Replace `[project].dependencies` with the real runtime set.
-- [ ] Carry over the macOS-gated `pyobjc-framework-Quartz; sys_platform == "darwin"` already in
-      `requirements.txt` (needed by the CapCut export backend).
-- [ ] Reconcile `requirements.txt` / `requirements-mcp.txt` with `pyproject.toml` so there is one
-      source of truth; keep the `mcp` extra for the MCP-only dependencies.
-- [ ] Decide whether `ffmpeg` (the binary, not the Python package) belongs in documented
-      prerequisites — it is a hard runtime dependency of `downloader.py`,
-      `get_duration_impl.py` and the ffmpeg export backend, but cannot be pip-installed.
+**Still open (deliberately not changed):** `psutil` is declared in `requirements.txt` but
+imported nowhere, and `aiohttp`/`pydantic` arrive transitively through `mcp`. Left in place so
+this phase did not silently alter anyone's environment; worth verifying before removal.
 
-**Validation:** `pip install .` into a clean venv, then start both servers and run one
-`create_draft` → `add_video` → `save_draft` cycle.
+### Phase A2 — Licence — **RESOLVED (2026-10-23): claims removed, decision deferred**
 
-**Completion criteria:** a clean-venv install from `pyproject.toml` alone runs the servers with
-no `ModuleNotFoundError`.
+Owner decision: assert nothing until the upstream position is confirmed. A derivative cannot be
+licensed more permissively than what it derives from, and this project descends from
+`sun-guannan/CapCutAPI` while vendoring `pyJianYingDraft`.
 
-### Phase A2 — Resolve the licence inconsistency
+- [x] Removed the Apache 2.0 README badge, which linked to a `LICENSE` file that did not exist.
+- [x] Replaced the README licence section — which reproduced the full Apache 2.0 notice — with
+      an explicit statement that no licence is currently granted.
+- [x] Removed the contradicting `License :: OSI Approved :: MIT License` classifier.
+- [x] No `LICENSE` file created.
+- [ ] **Follow-up:** confirm the licences of `sun-guannan/CapCutAPI` and of the vendored
+      `pyJianYingDraft`, then adopt a compatible licence and restore the badge.
 
-Three sources disagree and the referenced file does not exist:
+### Phase A3 — Remove the remaining fork references — **COMPLETE (2026-10-23)**
 
-| Source | Says |
-|---|---|
-| `README.md:7` (badge) and `README.md:533` | Apache 2.0, linking to `LICENSE` |
-| `pyproject.toml:14` | `License :: OSI Approved :: MIT License` |
-| Repository root | **No `LICENSE` file at all** |
-
-- [ ] Confirm the intended licence (the README asserts Apache 2.0 in two places, so that is the
-      likely intent — **owner decision required**).
-- [ ] Add the full licence text as `LICENSE`.
-- [ ] Correct the `pyproject.toml` classifier to match.
-- [ ] Check `pyJianYingDraft/` and `template/` for third-party licence obligations that need
-      attribution.
-
-**Completion criteria:** one licence asserted consistently in all three places, with the file present.
-
-### Phase A3 — Remove the remaining fork references
-
-Fork references were cleaned from the README in `28dec9c` and from the MCP docs in `2563d2d`, but
-`pyproject.toml` was missed:
-
-- `pyproject.toml:43` `Homepage = "https://github.com/ashreo/CapCutAPI"`
-- `pyproject.toml:44` `Repository = ".../ashreo/CapCutAPI.git"`
-- `pyproject.toml:45` `Issues = ".../ashreo/CapCutAPI/issues"`
-
-- [ ] Repoint all three at `skyionblue/CapCutAPI`.
-- [ ] Sweep the tree for any other stale upstream references
-      (`grep -ri "ashreo\|upstream" --include=* .`).
-
-**Completion criteria:** no references to the upstream repository remain outside git history.
+- [x] `pyproject.toml:43-45` `Homepage`/`Repository`/`Issues` repointed from
+      `ashreo/CapCutAPI` to `skyionblue/CapCutAPI`.
+- [x] Swept the tree: no references to the upstream repository remain outside git history and
+      this plan.
 
 ---
 
