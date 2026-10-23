@@ -14,7 +14,6 @@ import subprocess
 import json
 from get_duration_impl import get_video_duration
 import threading
-import requests  # Import requests for making HTTP calls
 import logging
 # Import configuration
 from settings import IS_UPLOAD_DRAFT
@@ -46,6 +45,27 @@ def build_asset_path(draft_folder: str, draft_id: str, asset_type: str, material
     else:
         draft_real_path = os.path.join(draft_folder, draft_id, "assets", asset_type, material_name)
     return draft_real_path
+
+def write_draft_meta_paths(draft_dir: str, draft_root: str) -> None:
+    """Point a freshly copied draft's meta file at where the draft actually lives.
+
+    The template ships `draft_fold_path` and `draft_root_path` blank because the
+    folder is only known once the draft is created. Left unset, CapCut treats the
+    draft as misplaced.
+
+    :param draft_dir: The draft's own folder.
+    :param draft_root: The folder the draft sits in.
+    """
+    meta_path = os.path.join(draft_dir, 'draft_meta_info.json')
+    if not os.path.exists(meta_path):
+        return
+    with open(meta_path, 'r', encoding='utf-8') as meta_file:
+        meta = json.load(meta_file)
+    meta['draft_fold_path'] = draft_dir
+    meta['draft_root_path'] = draft_root
+    with open(meta_path, 'w', encoding='utf-8') as meta_file:
+        json.dump(meta, meta_file, ensure_ascii=False, separators=(',', ':'))
+
 
 def save_draft_background(draft_id, draft_folder, task_id):
     """Background save draft to OSS"""
@@ -89,6 +109,10 @@ def save_draft_background(draft_id, draft_folder, task_id):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         draft_folder_for_duplicate = draft.Draft_folder(current_dir)
         draft_folder_for_duplicate.duplicate_as_template("template", draft_id)
+        write_draft_meta_paths(
+            os.path.join(draft_folder or current_dir, draft_id),
+            draft_folder or current_dir,
+        )
 
         # Update task status
         update_task_field(task_id, "message", "Updating media file metadata")
@@ -612,172 +636,3 @@ def query_script_impl(draft_id: str, force_update: bool = True):
 
     # Return script object
     return script
-
-def download_script(draft_id: str, draft_folder: str = None, script_data: Dict = None) -> Dict[str, str]:
-    """Downloads the draft script and its associated media assets.
-
-    This function fetches the script object from a remote API,
-    then iterates through its materials (audios, videos, images)
-    to download them to the specified draft folder. It also updates
-    task status and progress throughout the process.
-
-    :param draft_id: The ID of the draft to download.
-    :param draft_folder: The base folder where the draft's assets will be stored.
-                         If None, assets will be stored directly under a folder named
-                         after the draft_id in the current working directory.
-    :return: A dictionary indicating success and, if successful, the URL where the draft
-             would eventually be saved (though this function primarily focuses on download).
-             If failed, it returns an error message.
-    """
-
-    logger.info(f"Starting to download draft: {draft_id} to folder: {draft_folder}")
-    # Copy template to target directory
-    template_path = os.path.join("./", 'template')
-    new_draft_path = os.path.join(draft_folder, draft_id)
-    if os.path.exists(new_draft_path):
-        logger.warning(f"Deleting existing draft target folder: {new_draft_path}")
-        shutil.rmtree(new_draft_path)
-
-    # Copy draft folder
-    shutil.copytree(template_path, new_draft_path)
-
-    # The template ships these two fields blank because the folder it will live in is
-    # only known now. Leaving them unset makes CapCut treat the draft as misplaced.
-    meta_path = os.path.join(new_draft_path, 'draft_meta_info.json')
-    if os.path.exists(meta_path):
-        with open(meta_path, 'r', encoding='utf-8') as meta_file:
-            meta = json.load(meta_file)
-        meta['draft_fold_path'] = new_draft_path
-        meta['draft_root_path'] = draft_folder
-        with open(meta_path, 'w', encoding='utf-8') as meta_file:
-            json.dump(meta, meta_file, ensure_ascii=False, separators=(',', ':'))
-
-    try:
-        # 1. Fetch the script from the remote endpoint
-        if script_data is None:
-            query_url = "https://cut-jianying-vdvswivepm.cn-hongkong.fcapp.run/query_script"
-            headers = {"Content-Type": "application/json"}
-            payload = {"draft_id": draft_id}
-
-            logger.info(f"Attempting to get script for draft ID: {draft_id} from {query_url}.")
-            response = requests.post(query_url, headers=headers, json=payload)
-            response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
-
-            script_data = json.loads(response.json().get('output'))
-            logger.info(f"Successfully retrieved script data for draft {draft_id}.")
-        else:
-            logger.info("Using provided script_data, skipping remote retrieval.")
-
-        # Collect download tasks
-        download_tasks = []
-
-        # Collect audio download tasks
-        audios = script_data.get('materials', {}).get('audios', [])
-        if audios:
-            for audio in audios:
-                remote_url = audio['remote_url']
-                material_name = audio['name']
-                # Use helper function to build path
-                if draft_folder:
-                    audio['path'] = build_asset_path(draft_folder, draft_id, "audio", material_name)
-                    logger.debug(f"Local path for audio {material_name}: {audio['path']}")
-                if not remote_url:
-                    logger.warning(f"Audio file {material_name} has no remote_url, skipping download.")
-                    continue
-
-                # Add audio download task
-                download_tasks.append({
-                    'type': 'audio',
-                    'func': download_file,
-                    'args': (remote_url, audio['path']),
-                    'material': audio
-                })
-
-        # Collect video and image download tasks
-        videos = script_data['materials']['videos']
-        if videos:
-            for video in videos:
-                remote_url = video['remote_url']
-                material_name = video['material_name']
-
-                if video['type'] == 'photo':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video['path'] = build_asset_path(draft_folder, draft_id, "image", material_name)
-                    if not remote_url:
-                        logger.warning(f"Image file {material_name} has no remote_url, skipping download.")
-                        continue
-
-                    # Add image download task
-                    download_tasks.append({
-                        'type': 'image',
-                        'func': download_file,
-                        'args': (remote_url, video['path']),
-                        'material': video
-                    })
-
-                elif video['type'] == 'video':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video['path'] = build_asset_path(draft_folder, draft_id, "video", material_name)
-                    if not remote_url:
-                        logger.warning(f"Video file {material_name} has no remote_url, skipping download.")
-                        continue
-
-                    # Add video download task
-                    download_tasks.append({
-                        'type': 'video',
-                        'func': download_file,
-                        'args': (remote_url, video['path']),
-                        'material': video
-                    })
-
-        # Execute all download tasks concurrently
-        downloaded_paths = []
-        completed_files = 0
-        if download_tasks:
-            logger.info(f"Starting concurrent download of {len(download_tasks)} files...")
-
-            # Use thread pool for concurrent downloads, maximum concurrency of 16
-            with ThreadPoolExecutor(max_workers=16) as executor:
-                # Submit all download tasks
-                future_to_task = {
-                    executor.submit(task['func'], *task['args']): task
-                    for task in download_tasks
-                }
-
-                # Wait for all tasks to complete
-                for future in as_completed(future_to_task):
-                    task = future_to_task[future]
-                    try:
-                        local_path = future.result()
-                        downloaded_paths.append(local_path)
-
-                        # Update task status - only update completed files count
-                        completed_files += 1
-                        logger.info(f"Downloaded {completed_files}/{len(download_tasks)} files.")
-                    except Exception as e:
-                        logger.error(f"Failed to download {task['type']} file {task['args'][0]}: {str(e)}", exc_info=True)
-                        logger.error("Download failed.")
-                        # Continue processing other files, don't interrupt the entire process
-
-            logger.info(f"Concurrent download completed, downloaded {len(downloaded_paths)} files in total.")
-
-        """Write draft file content to file"""
-        with open(f"{draft_folder}/{draft_id}/draft_info.json", "w", encoding="utf-8") as f:
-            f.write(json.dumps(script_data))
-        logger.info("Draft has been saved.")
-
-        # No draft_url for download, but return success
-        return {"success": True, "message": f"Draft {draft_id} and its assets downloaded successfully"}
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"API request failed: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to fetch script from API: {str(e)}"}
-    except Exception as e:
-        logger.error(f"Unexpected error during download: {e}", exc_info=True)
-        return {"success": False, "error": f"An unexpected error occurred: {str(e)}"}
-
-if __name__ == "__main__":
-    print('hello')
-    download_script("dfd_cat_1751012163_a7e8c315", os.path.expanduser('~/Movies/CapCut/User Data/Projects/com.lveditor.draft'))
