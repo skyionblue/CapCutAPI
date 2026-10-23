@@ -302,7 +302,7 @@ def test_effect_01():
         start=0,
         end=5,
         track_name="effect_01",
-        # effect_type="金粉闪闪",  # Example using glow effect
+        # effect_type="Gold_Sparkles",  # Example using a glitter effect
         effect_type="Gold_Sparkles",
         params=[100, 50, 34]  # Example parameters, depending on the specific effect type
     )
@@ -648,7 +648,6 @@ def test_audio01():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -670,7 +669,6 @@ def test_audio02():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -686,7 +684,6 @@ def test_audio02():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -712,8 +709,7 @@ def test_audio03():
             volume=0.8,
             speed=1.0,
             track_name="main_audio101",
-            # effect_type="麦霸",
-            effect_type="Tremble",
+                effect_type="Tremble",
             effect_params=[90.0, 50.0],
             draft_id=draft_id  # Pass the previous draft_id (None for the first time)
         )
@@ -740,7 +736,6 @@ def test_audio04():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -756,7 +751,6 @@ def test_audio04():
         volume=0.8,
         speed=1.0,
         track_name="main_audio102",  # Use different track name
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -1493,7 +1487,7 @@ def test_subtitle_01():
 
     print("\nTest 3: Adding text subtitles")
     text_result = add_subtitle_impl(
-        srt="1\n00:00:00,000 --> 00:00:04,433\n你333好，我是孙关南开发的剪映草稿助手。\n\n2\n00:00:04,433 --> 00:00:11,360\n我擅长将音频、视频、图片素材拼接在一起剪辑输出剪映草稿。\n",
+        srt="1\n00:00:00,000 --> 00:00:04,433\nHello, this is the CapCut draft assistant.\n\n2\n00:00:04,433 --> 00:00:11,360\nIt stitches audio, video and images together and writes a CapCut draft.\n",
         font_size=8.0,
         bold=True,
         italic=True,
@@ -1607,7 +1601,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_3840_2160_30fps.mp4",  # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_3840_2160_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1623,7 +1617,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_426_240_30fps.mp4",  # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_426_240_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1639,7 +1633,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_640_360_30fps.mp4",  # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_640_360_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1655,7 +1649,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_2560_1440_30fps.mp4",  # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_2560_1440_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
