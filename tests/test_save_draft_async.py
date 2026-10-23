@@ -155,8 +155,12 @@ def test_a_failed_save_is_reported_on_the_task(fake_save):
 
 @pytest.fixture
 def mcp(monkeypatch, fake_save):
-    """The MCP save_draft branch, with the real save and placement stubbed out."""
-    import mcp_server
+    """The save_draft dispatch branch, with the real save and placement stubbed out.
+
+    Dispatch lives in tool_registry, shared by both transports; mcp_server is a thin adapter
+    over it, so the stub goes where the branch actually is.
+    """
+    import tool_registry as mcp_server
     placements = []
 
     def place(draft_id):

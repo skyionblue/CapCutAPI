@@ -8,7 +8,7 @@ from util import generate_draft_url
 
 def add_video_keyframe_impl(
     draft_id: Optional[str] = None,
-    track_name: str = "main",
+    track_name: str = "video_main",
     property_type: str = "alpha",
     time: float = 0.0,
     value: str = "1.0",

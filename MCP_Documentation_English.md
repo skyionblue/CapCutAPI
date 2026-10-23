@@ -356,6 +356,34 @@ or, on failure:
   `query_draft_status`, whose result carries `local_path` on completion. The default is
   unchanged, so existing callers still get a synchronous result
 
+#### One dispatch layer behind both transports
+- The tool catalogue and dispatch moved to `tool_registry.py`. The MCP gateway and the HTTP
+  server are now thin adapters over it, so a capability is defined once instead of wired twice
+- The HTTP routes forward only the keys the caller actually sent, so every default comes from
+  the implementation. They previously re-declared ~20 parameters each with their own defaults,
+  which is how the two surfaces drifted apart
+- `add_text` gains `text_styles` over HTTP, which only the MCP surface supported before
+- Two more parameter-name mismatches are now aliased rather than breaking: `POST /add_subtitle`
+  accepts `srt` as well as `srt_path`, and `POST /add_sticker` accepts `sticker_id` as well as
+  `resource_id`
+- `add_text` `start`/`end` and `add_sticker` `start` take the defaults the HTTP layer always
+  sent (`0`, `5.0`, `0`) rather than remaining required, so no existing caller has to change
+
+#### Breaking: default values unified across HTTP and MCP
+- The HTTP and MCP surfaces disagreed on nine parameter defaults, so the same logical call
+  produced different output depending on the transport. The implementations now carry one
+  decided value each:
+  `track_name` defaults to `video_main` / `image_main` (was `main`); `add_text` `transform_y`
+  to `0` (was `-0.8`) and `background_style` to `0` (was `1`); `add_subtitle` `vertical` to
+  `False` (was `True`), `alpha` to `1` (was `0.4`) and `background_style` to `0` (was `1`);
+  `add_sticker` `end` defaults to `5.0` and is no longer required
+- **MCP callers see the change**: text that relied on the old defaults now sits centred rather
+  than in the lower third, subtitles are horizontal and opaque rather than vertical at 0.4
+  alpha, and clips land on `video_main`/`image_main` rather than `main`. Pass the values
+  explicitly to keep the previous behaviour
+- `add_text` `font_color` and `add_subtitle` `font_size` still differ between transports; they
+  resolve when the HTTP layer stops declaring its own defaults
+
 #### Portability
 - Added `export_draft` — bundles a saved draft together with the media it references and rewrites paths into CapCut's relocatable form, so the zip opens on another machine. Zipping a draft folder alone does not achieve this, because the media usually lives elsewhere on disk
 

@@ -13,10 +13,10 @@ from pyJianYingDraft.text_segment import TextBubble, TextEffect, TextStyleRange
 
 def add_text_impl(
     text: str,
-    start: float,
-    end: float,
+    start: float = 0,
+    end: float = 5.0,
     draft_id: str | None = None,  # Python 3.10+ 新语法
-    transform_y: float = -0.8,
+    transform_y: float = 0,
     transform_x: float = 0,
     font: str = "文轩体",
     font_color: str = "#ffffff",
@@ -30,7 +30,7 @@ def add_text_impl(
     border_width: float = 0.0,
     # Background parameters
     background_color: str = "#000000",
-    background_style: int = 1,
+    background_style: int = 0,
     background_alpha: float = 0.0,
     background_round_radius: float = 0.0,
     background_height: float = 0.14,

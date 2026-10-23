@@ -2,7 +2,7 @@
 
 **Created:** 2026-10-22
 **Status (2026-10-23):** Tier A, Tier B and Phase C1 COMPLETE; CI deferred by decision.
-C2 Group 1 defects fixed and the remaining 11 divergences DECIDED; the refactor itself is outstanding.
+C2 COMPLETE.
 C5 in progress (836 → 479 findings).
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
@@ -183,7 +183,7 @@ fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either w
    excluded at all. Replaced with a single directory exclusion; `.venv` is now excluded too
    (linting it produced 83,566 findings).
 
-### Phase C2 — Remove the duplicated server layers — **DECIDED, refactor outstanding**
+### Phase C2 — Remove the duplicated server layers — **COMPLETE (2026-10-23)**
 
 Groundwork complete; the refactor itself is not, because it cannot be done without changing
 user-facing behaviour.
@@ -242,26 +242,30 @@ one that re-declares everything. So the work is not "merge the two servers" but 
 That framing also decides the divergences by construction: if HTTP stops declaring its own
 defaults, it inherits the implementation's — which is exactly the breaking change below.
 
-Constraints any refactor must hold:
+Constraints the refactor had to hold, and did:
 
-- [ ] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
+- [x] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
       and an `execute_tool` branch, never a new registered tool function.
-- [ ] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
+- [x] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
 
-#### Blocked
+#### Delivered (2026-10-23)
 
-- [ ] **Decide how to resolve each divergence.** Unifying changes behaviour for one transport:
-      adopting the implementation defaults changes long-standing HTTP behaviour (text turns
-      white instead of red, subtitles become vertical at 0.4 alpha); adopting the HTTP defaults
-      changes what MCP callers get today. This is a user-facing decision, not a refactor
-      detail, and it should be taken divergence by divergence.
-- [ ] Extract the shared dispatch layer once the target behaviour is settled.
-- [ ] Preserve both response shapes exactly — HTTP `{success, output, error}`, MCP
-      `{success, result}`.
+- [x] Decisions taken divergence by divergence (above), then applied — so the behaviour change
+      was visible and reviewable rather than hidden inside a structural change.
+- [x] Catalogue and dispatch extracted to `tool_registry.py`; both servers are thin adapters.
+- [x] Parity tests converted rather than rewritten: each now asserts the surfaces agree, plus a
+      structural guard that fails if a route reintroduces `data.get(name, default)`.
 
-**Why not refactor first and unify later:** a shared dispatch layer has to pick one default per
-parameter. Doing that before the decision would silently change behaviour in 13 places, which
-is the opposite of what a refactor should do.
+**Two further name mismatches found during the conversion**, neither previously catalogued:
+`POST /add_subtitle` read `srt` while the catalogue and implementation use `srt_path`, and
+`add_text`'s `start`/`end` plus `add_sticker`'s `start` were required by the implementation but
+defaulted over HTTP. Aliases and defaults keep every existing caller working.
+
+**A testing lesson worth keeping:** the `/add_subtitle` parity tests had been passing
+*vacuously* — the request was rejected as missing a required parameter before dispatch was
+reached, so the recorder never fired and every "the route does not send X" assertion held for
+the wrong reason. The capture fixture now asserts it actually intercepted the call, which is
+what surfaced the `srt` mismatch.
 
 **Coverage note:** the suite covers the export pipeline, draft persistence, save modes and now
 dispatch parity — but still not the internals of the 18 non-export tools. The parity tests make
@@ -294,13 +298,17 @@ than making HTTP callers start supplying it.
 
 #### Remaining work
 
-- [ ] Apply the decided defaults to the implementations and update the MCP schemas to match.
-- [ ] Make `capcut_server.py` a thin adapter over the `TOOLS` catalogue and `execute_tool`.
-- [ ] Convert `tests/test_dispatch_parity.py` divergence-by-divergence: each test that asserts
-      a difference becomes one that asserts agreement. They are the safety net for this
-      refactor, so convert deliberately rather than rewriting the file.
-- [ ] Preserve both response shapes — HTTP `{success, output, error}`, MCP `{success, result}` —
-      and the two-tool advertised surface.
+- [x] Apply the decided defaults to the implementations and update the MCP schemas to match.
+      Also settled `add_subtitle` `background_style` (`1` -> `0`), which appeared in the
+      divergence list but was missed from the decision table; it follows `add_text`'s
+      "no background box" choice and matches what HTTP already sent.
+- [x] Catalogue and dispatch extracted to `tool_registry.py`; both servers are adapters
+      over it. `capcut_server.py` 1366 -> 834 lines, `mcp_server.py` 1070 -> 65.
+- [x] Converted `tests/test_dispatch_parity.py` divergence-by-divergence: nine entries moved
+      from DIVERGENCES to RESOLVED, each now asserting both surfaces agree. Two remain
+      divergent (`add_text` `font_color`, `add_subtitle` `font_size`) because the HTTP
+      layer still declares its own default; they resolve with the adapter below.
+- [x] Both response shapes preserved and the advertised surface still two tools.
 
 ### Phase C3 — Harden before any non-local exposure
 

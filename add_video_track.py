@@ -23,7 +23,7 @@ def add_video_track(
     scale_y: float = 1,
     transform_x: float = 0,
     speed: float = 1.0,
-    track_name: str = "main",
+    track_name: str = "video_main",
     relative_index: int = 0,
     duration: Optional[float] = None,  # Added duration parameter
     transition: Optional[str] = None,  # Transition type
