@@ -54,6 +54,7 @@ from get_duration_impl import get_video_duration
 from save_draft_impl import save_draft_impl, query_script_impl, query_task_status, build_asset_path
 from util import generate_draft_url as util_generate_draft_url
 from export_impl import export_video, query_export_status, export_preflight
+from export_subtitles_impl import export_subtitles_impl
 from pyJianYingDraft.text_segment import TextStyleRange
 from pyJianYingDraft import Text_style, Video_material, Audio_material
 
@@ -581,6 +582,38 @@ TOOLS: List[Dict[str, Any]] = [
         },
     },
     {
+        "name": "export_subtitles",
+        "description": (
+            "Write a draft's text segments out as an SRT subtitle file — the reverse of "
+            "add_subtitle. Use it to hand captions to a platform as a separate file rather than "
+            "burning them into the video, which is what YouTube, TikTok and Instagram prefer. "
+            "Works before or after save_draft. Returns the SRT inline as `srt`; pass output_path "
+            "to also write it to disk. Cues come from every text track unless track_name limits "
+            "it, ordered by start time."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "draft_id": {"type": "string", "description": "Draft ID to read"},
+                "output_path": {
+                    "type": "string",
+                    "description": "Where to write the .srt file. A directory is also accepted. "
+                                   "Omit to get the content back inline only.",
+                },
+                "track_name": {
+                    "type": "string",
+                    "description": "Limit to one text track. Omit to include every text track.",
+                },
+                "time_offset": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Seconds to shift every cue, for syncing against a trimmed export.",
+                },
+            },
+            "required": ["draft_id"],
+        },
+    },
+    {
         "name": "export_preflight",
         "description": (
             "Report which export backends can actually run in this environment, each one's "
@@ -930,6 +963,17 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
                 if status.get("status") == "not_found":
                     return {"success": False, "error": f"Export task {arguments.get('task_id')!r} not found."}
                 result = status
+
+            elif tool_name == "export_subtitles":
+                subtitles = export_subtitles_impl(
+                    draft_id=arguments.get("draft_id"),
+                    output_path=arguments.get("output_path"),
+                    track_name=arguments.get("track_name"),
+                    time_offset=arguments.get("time_offset", 0.0),
+                )
+                if not subtitles.get("success"):
+                    return {"success": False, "error": subtitles.get("error", "Subtitle export failed")}
+                result = subtitles
 
             elif tool_name == "export_preflight":
                 result = export_preflight()
