@@ -3,7 +3,7 @@ class Animation_meta:
     title: str
     is_vip: bool
     duration: int
-    """效果默认时长, 单位为微秒"""
+    """Default effect duration, in microseconds."""
 
     resource_id: str
     effect_id: str

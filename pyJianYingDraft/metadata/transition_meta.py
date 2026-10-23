@@ -1,24 +1,24 @@
-"""转场效果元数据"""
+"""Transition metadata."""
 
 
 class Transition_meta:
-    """转场元数据"""
+    """Transition metadata."""
 
     name: str
-    """转场名称"""
+    """transition name"""
     is_vip: bool
-    """是否为VIP特权"""
+    """whether this is a VIP feature"""
 
     resource_id: str
-    """资源ID"""
+    """resource ID"""
     effect_id: str
-    """效果ID"""
+    """effect ID"""
     md5: str
 
     default_duration: int
-    """默认持续时间, 单位为微秒"""
+    """Default duration, in microseconds."""
     is_overlap: bool
-    """是否允许重叠(?)"""
+    """Whether overlapping is allowed (uncertain)."""
 
     def __init__(self, name: str, is_vip: bool, resource_id: str, effect_id: str, md5: str, default_duration: float, is_overlap: bool):
         self.name = name

@@ -4,16 +4,16 @@ from typing import List, Dict, Any
 from typing import TypeVar, Optional
 
 class Effect_param:
-    """特效参数信息"""
+    """Effect parameter metadata."""
 
     name: str
-    """参数名称"""
+    """Parameter name."""
     default_value: float
-    """默认值"""
+    """Default value."""
     min_value: float
-    """最小值"""
+    """Minimum value."""
     max_value: float
-    """最大值"""
+    """Maximum value."""
 
     def __init__(self, name: str, default_value: float, min_value: float, max_value: float):
         self.name = name
@@ -22,12 +22,12 @@ class Effect_param:
         self.max_value = max_value
 
 class Effect_param_instance(Effect_param):
-    """特效参数实例"""
+    """An effect parameter instance."""
 
     index: int
-    """参数索引"""
+    """Parameter index."""
     value: float
-    """当前值"""
+    """Current value."""
 
     def __init__(self, meta: Effect_param, index: int, value: float):
         super().__init__(meta.name, meta.default_value, meta.min_value, meta.max_value)
@@ -46,21 +46,21 @@ class Effect_param_instance(Effect_param):
         }
 
 class Effect_meta:
-    """特效元数据"""
+    """Effect metadata."""
 
     name: str
-    """效果名称"""
+    """effect name"""
     is_vip: bool
-    """是否为VIP特权"""
+    """whether this is a VIP feature"""
 
     resource_id: str
-    """资源ID"""
+    """resource ID"""
     effect_id: str
-    """效果ID"""
+    """effect ID"""
     md5: str
 
     params: List[Effect_param]
-    """效果的参数信息"""
+    """The effect's parameter metadata."""
 
     def __init__(self, name: str, is_vip: bool, resource_id: str, effect_id: str, md5: str, params: List[Effect_param] = []):
         self.name = name
@@ -71,7 +71,7 @@ class Effect_meta:
         self.params = params
 
     def parse_params(self, params: Optional[List[Optional[float]]]) -> List[Effect_param_instance]:
-        """解析参数列表(范围0~100), 返回参数实例列表"""
+        """Parse a parameter list (values 0-100) into parameter instances."""
         ret: List[Effect_param_instance] = []
 
         if params is None: params = []
@@ -82,7 +82,7 @@ class Effect_meta:
                 if input_v is not None:
                     if input_v < 0 or input_v > 100:
                         raise ValueError("Invalid parameter value %f within %s" % (input_v, str(param)))
-                    val = param.min_value + (param.max_value - param.min_value) * input_v / 100.0  # 从0~100映射到实际值
+                    val = param.min_value + (param.max_value - param.min_value) * input_v / 100.0  # map 0-100 onto the real range
             ret.append(Effect_param_instance(param, i, val))
         return ret
 
@@ -90,17 +90,17 @@ class Effect_meta:
 Effect_enum_subclass = TypeVar("Effect_enum_subclass", bound="Effect_enum")
 
 class Effect_enum(Enum):
-    """特效枚举基类, 提供一个`from_name`方法用于根据名称获取特效元数据"""
+    """Base class for effect enums, providing `from_name` to look metadata up by name."""
 
     @classmethod
     def from_name(cls: "type[Effect_enum_subclass]", name: str) -> Effect_enum_subclass:
-        """根据名称获取特效元数据, 忽略大小写、空格和下划线
+        """Look up effect metadata by name, ignoring case, spaces and underscores.
 
         Args:
-            name (str): 特效名称
+            name (str): effect name
 
         Raises:
-            `ValueError`: 特效名称不存在
+            `ValueError`: no effect with that name
         """
         name = name.lower().replace(" ", "").replace("_", "")
         for effect in cls:

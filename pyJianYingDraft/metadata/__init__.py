@@ -1,4 +1,4 @@
-"""记录各种特效/音效/滤镜等的元数据"""
+"""Metadata for effects, audio effects, masks, transitions and so on."""
 
 from .effect_meta import Effect_meta, Effect_param_instance
 
