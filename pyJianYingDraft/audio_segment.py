@@ -9,7 +9,10 @@ from copy import deepcopy
 from typing import Optional, Literal, Union
 from typing import Dict, List, Any
 
-from pyJianYingDraft.metadata.capcut_audio_effect_meta import CapCut_Speech_to_song_effect_type, CapCut_Voice_characters_effect_type, CapCut_Voice_filters_effect_type
+from pyJianYingDraft.metadata.capcut_audio_effect_meta import (
+    CapCut_Speech_to_song_effect_type, CapCut_Voice_characters_effect_type,
+    CapCut_Voice_filters_effect_type,
+)
 
 from .time_util import tim, Timerange
 from .segment import Media_segment
@@ -60,7 +63,9 @@ class Audio_effect:
 
     audio_adjust_params: List[Effect_param_instance]
 
-    def __init__(self, effect_meta: Union[CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
+    def __init__(self, effect_meta: Union[CapCut_Voice_filters_effect_type,
+                                          CapCut_Voice_characters_effect_type,
+                                          CapCut_Speech_to_song_effect_type],
                  params: Optional[List[Optional[float]]] = None):
         """Construct an audio effect from its metadata and parameter list; params range 0-100."""
 
@@ -125,8 +130,10 @@ class Audio_segment(Media_segment):
         Args:
             material (`Audio_material`): the material instance
             target_timerange (`Timerange`): where the segment sits on the track
-            source_timerange (`Timerange`, optional): the portion of the material to use. Defaults to a span from the start, scaled by `speed`, matching `target_timerange`
-            speed (`float`, optional): playback speed, default 1.0. Given together with `source_timerange`, it overrides the duration in `target_timerange`
+            source_timerange (`Timerange`, optional): the portion of the material to use.
+                Defaults to a span from the start, scaled by `speed`, matching `target_timerange`
+            speed (`float`, optional): playback speed, default 1.0. Given together with
+                `source_timerange`, it overrides the duration in `target_timerange`
             volume (`float`, optional): volume, default 1.0
 
         Raises:
@@ -149,15 +156,19 @@ class Audio_segment(Media_segment):
         self.fade = None
         self.effects = []
 
-    def add_effect(self, effect_type: Union[CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type],
+    def add_effect(self, effect_type: Union[CapCut_Voice_filters_effect_type,
+                                            CapCut_Voice_characters_effect_type,
+                                            CapCut_Speech_to_song_effect_type],
                    params: Optional[List[Optional[float]]] = None,
                    effect_id: Optional[str] = None) -> "Audio_segment":
         """Add an audio effect covering the whole segment. Speech-to-song effects are not picked up automatically by the editor.
 
         Args:
-            effect_type (`CapCut_Voice_filters_effect_type` | `CapCut_Voice_characters_effect_type` | `CapCut_Speech_to_song_effect_type`): the effect type; only one of each category may be added.
+            effect_type (`CapCut_Voice_filters_effect_type` | `CapCut_Voice_characters_effect_type`
+                | `CapCut_Speech_to_song_effect_type`): the effect type; only one per category.
             params (`List[Optional[float]]`, optional): effect parameters; omitted or None entries use the default.
-                Values run 0-100, as in the editor. Which parameters an effect takes, and in what order, is given by the enum member's annotation.
+                Values run 0-100, as in the editor. Which parameters an effect takes, and
+                in what order, is given by the enum member's annotation.
             effect_id (`str`, optional): the effect id; generated automatically when omitted.
 
         Raises:

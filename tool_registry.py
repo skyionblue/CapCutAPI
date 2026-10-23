@@ -197,14 +197,18 @@ TOOLS: List[Dict[str, Any]] = [
                 },
                 "intro_animation": {
                     'type': 'string',
-                    'description': "Intro animation type — see list_option_values('intro_animation'); mutually exclusive with combo_animation",
+                    'description': "Intro animation type -- see "
+                                   "list_option_values('intro_animation'); mutually "
+                                   "exclusive with combo_animation",
                 },
                 "intro_animation_duration": {"type": "number", "default": 0.5, "description": "Intro animation duration (seconds)"},
                 "outro_animation": {"type": "string", "description": "Outro animation type — see list_option_values('outro_animation')"},
                 "outro_animation_duration": {"type": "number", "default": 0.5, "description": "Outro animation duration (seconds)"},
                 "combo_animation": {
                     'type': 'string',
-                    'description': "Combo animation type — see list_option_values('combo_animation'); mutually exclusive with intro_animation",
+                    'description': "Combo animation type -- see "
+                                   "list_option_values('combo_animation'); mutually "
+                                   "exclusive with intro_animation",
                 },
                 "combo_animation_duration": {"type": "number", "default": 0.5, "description": "Combo animation duration (seconds)"},
                 "transition": {"type": "string", "description": "Transition type — see list_option_values('transition')"},
@@ -377,7 +381,10 @@ TOOLS: List[Dict[str, Any]] = [
     },
     {
         "name": "add_video_keyframe",
-        "description": "Add keyframe(s) animating a property (position, scale, rotation, opacity, ...) over time. Use property_type/time/value for one keyframe, or the plural property_types/times/values for several at once.",
+        "description": ("Add keyframe(s) animating a property (position, scale, rotation, "
+                        "opacity, ...) over time. Use property_type/time/value for one "
+                        "keyframe, or the plural property_types/times/values for several "
+                        "at once."),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -385,7 +392,9 @@ TOOLS: List[Dict[str, Any]] = [
                 "track_name": {"type": "string", "default": "video_main", "description": "Track name"},
                 "property_type": {
                     "type": "string",
-                    "description": "Keyframe property (position_x, position_y, rotation, scale_x, scale_y, uniform_scale, alpha, saturation, contrast, brightness, volume)",
+                    "description": ("Keyframe property (position_x, position_y, rotation, "
+                                    "scale_x, scale_y, uniform_scale, alpha, saturation, "
+                                    "contrast, brightness, volume)"),
                 },
                 "time": {"type": "number", "default": 0.0, "description": "Keyframe time (seconds)"},
                 "value": {"type": "string", "description": "Keyframe value"},
@@ -530,7 +539,9 @@ TOOLS: List[Dict[str, Any]] = [
                 },
                 "duration": {
                     'type': 'number',
-                    'description': "Duration of the new file (seconds). Rarely needed — replacing a material doesn't change the segment's timerange.",
+                    'description': "Duration of the new file (seconds). Rarely needed -- "
+                                   "replacing a material does not change the segment's "
+                                   "timerange.",
                 },
                 "replace_crop": {
                     'type': 'boolean',
@@ -811,9 +822,11 @@ def replace_material(
 
     matches = [m for m in material_list if m.material_name == material_name]
     if not matches:
-        return {"error": f"No {material_type} material named {material_name!r} found on draft {draft_id!r}. Use query_script to find the exact name."}
+        return {"error": f"No {material_type} material named {material_name!r} on draft "
+                         f"{draft_id!r}. Use query_script to find the exact name."}
     if len(matches) > 1:
-        return {"error": f"Multiple {material_type} materials named {material_name!r} found on draft {draft_id!r}; can't tell which to replace."}
+        return {"error": f"Multiple {material_type} materials named {material_name!r} on draft "
+                         f"{draft_id!r}; cannot tell which to replace."}
     target = matches[0]
 
     if material_type == "video":

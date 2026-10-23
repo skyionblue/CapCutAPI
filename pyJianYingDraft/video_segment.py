@@ -328,8 +328,10 @@ class Video_segment(Visual_segment):
         Args:
             material (`Video_material`): the material instance
             target_timerange (`Timerange`): where the segment sits on the track
-            source_timerange (`Timerange`, optional): the portion of the material to use. Defaults to a span from the start, scaled by `speed`, matching `target_timerange`
-            speed (`float`, optional): playback speed, default 1.0. Given together with `source_timerange`, it overrides the duration in `target_timerange`
+            source_timerange (`Timerange`, optional): the portion of the material to use.
+                Defaults to a span from the start, scaled by `speed`, matching `target_timerange`
+            speed (`float`, optional): playback speed, default 1.0. Given together with
+                `source_timerange`, it overrides the duration in `target_timerange`
             volume (`float`, optional): volume, default 1.0
             clip_settings (`Clip_settings`, optional): image adjustments; by default nothing is transformed
 
@@ -397,7 +399,8 @@ class Video_segment(Visual_segment):
         Args:
             effect_type (`CapCut_Video_scene_effect_type` or `CapCut_Video_character_effect_type`): the effect type
             params (`List[Optional[float]]`, optional): effect parameters; omitted or None entries use the default.
-                Values run 0-100, as in the editor. Which parameters an effect takes, and in what order, is given by the enum member's annotation.
+                Values run 0-100, as in the editor. Which parameters an effect takes, and
+                in what order, is given by the enum member's annotation.
 
         Raises:
             `ValueError`: too many parameters were given, or a value is out of range.
@@ -411,7 +414,8 @@ class Video_segment(Visual_segment):
 
         return self
 
-    def add_mask(self, draft: "Script_file", mask_type: CapCut_Mask_type, *, center_x: float = 0.0, center_y: float = 0.0, size: float = 0.5,
+    def add_mask(self, draft: "Script_file", mask_type: CapCut_Mask_type, *,
+                 center_x: float = 0.0, center_y: float = 0.0, size: float = 0.5,
                  rotation: float = 0.0, feather: float = 0.0, invert: bool = False,
                  rect_width: Optional[float] = None, round_corner: Optional[float] = None) -> "Video_segment":
         """Add a mask to the video segment.
@@ -420,11 +424,13 @@ class Video_segment(Visual_segment):
             mask_type (`CapCut_Mask_type`): the mask type
             center_x (`float`, optional): mask centre x in material pixels; defaults to the material centre
             center_y (`float`, optional): mask centre y in material pixels; defaults to the material centre
-            size (`float`, optional): the mask's principal dimension (mirror height, circle diameter, heart height and so on) as a fraction of the material height. Default 0.5
+            size (`float`, optional): the mask's principal dimension (mirror height, circle
+                diameter, heart height and so on) as a fraction of the material height. Default 0.5
             rotation (`float`, optional): clockwise mask rotation in **degrees**; no rotation by default
             feather (`float`, optional): mask feathering, 0-100; none by default
             invert (`bool`, optional): invert the mask; not inverted by default
-            rect_width (`float`, optional): width of a rectangular mask, as a fraction of the material width. Rectangular masks only; defaults to `size`
+            rect_width (`float`, optional): width of a rectangular mask, as a fraction of the
+                material width. Rectangular masks only; defaults to `size`
             round_corner (`float`, optional): corner radius of a rectangular mask, 0-100. Rectangular masks only; default 0
 
         Raises:
@@ -456,7 +462,8 @@ class Video_segment(Visual_segment):
 
         Args:
             transition_type (`CapCut_Transition_type`): the transition type
-            duration (`int` or `str`, optional): transition duration in microseconds; strings are parsed with `tim()`. Omitted, the transition type's own default is used.
+            duration (`int` or `str`, optional): transition duration in microseconds; strings
+                are parsed with `tim()`. Omitted, the transition type's own default is used.
 
         Raises:
             `ValueError`: a second transition was added.
@@ -469,14 +476,17 @@ class Video_segment(Visual_segment):
         self.extra_material_refs.append(self.transition.global_id)
         return self
 
-    def add_background_filling(self, fill_type: Literal["blur", "color"], blur: float = 0.0625, color: str = "#00000000") -> "Video_segment":
+    def add_background_filling(self, fill_type: Literal["blur", "color"], blur: float = 0.0625,
+                               color: str = "#00000000") -> "Video_segment":
         """Add a background fill to the video segment.
 
         Note: background fills only take effect on segments in the bottom video track.
 
         Args:
             fill_type (`blur` or `color`): the fill type.
-            blur (`float`, optional): blur amount, 0.0-1.0. Only meaningful when `fill_type` is `blur`. The editor's four blur levels are 0.0625, 0.375, 0.75 and 1.0; default 0.0625.
+            blur (`float`, optional): blur amount, 0.0-1.0. Only meaningful when `fill_type`
+                is `blur`. The editor's four blur levels are 0.0625, 0.375, 0.75 and 1.0;
+                default 0.0625.
             color (`str`, optional): fill colour in '#RRGGBBAA' form. Only meaningful when `fill_type` is `color`.
 
         Raises:

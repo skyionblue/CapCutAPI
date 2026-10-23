@@ -43,7 +43,8 @@ def add_video_keyframe_impl(
     :param property_types: Batch mode: List of keyframe property types, e.g. ["alpha", "position_x", "rotation"]
     :param times: Batch mode: List of keyframe time points (seconds), e.g. [0.0, 1.0, 2.0]
     :param values: Batch mode: List of keyframe values, e.g. ["1.0", "0.5", "45deg"]
-    Note: property_types, times, values must be provided together and have equal lengths. If these parameters are provided, single keyframe parameters will be ignored
+    Note: property_types, times and values must be given together and be the same length.
+    When they are, the single-keyframe arguments are ignored.
     :return: Updated draft information
     """
     # Get or create draft
@@ -74,7 +75,8 @@ def add_video_keyframe_impl(
 
             if not (len(property_types) == len(times) == len(values)):
                 raise Exception(
-                    f"property_types, times, values must have equal lengths, current lengths are: {len(property_types)}, {len(times)}, {len(values)}")
+                    f"property_types, times and values must be the same length; got "
+                    f"{len(property_types)}, {len(times)}, {len(values)}")
 
             keyframes_to_process = [
                 {
@@ -100,7 +102,8 @@ def add_video_keyframe_impl(
                 added_count += 1
             except Exception as e:
                 raise Exception(
-                    f"Failed to add keyframe #{i+1} (property_type={kf['property_type']}, time={kf['time']}, value={kf['value']}): {str(e)}")
+                    f"Failed to add keyframe #{i+1} (property_type={kf['property_type']}, "
+                    f"time={kf['time']}, value={kf['value']}): {str(e)}")
 
         result = {
             "draft_id": draft_id,

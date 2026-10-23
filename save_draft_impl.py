@@ -377,7 +377,8 @@ def update_media_metadata(script, task_id=None):
                     # Convert seconds to microseconds
                     audio.duration = int(duration_result["output"] * 1000000)
                     logger.info(
-                        f"Successfully obtained audio {material_name} duration: {duration_result['output']:.2f} seconds ({audio.duration} microseconds).")
+                        f"Audio {material_name} duration: {duration_result['output']:.2f}s "
+                        f"({audio.duration} microseconds).")
 
                     # Update timerange for all segments using this audio material
                     for track_name, track in script.tracks.items():
@@ -395,7 +396,9 @@ def update_media_metadata(script, task_id=None):
                                         new_source_duration = audio.duration - current_source.start
                                         if new_source_duration <= 0:
                                             logger.warning(
-                                                f"Warning: Audio segment {segment.segment_id} start time {current_source.start} exceeds audio duration {audio.duration}, will skip this segment.")
+                                                f"Warning: audio segment {segment.segment_id} starts at "
+                                                f"{current_source.start}, past the audio duration "
+                                                f"{audio.duration}; skipping it.")
                                             continue
 
                                         # Update source_timerange
@@ -472,7 +475,8 @@ def update_media_metadata(script, task_id=None):
                             duration = stream.get('duration') or info['format'].get('duration', '0')
                             video.duration = int(float(duration) * 1000000)  # Convert to microseconds
                             logger.info(
-                                f"Successfully obtained video {material_name} duration: {float(duration):.2f} seconds ({video.duration} microseconds).")
+                                f"Video {material_name} duration: {float(duration):.2f}s "
+                                f"({video.duration} microseconds).")
 
                             # Update timerange for all segments using this video material
                             for track_name, track in script.tracks.items():
@@ -490,7 +494,9 @@ def update_media_metadata(script, task_id=None):
                                                 new_source_duration = video.duration - current_source.start
                                                 if new_source_duration <= 0:
                                                     logger.warning(
-                                                        f"Warning: Video segment {segment.segment_id} start time {current_source.start} exceeds video duration {video.duration}, will skip this segment.")
+                                                        f"Warning: video segment {segment.segment_id} starts at "
+                                                        f"{current_source.start}, past the video duration "
+                                                        f"{video.duration}; skipping it.")
                                                     continue
 
                                                 # Update source_timerange
@@ -514,7 +520,8 @@ def update_media_metadata(script, task_id=None):
                         video.height = 1080
                 except Exception as e:
                     logger.error(
-                        f"Error occurred while getting video {material_name} information: {str(e)}, using default values 1920x1080.", exc_info=True)
+                        f"Error reading video {material_name}: {str(e)}; "
+                        f"falling back to 1920x1080.", exc_info=True)
                     # Set default values
                     video.width = 1920
                     video.height = 1080
@@ -526,13 +533,15 @@ def update_media_metadata(script, task_id=None):
                             # Convert seconds to microseconds
                             video.duration = int(duration_result["output"] * 1000000)
                             logger.info(
-                                f"Successfully obtained video {material_name} duration: {duration_result['output']:.2f} seconds ({video.duration} microseconds).")
+                                f"Video {material_name} duration: {duration_result['output']:.2f}s "
+                                f"({video.duration} microseconds).")
                         else:
                             logger.warning(f"Warning: Unable to get video {material_name} duration: {duration_result['error']}.")
                     except Exception as e2:
                         logger.error(f"Error occurred while getting video {material_name} duration: {str(e2)}.", exc_info=True)
 
-    # After updating all segments' timerange, check if there are time range conflicts in each track, and delete the later segment in case of conflict
+    # With every timerange updated, look for overlaps within each track and drop the later
+    # segment of any conflicting pair.
     logger.info("Checking track segment time range conflicts...")
     for track_name, track in script.tracks.items():
         # Use a set to record segment indices that need to be deleted
@@ -554,7 +563,10 @@ def update_media_metadata(script, task_id=None):
                     # Always keep the segment with the smaller index (added first)
                     later_index = max(i, j)
                     logger.warning(
-                        f"Time range conflict between segments {track.segments[min(i, j)].segment_id} and {track.segments[later_index].segment_id} in track {track_name}, deleting the later segment")
+                        f"Time range conflict between segments "
+                        f"{track.segments[min(i, j)].segment_id} and "
+                        f"{track.segments[later_index].segment_id} on track {track_name}; "
+                        f"deleting the later one")
                     to_remove.add(later_index)
 
         # Delete marked segments from back to front to avoid index change issues

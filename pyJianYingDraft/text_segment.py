@@ -738,21 +738,26 @@ class Text_segment(Visual_segment):
             "font_team_id": "",
             "font_title": "none",
             "font_url": "",
+            # Build the fonts array from text_styles. The inner `for font in [...]` binds the
+            # range's own font, falling back to the segment's, so the choice is made once
+            # rather than repeated in every field.
             "fonts": [] if not self.text_styles else [
-                # Build the fonts array from text_styles
-                *[{
+                {
                     "category_id": "preset",
                     "category_name": "Editor presets",
-                    "effect_id": style_range.font.resource_id if hasattr(style_range, 'font') and style_range.font else (self.font.resource_id if self.font else ""),
+                    "effect_id": font.resource_id,
                     "file_uri": "",
                     "id": "BFBA9655-1FE5-41A0-A85D-577EFFF17BDD",
-                    "path": "C:/%s.ttf" % (style_range.font.name if hasattr(style_range, 'font') and style_range.font else (self.font.name if self.font else "")),
+                    "path": "C:/%s.ttf" % font.name,
                     "request_id": "20250713102314DA3D8F267527925ADC9A",
-                    "resource_id": style_range.font.resource_id if hasattr(style_range, 'font') and style_range.font else (self.font.resource_id if self.font else ""),
+                    "resource_id": font.resource_id,
                     "source_platform": 0,
                     "team_id": "",
-                    "title": style_range.font.name if hasattr(style_range, 'font') and style_range.font else (self.font.name if self.font else "")
-                } for style_range in self.text_styles if (hasattr(style_range, 'font') and style_range.font) or self.font]
+                    "title": font.name,
+                }
+                for style_range in self.text_styles
+                for font in [getattr(style_range, "font", None) or self.font]
+                if font
             ],
 
             # appears to be overridden by `content`

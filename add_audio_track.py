@@ -4,7 +4,11 @@ import pyJianYingDraft as draft
 from util import generate_draft_url, is_windows_path, url_to_hash
 import re
 from typing import Optional, Dict, Tuple, List
-from pyJianYingDraft import exceptions, CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type, trange
+from pyJianYingDraft import (
+    exceptions, trange,
+    CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type,
+    CapCut_Speech_to_song_effect_type,
+)
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
 
@@ -56,7 +60,8 @@ def add_audio_track(
     else:
         script.add_track(draft.Track_type.audio)
 
-    # If duration parameter is provided, prioritize it; otherwise use default audio duration of 0 seconds, real duration will be obtained during download
+    # A caller-supplied duration wins; otherwise the duration stays 0 here and the real
+    # value is read when the asset is downloaded.
     if duration is not None:
         # Use the provided duration, skip duration retrieval and checking
         audio_duration = duration

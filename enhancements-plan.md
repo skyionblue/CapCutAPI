@@ -3,7 +3,7 @@
 **Created:** 2026-10-22
 **Status (2026-10-23):** Tier A, Tier B and Phase C1 COMPLETE; CI deferred by decision.
 C2 COMPLETE.
-C5 in progress (836 → 479 findings).
+C5 COMPLETE (836 findings → 0).
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -340,9 +340,9 @@ Carried over from `export-functionality-plan.md`, all optional:
 - [ ] ffmpeg backend: crossfade transitions (`xfade`) and keyframe approximation, both currently
       reported as fidelity warnings.
 
-### Phase C5 — Burn down the legacy lint debt — **IN PROGRESS (2026-10-23)**
+### Phase C5 — Burn down the legacy lint debt — **COMPLETE (2026-10-23)**
 
-Started at **836** findings; now at **479**.
+Started at **836** findings; now at **0** -- `flake8 .` is clean.
 
 #### Done
 
@@ -366,16 +366,24 @@ parameter name** — while `util.generate_draft_url`, used by the MCP tool *and*
 imported already and did not call it. Now it does, which fixes the URL and removes the
 duplication. Pinned by a regression test, verified to fail against the old code.
 
-#### Remaining
+#### Remaining — none
 
-- [ ] `example.py` (212) — standalone examples, deliberately skipped this pass.
-- [ ] `pyJianYingDraft` (137) — vendored library, deserves its own pass.
-- [ ] `E501` line-length and `E128` continuation-indent across the project: manual wrapping,
-      tedious but low risk.
-- [ ] `E402` module-level imports not at top (24) — structural, matches the existing pattern in
-      those files; leave unless the import blocks are restructured.
+- [x] `example.py` -- scoped out of `E501` in `.flake8`. It is a demo script whose long lines
+      are URL and prompt literals; wrapping them makes the examples harder to copy.
+- [x] The vendored `pyJianYingDraft` -- translated and wrapped along with everything else.
+- [x] `E501` -- all 110 resolved: long imports, signatures, comments, docstrings and f-strings
+      wrapped; the tool catalogue's single-line schema dicts re-emitted across several lines,
+      verified byte-identical by comparing the loaded catalogue before and after.
+- [x] `E402` -- scoped to `tool_registry.py`, whose imports follow a `sys.path.insert()` and
+      genuinely cannot move. Documented in `.flake8` rather than silently ignored.
+- [x] `E127`/`E128`/`E131` continuation indentation, `F541`, `F841`, `F401` and the last two
+      bare excepts.
 
-**Completion criteria:** `flake8 .` is clean from the repository root.
+**One real cleanup fell out of it:** `Text_segment.export_material` repeated the same
+font-resolution ternary four times across a dict literal. It is now bound once in the
+comprehension, which both shortens the lines and removes the duplication.
+
+**Completion criteria — MET.** `flake8 .` reports **0 findings** from the repository root.
 
 ---
 

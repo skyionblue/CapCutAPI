@@ -71,7 +71,8 @@ def add_video_track(
     :param mask_rect_width: Rectangle mask width, only allowed when mask type is rectangle, represented as a proportion of material width
     :param mask_round_corner: Rectangle mask rounded corner parameter, only allowed when mask type is rectangle, range 0~100
     :param volume: Volume level, default 1.0 (0.0 is mute, 1.0 is original volume)
-    :param background_blur: Background blur level, optional values: 1 (light), 2 (medium), 3 (strong), 4 (maximum), default None (no background blur)
+    :param background_blur: Background blur level -- 1 light, 2 medium, 3 strong, 4 maximum.
+        Default None, meaning no background blur.
     :return: Updated draft information, including draft_id and draft_url
     """
     # Get or create draft
@@ -102,7 +103,8 @@ def add_video_track(
     else:
         script.add_track(draft.Track_type.video, relative_index=relative_index)
 
-    # If duration parameter is passed, use it preferentially; otherwise use default duration of 0 seconds, and get the real duration when downloading the draft
+    # A caller-supplied duration wins; otherwise the duration stays 0 here and the real
+    # value is read when the draft is downloaded.
     #
     # WHY THE PROBE BELOW IS COMMENTED OUT — do not "fix" this by uncommenting it.
     #
