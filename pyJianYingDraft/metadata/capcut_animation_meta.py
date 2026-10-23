@@ -2,7 +2,7 @@ from .effect_meta import Effect_enum
 from .animation_meta import Animation_meta
 
 class CapCut_Intro_type(Effect_enum):
-    """CapCut自带的入场动画, 默认时长为0.5秒"""
+    """CapCut's built-in intro animations; default duration 0.5 seconds."""
 
     Fade_In      = Animation_meta("Fade In", False, 0.500, "6798320778182922760", "6798320778182922760", "883ad04bd79b502aaa55b5d9b87175ea")
     Zoom_1       = Animation_meta("Zoom 1", False, 0.500, "6740868384637850120", "6740868384637850120", "6444aa1a1706f02003f9c56c4c0757b3")
@@ -50,7 +50,7 @@ class CapCut_Intro_type(Effect_enum):
 
 
 class CapCut_Outro_type(Effect_enum):
-    """CapCut自带的出场动画, 默认时长为0.5秒"""
+    """CapCut's built-in outro animations; default duration 0.5 seconds."""
 
     Fade_Out     = Animation_meta("Fade Out", False, 0.500, "6798320902548230669", "6798320902548230669", "c6f05ce62355b537be762550040bfc08")
     RGB_Scanlines = Animation_meta("RGB Scanlines", False, 1.000, "7480796062245014790", "7480796062245014790", "75447137a5f585089d33445eda2ecea4")
@@ -78,7 +78,7 @@ class CapCut_Outro_type(Effect_enum):
 
 
 class CapCut_Group_animation_type(Effect_enum):
-    """CapCut自带的组合动画, 默认时长为0.5秒"""
+    """CapCut's built-in combo animations; default duration 0.5 seconds."""
 
     Zoom_1       = Animation_meta("Zoom 1", False, 4.000, "6759078592740594184", "6759078592740594184", "cac9a365aab6a7fe878431abd85d4b5d")
     Stretch_and_distort = Animation_meta("Stretch and distort", False, 3.500, "7032223224863658497", "7032223224863658497", "4f1a31ff5cb6cf8223512aa55d16f3d9")

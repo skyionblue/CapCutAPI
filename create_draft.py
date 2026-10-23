@@ -1,7 +1,7 @@
 import uuid
 import pyJianYingDraft as draft
 import time
-from draft_cache import DRAFT_CACHE, get_script, persist_draft, update_cache
+from draft_cache import get_script, persist_draft, update_cache
 
 def create_draft(width=1080, height=1920):
     """
@@ -32,8 +32,6 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
     :param height: Video height, default 1920
     :return: (draft_name, draft_path, draft_id, draft_dir, script)
     """
-    global DRAFT_CACHE  # Declare use of global variable
-
     if draft_id is not None:
         # Cache first, then the durable store: after a restart the draft is no longer in
         # memory, and silently creating a new one would lose the caller's work.
@@ -49,4 +47,3 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
         height=height,
     )
     return generate_draft_id, script
-

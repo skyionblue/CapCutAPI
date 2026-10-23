@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CapCut API MCP 测试客户端 (Complete Version)
+CapCut API MCP test client (complete version)
 
-测试完整版本的MCP服务器，包含所有CapCut API接口
+Exercises the full MCP server across every CapCut API tool.
 """
 
 import subprocess
@@ -11,66 +11,66 @@ import time
 import sys
 
 def send_request(process, request_data):
-    """发送请求并接收响应"""
+    """Send a request and read the response."""
     try:
         request_json = json.dumps(request_data, ensure_ascii=False)
-        print(f"发送请求: {request_json}")
+        print(f"Request: {request_json}")
 
-        # 发送请求
+        # Send
         process.stdin.write(request_json + "\n")
         process.stdin.flush()
 
-        # 等待响应
+        # Wait for the response
         response_line = process.stdout.readline()
         if not response_line.strip():
-            print("❌ 收到空响应")
+            print("❌ Empty response")
             return None
 
         try:
             response = json.loads(response_line.strip())
-            print(f"收到响应: {json.dumps(response, ensure_ascii=False, indent=2)}")
+            print(f"Response: {json.dumps(response, ensure_ascii=False, indent=2)}")
             return response
         except json.JSONDecodeError as e:
-            print(f"❌ JSON解析错误: {e}")
-            print(f"原始响应: {response_line}")
+            print(f"❌ JSON parse error: {e}")
+            print(f"Raw response: {response_line}")
             return None
 
     except Exception as e:
-        print(f"❌ 发送请求时出错: {e}")
+        print(f"❌ Error sending request: {e}")
         return None
 
 def send_notification(process, notification_data):
-    """发送通知（不需要响应）"""
+    """Send a notification; no response is expected."""
     try:
         notification_json = json.dumps(notification_data, ensure_ascii=False)
-        print(f"发送通知: {notification_json}")
+        print(f"Notification: {notification_json}")
 
         process.stdin.write(notification_json + "\n")
         process.stdin.flush()
 
     except Exception as e:
-        print(f"❌ 发送通知时出错: {e}")
+        print(f"❌ Error sending notification: {e}")
 
 def main():
-    print("🚀 CapCut API MCP 测试客户端 (Complete Version)")
-    print("🎯 测试所有CapCut API接口功能")
+    print("🚀 CapCut API MCP test client (complete version)")
+    print("🎯 Exercising every CapCut API tool")
     print("=" * 60)
 
-    # 启动MCP服务器
+    # Start the MCP server
     try:
         process = subprocess.Popen(
-            [sys.executable, "mcp_server.py"],  # 修改为正确的文件名
+            [sys.executable, "mcp_server.py"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            bufsize=0  # 无缓冲
+            bufsize=0  # unbuffered
         )
 
-        print("✅ MCP服务器已启动 (mcp_server.py)")
-        time.sleep(1)  # 等待服务器启动
+        print("✅ MCP server started (mcp_server.py)")
+        time.sleep(1)  # give the server a moment to start
 
-        # 1. 初始化
+        # 1. Initialise
         init_request = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -90,12 +90,12 @@ def main():
 
         response = send_request(process, init_request)
         if response and "result" in response:
-            print("✅ 初始化成功")
+            print("✅ Initialised")
         else:
-            print("❌ 初始化失败")
+            print("❌ Initialisation failed")
             return
 
-        # 发送初始化完成通知
+        # Send the initialised notification
         init_notification = {
             "jsonrpc": "2.0",
             "method": "notifications/initialized",
@@ -103,8 +103,8 @@ def main():
         }
         send_notification(process, init_notification)
 
-        print("\n=== 📋 获取工具列表 ===")
-        # 2. 获取工具列表
+        print("\n=== 📋 Tool list ===")
+        # 2. Fetch the tool list
         tools_request = {
             "jsonrpc": "2.0",
             "id": 2,
@@ -115,17 +115,17 @@ def main():
         response = send_request(process, tools_request)
         if response and "result" in response:
             tools = response["result"]["tools"]
-            print(f"✅ 成功获取 {len(tools)} 个工具:")
+            print(f"✅ Got {len(tools)} tools:")
             for tool in tools:
                 print(f"   • {tool['name']}: {tool['description']}")
         else:
-            print("❌ 获取工具列表失败")
+            print("❌ Could not fetch the tool list")
             return
 
-        print("\n=== 🎬 测试核心功能 ===\n")
+        print("\n=== 🎬 Core functionality ===\n")
 
-        # 3. 测试创建草稿
-        print("📝 测试创建草稿")
+        # 3. create_draft
+        print("📝 Testing create_draft")
         create_draft_request = {
             "jsonrpc": "2.0",
             "id": 3,
@@ -141,17 +141,17 @@ def main():
 
         response = send_request(process, create_draft_request)
         if response and "result" in response:
-            print("✅ 创建草稿成功")
-            # 提取draft_id用于后续测试
+            print("✅ Draft created")
+            # Keep the draft_id for the later calls
             draft_data = json.loads(response["result"]["content"][0]["text"])
             draft_id = draft_data["result"]["draft_id"]
-            print(f"📋 草稿ID: {draft_id}")
+            print(f"📋 Draft id: {draft_id}")
         else:
-            print("❌ 创建草稿失败")
+            print("❌ Could not create the draft")
             draft_id = None
 
-        # 4. 测试添加文本（带多样式）
-        print("\n📝 测试添加文本（多样式）")
+        # 4. add_text, with per-range styles
+        print("\n📝 Testing add_text (per-range styles)")
         add_text_request = {
             "jsonrpc": "2.0",
             "id": 4,
@@ -192,12 +192,12 @@ def main():
 
         response = send_request(process, add_text_request)
         if response and "result" in response:
-            print("✅ 添加文本成功")
+            print("✅ Text added")
         else:
-            print("❌ 添加文本失败")
+            print("❌ Could not add the text")
 
-        # 5. 测试添加视频
-        print("\n🎬 测试添加视频")
+        # 5. add_video
+        print("\n🎬 Testing add_video")
         add_video_request = {
             "jsonrpc": "2.0",
             "id": 5,
@@ -218,12 +218,12 @@ def main():
 
         response = send_request(process, add_video_request)
         if response and "result" in response:
-            print("✅ 添加视频成功")
+            print("✅ Video added")
         else:
-            print("❌ 添加视频失败")
+            print("❌ Could not add the video")
 
-        # 6. 测试添加音频
-        print("\n🎵 测试添加音频")
+        # 6. add_audio
+        print("\n🎵 Testing add_audio")
         add_audio_request = {
             "jsonrpc": "2.0",
             "id": 6,
@@ -242,12 +242,12 @@ def main():
 
         response = send_request(process, add_audio_request)
         if response and "result" in response:
-            print("✅ 添加音频成功")
+            print("✅ Audio added")
         else:
-            print("❌ 添加音频失败")
+            print("❌ Could not add the audio")
 
-        # 7. 测试添加图片
-        print("\n🖼️ 测试添加图片")
+        # 7. add_image
+        print("\n🖼️ Testing add_image")
         add_image_request = {
             "jsonrpc": "2.0",
             "id": 7,
@@ -267,12 +267,12 @@ def main():
 
         response = send_request(process, add_image_request)
         if response and "result" in response:
-            print("✅ 添加图片成功")
+            print("✅ Image added")
         else:
-            print("❌ 添加图片失败")
+            print("❌ Could not add the image")
 
-        # 8. 测试获取视频时长
-        print("\n⏱️ 测试获取视频时长")
+        # 8. get_video_duration
+        print("\n⏱️ Testing get_video_duration")
         get_duration_request = {
             "jsonrpc": "2.0",
             "id": 8,
@@ -287,12 +287,12 @@ def main():
 
         response = send_request(process, get_duration_request)
         if response and "result" in response:
-            print("✅ 获取视频时长成功")
+            print("✅ Duration retrieved")
         else:
-            print("❌ 获取视频时长失败")
+            print("❌ Could not get the duration")
 
-        # 9. 测试保存草稿
-        print("\n💾 测试保存草稿")
+        # 9. save_draft
+        print("\n💾 Testing save_draft")
         save_draft_request = {
             "jsonrpc": "2.0",
             "id": 9,
@@ -307,33 +307,33 @@ def main():
 
         response = send_request(process, save_draft_request)
         if response and "result" in response:
-            print("✅ 保存草稿成功")
+            print("✅ Draft saved")
         else:
-            print("❌ 保存草稿失败")
+            print("❌ Could not save the draft")
 
-        print("\n🎉 所有测试完成！CapCut API MCP服务器功能验证成功！")
+        print("\n🎉 All checks complete -- the CapCut API MCP server works.")
 
-        print("\n✅ 已验证的功能:")
-        print("   • 草稿管理 (创建、保存)")
-        print("   • 文本处理 (多样式、阴影、背景)")
-        print("   • 视频处理 (添加、转场、音量控制)")
-        print("   • 音频处理 (添加、音量控制)")
-        print("   • 图片处理 (添加、动画效果)")
-        print("   • 工具信息 (时长获取)")
+        print("\n✅ Verified:")
+        print("   • Draft management (create, save)")
+        print("   • Text (per-range styles, shadow, background)")
+        print("   • Video (add, transitions, volume)")
+        print("   • Audio (add, volume)")
+        print("   • Images (add, animations)")
+        print("   • Utilities (duration probe)")
 
     except Exception as e:
-        print(f"❌ 测试过程中出错: {e}")
+        print(f"❌ Error during the run: {e}")
         import traceback
         traceback.print_exc()
 
     finally:
-        # 关闭服务器
+        # Shut the server down
         try:
             process.terminate()
             process.wait(timeout=5)
         except Exception:
             process.kill()
-        print("🔴 MCP服务器已关闭")
+        print("🔴 MCP server stopped")
 
 if __name__ == "__main__":
     main()

@@ -1023,5 +1023,3 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         print(f"[ERROR] Tool execution error: {e}", file=sys.stderr)
         print(f"[ERROR] Traceback: {traceback.format_exc()}", file=sys.stderr)
         return {"success": False, "error": str(e)}
-
-

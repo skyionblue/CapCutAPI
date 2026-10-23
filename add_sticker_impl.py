@@ -1,6 +1,6 @@
 import pyJianYingDraft as draft
 from pyJianYingDraft import trange
-from typing import Optional, Dict
+from typing import Dict
 from pyJianYingDraft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft

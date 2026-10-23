@@ -1,10 +1,9 @@
-from .effect_meta import Effect_enum
 
 class Animation_meta:
     title: str
     is_vip: bool
     duration: int
-    """效果默认时长, 单位为微秒"""
+    """Default effect duration, in microseconds."""
 
     resource_id: str
     effect_id: str
@@ -17,4 +16,3 @@ class Animation_meta:
         self.resource_id = resource_id
         self.effect_id = effect_id
         self.md5 = md5
-

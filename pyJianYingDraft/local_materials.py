@@ -4,10 +4,9 @@ import subprocess
 import json
 from typing import Optional, Literal
 from typing import Dict, Any
-import imageio.v2 as imageio
 
 class Crop_settings:
-    """素材的裁剪设置, 各属性均在0-1之间, 注意素材的坐标原点在左上角"""
+    """Crop settings. All values are 0-1; the material's origin is its top-left corner."""
 
     upper_left_x: float
     upper_left_y: float
@@ -22,7 +21,7 @@ class Crop_settings:
                  upper_right_x: float = 1.0, upper_right_y: float = 0.0,
                  lower_left_x: float = 0.0, lower_left_y: float = 1.0,
                  lower_right_x: float = 1.0, lower_right_y: float = 1.0):
-        """初始化裁剪设置, 默认参数表示不裁剪"""
+        """Initialise the crop settings; the defaults crop nothing."""
         self.upper_left_x = upper_left_x
         self.upper_left_y = upper_left_y
         self.upper_right_x = upper_right_x
@@ -45,76 +44,76 @@ class Crop_settings:
         }
 
 class Video_material:
-    """本地视频素材（视频或图片）, 一份素材可以在多个片段中使用"""
+    """A local video or image material. One material may be used by several segments."""
 
     material_id: str
-    """素材全局id, 自动生成"""
+    """Global material id, generated automatically."""
     local_material_id: str
-    """素材本地id, 意义暂不明确"""
+    """Local material id; its purpose is unclear."""
     material_name: str
-    """素材名称"""
+    """Material name."""
     path: str
-    """素材文件路径"""
+    """Path to the material file."""
     remote_url: Optional[str] = None
-    """远程URL地址"""
+    """Remote URL."""
     duration: int
-    """素材时长, 单位为微秒"""
+    """Material duration, in microseconds."""
     height: int
-    """素材高度"""
+    """Material height."""
     width: int
-    """素材宽度"""
+    """Material width."""
     crop_settings: Crop_settings
-    """素材裁剪设置"""
+    """Crop settings for the material."""
     material_type: Literal["video", "photo"]
-    """素材类型: 视频或图片"""
+    """Material type: video or photo."""
     replace_path: Optional[str] = None
-    """替换路径, 如果设置了这个值, 在导出json时会用这个路径替代原始path"""
+    """Replacement path. When set, it is written in place of `path` on export."""
 
-    def __init__(self, material_type: Literal["video", "photo"], 
+    def __init__(self, material_type: Literal["video", "photo"],
                  path: Optional[str] = None,
-                 replace_path: Optional[str] = None, 
-                 material_name: Optional[str] = None, 
-                 crop_settings: Crop_settings = Crop_settings(), 
+                 replace_path: Optional[str] = None,
+                 material_name: Optional[str] = None,
+                 crop_settings: Crop_settings = Crop_settings(),
                  remote_url: Optional[str] = None,
                  duration: Optional[float] = None,
                  width: Optional[int] = None,
                  height: Optional[int] = None):
-        """从指定位置加载视频（或图片）素材
+        """Load a video or image material from the given location.
 
         Args:
-            path (`str`, optional): 素材文件路径, 支持mp4, mov, avi等常见视频文件及jpg, jpeg, png等图片文件.
-            replace_path (`str`, optional): 替换路径，用于导出JSON时替代原始path.
-            material_type (`Literal["video", "photo"]`, optional): 素材类型，如果指定则优先使用该值.
-            material_name (`str`, optional): 素材名称, 如果不指定, 默认使用文件名作为素材名称.
-            crop_settings (`Crop_settings`, optional): 素材裁剪设置, 默认不裁剪.
-            remote_url (`str`, optional): 远程URL地址.
-            duration (`float`, optional): 音频时长（秒），如果提供则跳过ffprobe检测.
-            width (`int`, optional): 素材宽度, 如果不指定, 则使用ffprobe获取.
-            height (`int`, optional): 素材高度, 如果不指定, 则使用ffprobe获取.
+            path (`str`, optional): path to the file; common video formats (mp4, mov, avi) and images (jpg, jpeg, png) are supported.
+            replace_path (`str`, optional): written in place of `path` when exporting JSON.
+            material_type (`Literal["video", "photo"]`, optional): the material type; takes precedence when given.
+            material_name (`str`, optional): the material name; defaults to the file name.
+            crop_settings (`Crop_settings`, optional): crop settings; nothing is cropped by default.
+            remote_url (`str`, optional): remote URL.
+            duration (`float`, optional): duration in seconds; given, the ffprobe check is skipped.
+            width (`int`, optional): material width; probed with ffprobe when omitted.
+            height (`int`, optional): material height; probed with ffprobe when omitted.
 
         Raises:
-            `ValueError`: 不支持的素材文件类型或缺少必要参数.
-            `FileNotFoundError`: 素材文件不存在.
+            `ValueError`: unsupported file type, or a required argument is missing.
+            `FileNotFoundError`: the file does not exist.
         """
-        # 确保至少提供了path或remote_url
+        # At least one of path or remote_url must be given
         if not path and not remote_url:
-            raise ValueError("必须提供 path 或 remote_url 中的至少一个参数")
-            
-        # 处理远程URL情况
+            raise ValueError("At least one of `path` or `remote_url` must be given")
+
+        # Remote URL
         if remote_url:
             if not material_name:
-                raise ValueError("使用 remote_url 参数时必须指定 material_name")
+                raise ValueError("material_name is required when remote_url is used")
             self.remote_url = remote_url
-            self.path = ""  # 远程资源没有本地路径
+            self.path = ""  # a remote resource has no local path
         else:
-            # 处理本地文件情况
+            # Local file
             path = os.path.abspath(path)
             if not os.path.exists(path):
-                raise FileNotFoundError(f"找不到 {path}")
+                raise FileNotFoundError(f"{path} not found")
             self.path = path
             self.remote_url = None
 
-        # 设置素材名称
+        # Material name
         self.material_name = material_name if material_name else os.path.basename(path)
         self.material_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.material_name).hex
         self.replace_path = replace_path
@@ -122,102 +121,102 @@ class Video_material:
         self.local_material_id = ""
         self.material_type = material_type
 
-        # 如果是photo类型，跳过ffprobe获取媒体信息的逻辑
+        # Photos skip the ffprobe media probe
         if material_type == "photo":
             self.material_type = "photo"
-            self.duration = 10800000000  # 静态图片默认3小时
-            # 使用imageio获取图片宽高
+            self.duration = 10800000000  # a still image defaults to 3 hours
+            # Read the image dimensions with imageio
             try:
                 # img = imageio.imread(self.remote_url)
                 # self.height, self.width = img.shape[:2]
-                # 使用默认宽高，在下载的时候才会获取真实宽高
+                # Use placeholder dimensions; the real ones are read at download time
                 self.width = 0
                 self.height = 0
             except Exception as e:
-                # 如果获取失败，使用默认值
+                # Fall back to defaults if that fails
                 self.width = 1920
                 self.height = 1080
             return
 
 
-        # 如果外部提供了duration，直接使用，跳过ffprobe检测
+        # A caller-supplied duration skips the ffprobe check
         if duration is not None and width is not None and height is not None:
-            self.duration = int(float(duration) * 1e6)  # 转换为微秒
+            self.duration = int(float(duration) * 1e6)  # to microseconds
             self.width = width
             self.height = height
-            return  # 直接返回，跳过后续的ffprobe检测
-        
-        # 如果没有提供duration，则使用ffprobe获取
+            return  # nothing further to probe
+
+        # Otherwise probe the duration with ffprobe
         try:
-            # 使用ffprobe获取媒体信息
+            # Probe the media with ffprobe
             media_path = self.path if self.path else self.remote_url
             command = [
                 'ffprobe',
                 '-v', 'error',
-                '-select_streams', 'v:0',  # 选择第一个视频流
-                '-show_entries', 'stream=width,height,duration,codec_type',  # 添加codec_type
-                '-show_entries', 'format=duration,format_name',  # 添加format_name
+                '-select_streams', 'v:0',  # the first video stream
+                '-show_entries', 'stream=width,height,duration,codec_type',
+                '-show_entries', 'format=duration,format_name',
                 '-of', 'json',
                 media_path
             ]
             result = subprocess.check_output(command, stderr=subprocess.STDOUT)
             result_str = result.decode('utf-8')
-            # 查找JSON开始位置（第一个'{'）
+            # Find where the JSON starts (the first '{')
             json_start = result_str.find('{')
             if json_start != -1:
                 json_str = result_str[json_start:]
                 info = json.loads(json_str)
             else:
-                raise ValueError(f"无法在输出中找到JSON数据: {result_str}")
-            
+                raise ValueError(f"No JSON found in the output: {result_str}")
+
             if 'streams' in info and len(info['streams']) > 0:
                 stream = info['streams'][0]
                 self.width = int(stream.get('width', 0))
                 self.height = int(stream.get('height', 0))
-                
-                # 如果指定了material_type，则优先使用指定的类型
+
+                # An explicit material_type wins
                 if material_type is not None:
                     self.material_type = material_type
                 else:
-                    # 通过format_name和codec_type判断是否是动态视频
+                    # Decide from format_name and codec_type whether this is moving video
                     format_name = info.get('format', {}).get('format_name', '').lower()
                     codec_type = stream.get('codec_type', '').lower()
-                    
-                    # 检查是否是GIF或其他动态视频
+
+                    # GIFs and other animated formats count as video
                     if 'gif' in format_name or (codec_type == 'video' and stream.get('duration') is not None):
                         self.material_type = "video"
                     else:
                         self.material_type = "photo"
-                
-                # 设置持续时间
+
+                # Duration
                 if self.material_type == "video":
-                    # 优先使用流的duration，如果没有则使用格式的duration
+                    # Prefer the stream duration, falling back to the container duration
                     duration = stream.get('duration') or info['format'].get('duration', '0')
-                    self.duration = int(float(duration) * 1e6)  # 转换为微秒
+                    self.duration = int(float(duration) * 1e6)  # to microseconds
                 else:
-                    self.duration = 10800000000  # 静态图片默认3小时
+                    self.duration = 10800000000  # a still image defaults to 3 hours
             else:
-                raise ValueError(f"无法获取媒体文件 {media_path} 的流信息")
-                
+                raise ValueError(f"Could not read stream information for {media_path}")
+
         except subprocess.CalledProcessError as e:
-            raise ValueError(f"处理文件 {media_path} 时出错: {e.output.decode('utf-8')}")
+            raise ValueError(f"Error processing {media_path}: {e.output.decode('utf-8')}")
         except json.JSONDecodeError as e:
-            raise ValueError(f"解析媒体信息时出错: {e}")
+            raise ValueError(f"Error parsing the media information: {e}")
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Video_material":
-        """从字典创建视频素材对象
-        
+        """Create a video material object from a dictionary.
+
         Args:
-            data (Dict[str, Any]): 包含素材信息的字典
-            
+            data (Dict[str, Any]): dictionary holding the material's information
+
         Returns:
-            Video_material: 新创建的视频素材对象
+            Video_material: the newly created video material object
         """
-        # 创建实例但不调用__init__
+        # Create the instance without calling __init__
         instance = cls.__new__(cls)
-        
-        # 设置基本属性
+
+        # Basic attributes
         instance.material_id = data["id"]
         instance.local_material_id = data.get("local_material_id", "")
         instance.material_name = data["material_name"]
@@ -226,9 +225,12 @@ class Video_material:
         instance.height = data["height"]
         instance.width = data["width"]
         instance.material_type = data["type"]
-        instance.replace_path = None  # 默认不设置替换路径
-        
-        # 设置裁剪设置
+        instance.replace_path = None  # no replacement path by default
+        # export_json writes remote_url, so restoring it keeps the round trip complete.
+        # Without it a restored material has no source to fetch from.
+        instance.remote_url = data.get("remote_url")
+
+        # Crop settings
         crop_data = data.get("crop", {})
         instance.crop_settings = Crop_settings(
             upper_left_x=crop_data.get("upper_left_x", 0.0),
@@ -240,7 +242,7 @@ class Video_material:
             lower_right_x=crop_data.get("lower_right_x", 1.0),
             lower_right_y=crop_data.get("lower_right_y", 1.0)
         )
-        
+
         return instance
 
     def export_json(self) -> Dict[str, Any]:
@@ -267,72 +269,72 @@ class Video_material:
         return video_material_json
 
 class Audio_material:
-    """本地音频素材"""
+    """A local audio material."""
 
     material_id: str
-    """素材全局id, 自动生成"""
+    """Global material id, generated automatically."""
     material_name: str
-    """素材名称"""
+    """Material name."""
     path: str
-    """素材文件路径"""
+    """Path to the material file."""
     remote_url: Optional[str] = None
-    """远程URL地址"""
+    """Remote URL."""
     replace_path: Optional[str] = None
-    """替换路径, 如果设置了这个值, 在导出json时会用这个路径替代原始path"""
+    """Replacement path. When set, it is written in place of `path` on export."""
 
     has_audio_effect: bool = False
-    """是否有音频效果"""
+    """Whether an audio effect is applied."""
 
     duration: int
-    """素材时长, 单位为微秒"""
+    """Material duration, in microseconds."""
 
-    def __init__(self, path: Optional[str] = None, replace_path = None, material_name: Optional[str] = None, 
+    def __init__(self, path: Optional[str] = None, replace_path=None, material_name: Optional[str] = None,
                  remote_url: Optional[str] = None, duration: Optional[float] = None):
-        """从指定位置加载音频素材, 注意视频文件不应该作为音频素材使用
-    
+        """Load an audio material from the given location. Video files must not be used as audio materials.
+
         Args:
-            path (`str`, optional): 素材文件路径, 支持mp3, wav等常见音频文件.
-            material_name (`str`, optional): 素材名称, 如果不指定, 默认使用URL中的文件名作为素材名称.
-            remote_url (`str`, optional): 远程URL地址.
-            duration (`float`, optional): 音频时长（秒），如果提供则跳过ffprobe检测.
-    
+            path (`str`, optional): path to the file; common audio formats such as mp3 and wav are supported.
+            material_name (`str`, optional): the material name; defaults to the file name from the URL.
+            remote_url (`str`, optional): remote URL.
+            duration (`float`, optional): duration in seconds; given, the ffprobe check is skipped.
+
         Raises:
-            `ValueError`: 不支持的素材文件类型或缺少必要参数.
+            `ValueError`: unsupported file type, or a required argument is missing.
         """
         if not path and not remote_url:
-            raise ValueError("必须提供 path 或 remote_url 中的至少一个参数")
-    
+            raise ValueError("At least one of `path` or `remote_url` must be given")
+
         if path:
             path = os.path.abspath(path)
             if not os.path.exists(path):
-                raise FileNotFoundError(f"找不到 {path}")
-    
-        # 从URL中获取文件名作为material_name
+                raise FileNotFoundError(f"{path} not found")
+
+        # Derive material_name from the URL
         if not material_name and remote_url:
-            original_filename = os.path.basename(remote_url.split('?')[0])  # 修复：使用remote_url而不是audio_url
-            name_without_ext = os.path.splitext(original_filename)[0]  # 获取不带扩展名的文件名
-            material_name = f"{name_without_ext}.mp3"  # 使用原始文件名+时间戳+固定mp3扩展名
-        
+            original_filename = os.path.basename(remote_url.split('?')[0])
+            name_without_ext = os.path.splitext(original_filename)[0]  # strip the extension
+            material_name = f"{name_without_ext}.mp3"  # original name with a fixed .mp3 extension
+
         self.material_name = material_name if material_name else (os.path.basename(path) if path else "unknown")
         self.material_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.material_name).hex
         self.path = path if path else ""
         self.replace_path = replace_path
         self.remote_url = remote_url
-        
-        # 如果外部提供了duration，直接使用，跳过ffprobe检测
+
+        # A caller-supplied duration skips the ffprobe check
         if duration is not None:
-            self.duration = int(float(duration) * 1e6)  # 转换为微秒
-            return  # 直接返回，跳过后续的ffprobe检测
-        
-        # 如果没有提供duration，则使用ffprobe获取
-        self.duration = 0  # 初始化为0，如果有path则后续会更新
-    
+            self.duration = int(float(duration) * 1e6)  # to microseconds
+            return  # nothing further to probe
+
+        # Otherwise probe the duration with ffprobe
+        self.duration = 0  # updated below when a path is available
+
         try:
-            # 使用ffprobe获取音频信息
+            # Probe the audio with ffprobe
             command = [
                 'ffprobe',
                 '-v', 'error',
-                '-select_streams', 'a:0',  # 选择第一个音频流
+                '-select_streams', 'a:0',  # the first audio stream
                 '-show_entries', 'stream=duration',
                 '-show_entries', 'format=duration',
                 '-of', 'json',
@@ -340,15 +342,15 @@ class Audio_material:
             ]
             result = subprocess.check_output(command, stderr=subprocess.STDOUT)
             result_str = result.decode('utf-8')
-            # 查找JSON开始位置（第一个'{'）
+            # Find where the JSON starts (the first '{')
             json_start = result_str.find('{')
             if json_start != -1:
                 json_str = result_str[json_start:]
                 info = json.loads(json_str)
             else:
-                raise ValueError(f"无法在输出中找到JSON数据: {result_str}")
+                raise ValueError(f"No JSON found in the output: {result_str}")
 
-            # 检查是否有视频流
+            # Check for a video stream
             video_command = [
                 'ffprobe',
                 '-v', 'error',
@@ -359,52 +361,55 @@ class Audio_material:
             ]
             video_result = subprocess.check_output(video_command, stderr=subprocess.STDOUT)
             video_result_str = video_result.decode('utf-8')
-            # 查找JSON开始位置（第一个'{'）
+            # Find where the JSON starts (the first '{')
             video_json_start = video_result_str.find('{')
             if video_json_start != -1:
                 video_json_str = video_result_str[video_json_start:]
                 video_info = json.loads(video_json_str)
             else:
-                print(f"无法在输出中找到JSON数据: {video_result_str}")
-            
-            if 'streams' in video_info and len(video_info['streams']) > 0:
-                raise ValueError("音频素材不应包含视频轨道")
+                print(f"No JSON found in the output: {video_result_str}")
 
-            # 检查音频流
+            if 'streams' in video_info and len(video_info['streams']) > 0:
+                raise ValueError("An audio material must not contain a video track")
+
+            # Check the audio stream
             if 'streams' in info and len(info['streams']) > 0:
                 stream = info['streams'][0]
-                # 优先使用流的duration，如果没有则使用格式的duration
+                # Prefer the stream duration, falling back to the container duration
                 duration_value = stream.get('duration') or info['format'].get('duration', '0')
-                self.duration = int(float(duration_value) * 1e6)  # 转换为微秒
+                self.duration = int(float(duration_value) * 1e6)  # to microseconds
             else:
-                raise ValueError(f"给定的素材文件 {path} 没有音频轨道")
+                raise ValueError(f"{path} has no audio track")
 
         except subprocess.CalledProcessError as e:
-            raise ValueError(f"处理文件 {path} 时出错: {e.output.decode('utf-8')}")
+            raise ValueError(f"Error processing {path}: {e.output.decode('utf-8')}")
         except json.JSONDecodeError as e:
-            raise ValueError(f"解析媒体信息时出错: {e}")
-    
+            raise ValueError(f"Error parsing the media information: {e}")
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Audio_material":
-        """从字典创建音频素材对象
-        
+        """Create an audio material object from a dictionary.
+
         Args:
-            data (Dict[str, Any]): 包含素材信息的字典
-            
+            data (Dict[str, Any]): dictionary holding the material's information
+
         Returns:
-            Audio_material: 新创建的音频素材对象
+            Audio_material: the newly created audio material object
         """
-        # 创建实例但不调用__init__
+        # Create the instance without calling __init__
         instance = cls.__new__(cls)
-        
-        # 设置基本属性
+
+        # Basic attributes
         instance.material_id = data["id"]
-        instance.material_name = data["name"]  # 注意这里是name而不是material_name
+        instance.material_name = data["name"]  # the key is "name", not "material_name"
         instance.path = data["path"]
         instance.duration = data["duration"]
-        instance.replace_path = None  # 默认不设置替换路径
+        instance.replace_path = None  # no replacement path by default
+        # export_json writes remote_url, so restoring it keeps the round trip complete.
+        # Without it a restored material has no source to fetch from.
         instance.remote_url = data.get("remote_url")
-        
+        instance.remote_url = data.get("remote_url")
+
         return instance
 
     def export_json(self) -> Dict[str, Any]:

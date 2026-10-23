@@ -4,7 +4,6 @@ import time
 import requests
 import shutil
 from requests.exceptions import RequestException, Timeout
-from urllib.parse import urlparse, unquote
 
 def download_video(video_url, draft_name, material_name):
     """
@@ -110,12 +109,12 @@ def download_audio(audio_url, draft_name, material_name):
         raise Exception(f"Failed to download audio:\n{e.stderr}")
 
 def download_file(url: str, local_filename, max_retries=3, timeout=180):
-    # 检查是否是本地文件路径
+    # A local filesystem path rather than a URL
     if os.path.exists(url) and os.path.isfile(url):
-        # 是本地文件，直接复制
+        # Local file: copy it straight across
         directory = os.path.dirname(local_filename)
 
-        # 创建目标目录（如果不存在）
+        # Create the destination directory if it does not exist
         if directory and not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
             print(f"Created directory: {directory}")
@@ -123,14 +122,14 @@ def download_file(url: str, local_filename, max_retries=3, timeout=180):
         print(f"Copying local file: {url} to {local_filename}")
         start_time = time.time()
 
-        # 复制文件
+        # Copy the file
         shutil.copy2(url, local_filename)
 
         print(f"Copy completed in {time.time()-start_time:.2f} seconds")
         print(f"File saved as: {os.path.abspath(local_filename)}")
         return True
 
-    # 原有的下载逻辑
+    # Otherwise fall back to downloading
     # Extract directory part
     directory = os.path.dirname(local_filename)
 
@@ -188,4 +187,3 @@ def download_file(url: str, local_filename, max_retries=3, timeout=180):
 
     print(f"Download failed after {max_retries} attempts for URL: {url}")
     return False
-

@@ -85,11 +85,42 @@ def load_persisted_draft(draft_id: str) -> Optional[draft.Script_file]:
         return None
     try:
         script = draft.Script_file.load_template(path)
+        _promote_media_materials(script)
     except (OSError, ValueError, KeyError, TypeError) as e:
         logger.warning("Could not restore draft %s from %s: %s", draft_id, path, e)
         return None
     logger.info("Restored draft %s from the draft store", draft_id)
     return script
+
+
+def _promote_media_materials(script: draft.Script_file) -> None:
+    """Rebuild video and audio materials as objects on the restored draft.
+
+    `load_template` puts everything on `imported_materials` as plain dicts. That is fine for
+    dumping, but save_draft walks `script.materials.videos` / `.audios` -- objects with
+    `remote_url` and `replace_path` -- to decide what to download. Left as dicts, a draft
+    saved after a restart downloads nothing and lands in CapCut with every clip missing.
+
+    Promoted entries are removed from `imported_materials` so `dumps()` does not emit them
+    twice; the imported tracks still reference them by material id, which `from_dict`
+    preserves.
+    """
+    for key, cls, bucket in (
+        ("videos", draft.Video_material, script.materials.videos),
+        ("audios", draft.Audio_material, script.materials.audios),
+    ):
+        entries = (script.imported_materials or {}).get(key) or []
+        if not entries:
+            continue
+        promoted = []
+        for entry in list(entries):
+            try:
+                bucket.append(cls.from_dict(entry))
+                promoted.append(entry)
+            except Exception as e:  # noqa: BLE001 - one bad entry must not lose the draft
+                logger.warning("Could not rebuild %s material %s: %s", key, entry.get("id"), e)
+        for entry in promoted:
+            entries.remove(entry)
 
 
 def get_script(draft_id: str) -> Optional[draft.Script_file]:

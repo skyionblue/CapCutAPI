@@ -1,7 +1,6 @@
-# 导入必要的模块
+# Imports
 import os
 import pyJianYingDraft as draft
-import time
 from util import generate_draft_url, is_windows_path, url_to_hash
 import re
 from typing import Optional, Dict, Tuple, List
@@ -55,7 +54,7 @@ def add_audio_track(
             # Track doesn't exist, create a new track
             script.add_track(draft.Track_type.audio, track_name=track_name)
     else:
-       script.add_track(draft.Track_type.audio)
+        script.add_track(draft.Track_type.audio)
 
     # If duration parameter is provided, prioritize it; otherwise use default audio duration of 0 seconds, real duration will be obtained during download
     if duration is not None:

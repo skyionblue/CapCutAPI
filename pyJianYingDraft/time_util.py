@@ -1,15 +1,15 @@
-"""定义时间范围类以及与时间相关的辅助函数"""
+"""Timerange type and time-related helpers."""
 
 from typing import Union
 from typing import Dict
 
 SEC = 1000000
-"""一秒=1e6微秒"""
+"""One second = 1e6 microseconds."""
 
 def tim(inp: Union[str, float]) -> int:
-    """将输入的字符串转换为微秒, 也可直接输入微秒数
+    """Convert a time string to microseconds; a number of microseconds is also accepted.
 
-    支持类似 "1h52m3s" 或 "0.15s" 这样的格式, 可包含负号以表示负偏移
+    Accepts forms such as "1h52m3s" or "0.15s", optionally signed for a negative offset.
     """
     if isinstance(inp, (int, float)):
         return int(round(inp))
@@ -22,7 +22,7 @@ def tim(inp: Union[str, float]) -> int:
 
     last_index: int = 0
     total_time: float = 0
-    for unit, factor in zip(["h", "m", "s"], [3600*SEC, 60*SEC, SEC]):
+    for unit, factor in zip(["h", "m", "s"], [3600 * SEC, 60 * SEC, SEC]):
         unit_index = inp.find(unit)
         if unit_index == -1: continue
 
@@ -32,18 +32,18 @@ def tim(inp: Union[str, float]) -> int:
     return int(round(total_time) * sign)
 
 class Timerange:
-    """记录了起始时间及持续长度的时间范围"""
+    """A time range: a start time and a duration."""
     start: int
-    """起始时间, 单位为微秒"""
+    """Start time, in microseconds."""
     duration: int
-    """持续长度, 单位为微秒"""
+    """Duration, in microseconds."""
 
     def __init__(self, start: int, duration: int):
-        """构造一个时间范围
+        """Construct a time range.
 
         Args:
-            start (int): 起始时间, 单位为微秒
-            duration (int): 持续长度, 单位为微秒
+            start (int): start time, in microseconds
+            duration (int): duration, in microseconds
         """
 
         self.start = start
@@ -51,12 +51,12 @@ class Timerange:
 
     @classmethod
     def import_json(cls, json_obj: Dict[str, str]) -> "Timerange":
-        """从json对象中恢复Timerange"""
+        """Restore a Timerange from its JSON form."""
         return cls(int(json_obj["start"]), int(json_obj["duration"]))
 
     @property
     def end(self) -> int:
-        """结束时间, 单位为微秒"""
+        """End time, in microseconds."""
         return self.start + self.duration
 
     def __eq__(self, other: object) -> bool:
@@ -65,7 +65,7 @@ class Timerange:
         return self.start == other.start and self.duration == other.duration
 
     def overlaps(self, other: "Timerange") -> bool:
-        """判断两个时间范围是否有重叠"""
+        """Whether two time ranges overlap."""
         return not (self.end <= other.start or other.end <= self.start)
 
     def __repr__(self) -> str:
@@ -78,22 +78,22 @@ class Timerange:
         return {"start": self.start, "duration": self.duration}
 
 def trange(start: Union[str, float], duration: Union[str, float]) -> Timerange:
-    """Timerange的简便构造函数, 接受字符串或微秒数作为参数
+    """Convenience constructor for Timerange, accepting strings or microseconds.
 
-    支持类似 "1h52m3s" 或 "0.15s" 这样的格式
+    Accepts forms such as "1h52m3s" or "0.15s".
 
     Args:
-        start (Union[str, float]): 起始时间
-        duration (Union[str, float]): 持续长度, 注意**不是结束时间**
+        start (Union[str, float]): start time
+        duration (Union[str, float]): duration -- note this is **not** the end time
     """
     return Timerange(tim(start), tim(duration))
 
 def srt_tstamp(srt_tstamp: str) -> int:
-    """解析srt中的时间戳字符串, 返回微秒数"""
+    """Parse an SRT timestamp string and return microseconds."""
     sec_str, ms_str = srt_tstamp.split(",")
     parts = sec_str.split(":") + [ms_str]
 
     total_time = 0
-    for value, factor in zip(parts, [3600*SEC, 60*SEC, SEC, 1000]):
+    for value, factor in zip(parts, [3600 * SEC, 60 * SEC, SEC, 1000]):
         total_time += int(value) * factor
     return total_time

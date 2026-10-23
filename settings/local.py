@@ -1,72 +1,72 @@
 """
-本地配置模块，用于从本地配置文件中加载配置
+Local configuration module: loads configuration from the local config file.
 """
 
 import os
 import json
 
-# 配置文件路径
+# Path to the configuration file
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
 
-# 默认配置
+# Defaults
 IS_CAPCUT_ENV = True
 
-# 默认域名配置
+# Default domain
 DRAFT_DOMAIN = "https://www.install-ai-guider.top"
 
-# 默认预览路由
+# Default preview route
 PREVIEW_ROUTER = "/draft/downloader"
 
-# 是否上传草稿文件
+# Whether to upload the draft archive
 IS_UPLOAD_DRAFT = False
 
-# 端口号
+# Port
 PORT = 9000
 
 OSS_CONFIG = []
-MP4_OSS_CONFIG=[]
+MP4_OSS_CONFIG = []
 
-# 草稿持久化目录：草稿在每次修改后写入此处，服务重启后可恢复
+# Draft store: drafts are written here after every edit so a restart cannot lose them
 DRAFT_STORE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "drafts_store")
 
-# 尝试加载本地配置文件
+# Load the local configuration file if present
 if os.path.exists(CONFIG_FILE_PATH):
     try:
         with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
             local_config = json.load(f)
-            
-            # 更新是否是国际版
+
+            # CapCut International mode
             if "is_capcut_env" in local_config:
                 IS_CAPCUT_ENV = local_config["is_capcut_env"]
-            
-            # 更新域名配置
+
+            # Domain
             if "draft_domain" in local_config:
                 DRAFT_DOMAIN = local_config["draft_domain"]
 
-            # 更新端口号配置
+            # Port
             if "port" in local_config:
                 PORT = local_config["port"]
 
-            # 更新预览路由
+            # Preview route
             if "preview_router" in local_config:
                 PREVIEW_ROUTER = local_config["preview_router"]
-            
-            # 更新是否上传草稿文件
+
+            # Whether to upload the draft archive
             if "is_upload_draft" in local_config:
                 IS_UPLOAD_DRAFT = local_config["is_upload_draft"]
-                
-            # 更新OSS配置
+
+            # Object storage for draft archives
             if "oss_config" in local_config:
                 OSS_CONFIG = local_config["oss_config"]
-            
-            # 更新草稿持久化目录
+
+            # Draft store directory
             if "draft_store_dir" in local_config:
                 DRAFT_STORE_DIR = os.path.expanduser(local_config["draft_store_dir"])
 
-            # 更新MP4 OSS配置
+            # Object storage for exported videos
             if "mp4_oss_config" in local_config:
                 MP4_OSS_CONFIG = local_config["mp4_oss_config"]
 
     except (json.JSONDecodeError, IOError):
-        # 配置文件加载失败，使用默认配置
+        # Configuration failed to load; fall back to the defaults
         pass

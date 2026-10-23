@@ -5,18 +5,15 @@ import shutil
 from util import zip_draft, is_windows_path
 from oss import upload_to_oss
 from typing import Dict, Literal
-from draft_cache import DRAFT_CACHE, get_script
-from save_task_cache import DRAFT_TASKS, get_task_status, update_tasks_cache, update_task_field, increment_task_field, update_task_fields, create_task
-from downloader import download_audio, download_file, download_image, download_video
+from draft_cache import get_script
+from save_task_cache import get_task_status, update_tasks_cache, update_task_field, update_task_fields, create_task
+from downloader import download_file
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import imageio.v2 as imageio
 import subprocess
 import json
 from get_duration_impl import get_video_duration
-import uuid
 import threading
-from collections import OrderedDict
-import time
 import requests  # Import requests for making HTTP calls
 import logging
 # Import configuration
@@ -332,7 +329,7 @@ def save_draft_impl(draft_id: str, draft_folder: str = None, wait: bool = True,
 def update_media_metadata(script, task_id=None):
     """
     Update metadata for all media files in the script (duration, width/height, etc.)
-    
+
     :param script: Draft script object
     :param task_id: Optional task ID for updating task status
     :return: None
@@ -574,7 +571,7 @@ def update_media_metadata(script, task_id=None):
 def query_script_impl(draft_id: str, force_update: bool = True):
     """
     Query draft script object, with option to force refresh media metadata
-    
+
     :param draft_id: Draft ID
     :param force_update: Whether to force refresh media metadata, default is True
     :return: Script object

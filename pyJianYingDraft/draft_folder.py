@@ -1,4 +1,4 @@
-"""草稿文件夹管理器"""
+"""Draft folder manager."""
 
 import os
 import shutil
@@ -8,105 +8,105 @@ from typing import List
 from .script_file import Script_file
 
 class Draft_folder:
-    """管理一个文件夹及其内的一系列草稿"""
+    """Manages a folder and the drafts inside it."""
 
     folder_path: str
-    """根路径"""
+    """Root path."""
 
     def __init__(self, folder_path: str):
-        """初始化草稿文件夹管理器
+        """Initialise the draft folder manager.
 
         Args:
-            folder_path (`str`): 包含若干草稿的文件夹, 一般取剪映保存草稿的位置即可
+            folder_path (`str`): a folder containing drafts, normally the editor's own drafts location
 
         Raises:
-            `FileNotFoundError`: 路径不存在
+            `FileNotFoundError`: the path does not exist
         """
         self.folder_path = folder_path
 
         if not os.path.exists(self.folder_path):
-            raise FileNotFoundError(f"根文件夹 {self.folder_path} 不存在")
+            raise FileNotFoundError(f"Root folder {self.folder_path} does not exist")
 
     def list_drafts(self) -> List[str]:
-        """列出文件夹中所有草稿的名称
+        """List the names of every draft in the folder.
 
-        注意: 本函数只是如实地列出子文件夹的名称, 并不检查它们是否符合草稿的格式
+        Note: this simply lists the subfolder names; it does not check that they are valid drafts.
         """
         return [f for f in os.listdir(self.folder_path) if os.path.isdir(os.path.join(self.folder_path, f))]
 
     def remove(self, draft_name: str) -> None:
-        """删除指定名称的草稿
+        """Delete the named draft.
 
         Args:
-            draft_name (`str`): 草稿名称, 即相应文件夹名称
+            draft_name (`str`): the draft name, i.e. its folder name
 
         Raises:
-            `FileNotFoundError`: 对应的草稿不存在
+            `FileNotFoundError`: that draft does not exist
         """
         draft_path = os.path.join(self.folder_path, draft_name)
         if not os.path.exists(draft_path):
-            raise FileNotFoundError(f"草稿文件夹 {draft_name} 不存在")
+            raise FileNotFoundError(f"Draft folder {draft_name} does not exist")
 
         shutil.rmtree(draft_path)
 
     def inspect_material(self, draft_name: str) -> None:
-        """输出指定名称草稿中的贴纸素材元数据
+        """Print the sticker material metadata in the named draft.
 
         Args:
-            draft_name (`str`): 草稿名称, 即相应文件夹名称
+            draft_name (`str`): the draft name, i.e. its folder name
 
         Raises:
-            `FileNotFoundError`: 对应的草稿不存在
+            `FileNotFoundError`: that draft does not exist
         """
         draft_path = os.path.join(self.folder_path, draft_name)
         if not os.path.exists(draft_path):
-            raise FileNotFoundError(f"草稿文件夹 {draft_name} 不存在")
+            raise FileNotFoundError(f"Draft folder {draft_name} does not exist")
 
         script_file = self.load_template(draft_name)
         script_file.inspect_material()
 
     def load_template(self, draft_name: str) -> Script_file:
-        """在文件夹中打开一个草稿作为模板, 并在其上进行编辑
+        """Open a draft in the folder as a template and edit it in place.
 
         Args:
-            draft_name (`str`): 草稿名称, 即相应文件夹名称
+            draft_name (`str`): the draft name, i.e. its folder name
 
         Returns:
-            `Script_file`: 以模板模式打开的草稿对象
+            `Script_file`: the draft, opened in template mode
 
         Raises:
-            `FileNotFoundError`: 对应的草稿不存在
+            `FileNotFoundError`: that draft does not exist
         """
         draft_path = os.path.join(self.folder_path, draft_name)
         if not os.path.exists(draft_path):
-            raise FileNotFoundError(f"草稿文件夹 {draft_name} 不存在")
+            raise FileNotFoundError(f"Draft folder {draft_name} does not exist")
 
         return Script_file.load_template(os.path.join(draft_path, "draft_info.json"))
 
     def duplicate_as_template(self, template_name: str, new_draft_name: str, allow_replace: bool = False) -> Script_file:
-        """复制一份给定的草稿, 并在复制出的新草稿上进行编辑
+        """Copy a draft and edit the copy.
 
         Args:
-            template_name (`str`): 原草稿名称
-            new_draft_name (`str`): 新草稿名称
-            allow_replace (`bool`, optional): 是否允许覆盖与`new_draft_name`重名的草稿. 默认为否.
+            template_name (`str`): the source draft name
+            new_draft_name (`str`): the new draft name
+            allow_replace (`bool`, optional): whether an existing draft named `new_draft_name` may be overwritten. Defaults to False.
 
         Returns:
-            `Script_file`: 以模板模式打开的**复制后的**草稿对象
+            `Script_file`: the **copied** draft, opened in template mode
 
         Raises:
-            `FileNotFoundError`: 原始草稿不存在
-            `FileExistsError`: 已存在与`new_draft_name`重名的草稿, 但不允许覆盖.
+            `FileNotFoundError`: the source draft does not exist
+            `FileExistsError`: a draft named `new_draft_name` already exists and overwriting is not allowed.
         """
         template_path = os.path.join(self.folder_path, template_name)
         new_draft_path = os.path.join(self.folder_path, new_draft_name)
         if not os.path.exists(template_path):
-            raise FileNotFoundError(f"模板草稿 {template_name} 不存在")
+            raise FileNotFoundError(f"Template draft {template_name} does not exist")
         if os.path.exists(new_draft_path) and not allow_replace:
-            raise FileExistsError(f"新草稿 {new_draft_name} 已存在且不允许覆盖")
+            raise FileExistsError(f"Draft {new_draft_name} already exists and overwriting is not allowed")
 
-        # 复制草稿文件夹
+        # Copy the draft folder
         shutil.copytree(template_path, new_draft_path, dirs_exist_ok=allow_replace)
 
-        # 打开草稿
+        # Open the draft
         return self.load_template(new_draft_name)

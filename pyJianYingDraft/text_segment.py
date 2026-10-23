@@ -1,4 +1,4 @@
-"""定义文本片段及其相关类"""
+"""Text segments and their related types."""
 
 import json
 import uuid
@@ -16,32 +16,32 @@ from .animation import Segment_animations, Text_animation
 from .metadata import Font_type, Effect_meta
 
 class Text_style:
-    """字体样式类"""
+    """Font style."""
 
     size: float
-    """字体大小"""
+    """Font size."""
 
     bold: bool
-    """是否加粗"""
+    """Whether the text is bold."""
     italic: bool
-    """是否斜体"""
+    """Whether the text is italic."""
     underline: bool
-    """是否加下划线"""
+    """Whether the text is underlined."""
 
     color: Tuple[float, float, float]
-    """字体颜色, RGB三元组, 取值范围为[0, 1]"""
+    """Font colour as an RGB triple, each 0-1."""
     alpha: float
-    """字体不透明度"""
+    """Font opacity."""
 
     align: Literal[0, 1, 2]
-    """对齐方式"""
+    """Alignment."""
     vertical: bool
-    """是否为竖排文本"""
+    """Whether the text is set vertically."""
 
     letter_spacing: int
-    """字符间距"""
+    """Letter spacing."""
     line_spacing: int
-    """行间距"""
+    """Line spacing."""
 
     def __init__(self, *, size: float = 8.0, bold: bool = False, italic: bool = False, underline: bool = False,
                  color: Tuple[float, float, float] = (1.0, 1.0, 1.0), alpha: float = 1.0,
@@ -49,16 +49,16 @@ class Text_style:
                  letter_spacing: int = 0, line_spacing: int = 0):
         """
         Args:
-            size (`float`, optional): 字体大小, 默认为8.0
-            bold (`bool`, optional): 是否加粗, 默认为否
-            italic (`bool`, optional): 是否斜体, 默认为否
-            underline (`bool`, optional): 是否加下划线, 默认为否
-            color (`Tuple[float, float, float]`, optional): 字体颜色, RGB三元组, 取值范围为[0, 1], 默认为白色
-            alpha (`float`, optional): 字体不透明度, 取值范围[0, 1], 默认不透明
-            align (`int`, optional): 对齐方式, 0: 左对齐, 1: 居中, 2: 右对齐, 默认为左对齐
-            vertical (`bool`, optional): 是否为竖排文本, 默认为否
-            letter_spacing (`int`, optional): 字符间距, 定义与剪映中一致, 默认为0
-            line_spacing (`int`, optional): 行间距, 定义与剪映中一致, 默认为0
+            size (`float`, optional): font size. Default 8.0
+            bold (`bool`, optional): bold text. Default False
+            italic (`bool`, optional): italic text. Default False
+            underline (`bool`, optional): underlined text. Default False
+            color (`Tuple[float, float, float]`, optional): font colour as an RGB triple, each 0-1. Default white
+            alpha (`float`, optional): font opacity, 0-1. Fully opaque by default
+            align (`int`, optional): 0 left, 1 centre, 2 right. Default left
+            vertical (`bool`, optional): set the text vertically. Default False
+            letter_spacing (`int`, optional): letter spacing, defined as in the editor. Default 0
+            line_spacing (`int`, optional): line spacing, defined as in the editor. Default 0
         """
         self.size = size
         self.bold = bold
@@ -75,28 +75,28 @@ class Text_style:
         self.line_spacing = line_spacing
 
 class Text_border:
-    """文本描边的参数"""
+    """Text stroke settings."""
 
     alpha: float
-    """描边不透明度"""
+    """Stroke opacity."""
     color: Tuple[float, float, float]
-    """描边颜色, RGB三元组, 取值范围为[0, 1]"""
+    """Stroke colour as an RGB triple, each 0-1."""
     width: float
-    """描边宽度"""
+    """Stroke width."""
 
     def __init__(self, *, alpha: float = 1.0, color: Tuple[float, float, float] = (0.0, 0.0, 0.0), width: float = 40.0):
         """
         Args:
-            alpha (`float`, optional): 描边不透明度, 取值范围[0, 1], 默认为1.0
-            color (`Tuple[float, float, float]`, optional): 描边颜色, RGB三元组, 取值范围为[0, 1], 默认为黑色
-            width (`float`, optional): 描边宽度, 与剪映中一致, 取值范围为[0, 100], 默认为40.0
+            alpha (`float`, optional): stroke opacity, 0-1. Default 1.0
+            color (`Tuple[float, float, float]`, optional): stroke colour as an RGB triple, each 0-1. Default black
+            width (`float`, optional): stroke width as in the editor, 0-100. Default 40.0
         """
         self.alpha = alpha
         self.color = color
-        self.width = width / 100.0 * 0.2  # 此映射可能不完全正确
+        self.width = width / 100.0 * 0.2  # this mapping may not be exactly right
 
     def export_json(self) -> Dict[str, Any]:
-        """导出JSON数据, 放置在素材content的styles中"""
+        """Export the JSON, placed in the material content's `styles`."""
         return {
             "content": {
                 "solid": {
@@ -108,39 +108,39 @@ class Text_border:
         }
 
 class Text_background:
-    """文本背景参数"""
+    """Text background settings."""
 
     style: Literal[0, 2]
-    """背景样式"""
+    """Background style."""
 
     alpha: float
-    """背景不透明度"""
+    """Background opacity."""
     color: str
-    """背景颜色, 格式为'#RRGGBB'"""
+    """Background colour, in '#RRGGBB' form."""
     round_radius: float
-    """背景圆角半径"""
+    """Background corner radius."""
     height: float
-    """背景高度"""
+    """Background height."""
     width: float
-    """背景宽度"""
+    """Background width."""
     horizontal_offset: float
-    """背景水平偏移"""
+    """Background horizontal offset."""
     vertical_offset: float
-    """背景竖直偏移"""
+    """Background vertical offset."""
 
     def __init__(self, *, color: str, style: Literal[1, 2] = 1, alpha: float = 1.0, round_radius: float = 0.0,
                  height: float = 0.14, width: float = 0.14,
                  horizontal_offset: float = 0.5, vertical_offset: float = 0.5):
         """
         Args:
-            color (`str`): 背景颜色, 格式为'#RRGGBB'
-            style (`int`, optional): 背景样式, 1和2分别对应剪映中的两种样式, 默认为1
-            alpha (`float`, optional): 背景不透明度, 与剪映中一致, 取值范围[0, 1], 默认为1.0
-            round_radius (`float`, optional): 背景圆角半径, 与剪映中一致, 取值范围[0, 1], 默认为0.0
-            height (`float`, optional): 背景高度, 与剪映中一致, 取值范围为[0, 1], 默认为0.14
-            width (`float`, optional): 背景宽度, 与剪映中一致, 取值范围为[0, 1], 默认为0.14
-            horizontal_offset (`float`, optional): 背景水平偏移, 与剪映中一致, 取值范围为[0, 1], 默认为0.5
-            vertical_offset (`float`, optional): 背景竖直偏移, 与剪映中一致, 取值范围为[0, 1], 默认为0.5
+            color (`str`): background colour, in '#RRGGBB' form
+            style (`int`, optional): background style; 1 and 2 match the editor's two styles. Default 1
+            alpha (`float`, optional): background opacity as in the editor, 0-1. Default 1.0
+            round_radius (`float`, optional): background corner radius as in the editor, 0-1. Default 0.0
+            height (`float`, optional): background height as in the editor, 0-1. Default 0.14
+            width (`float`, optional): background width as in the editor, 0-1. Default 0.14
+            horizontal_offset (`float`, optional): background horizontal offset as in the editor, 0-1. Default 0.5
+            vertical_offset (`float`, optional): background vertical offset as in the editor, 0-1. Default 0.5
         """
         self.style = (0, 2)[style - 1]
 
@@ -153,7 +153,7 @@ class Text_background:
         self.vertical_offset = vertical_offset * 2 - 1
 
     def export_json(self) -> Dict[str, Any]:
-        """生成子JSON数据, 在Text_segment导出时合并到其中"""
+        """Build the JSON fragment merged in when a Text_segment is exported."""
         return {
             "background_style": self.style,
             "background_color": self.color,
@@ -166,31 +166,31 @@ class Text_background:
         }
 
 class Text_shadow:
-    """文本阴影参数"""
+    """Text shadow settings."""
 
     has_shadow: bool
-    """是否启用阴影"""
+    """Whether the shadow is enabled."""
     alpha: float
-    """阴影不透明度"""
+    """Shadow opacity."""
     angle: float
-    """阴影角度"""
+    """Shadow angle."""
     color: str
-    """阴影颜色，格式为'#RRGGBB'"""
+    """Shadow colour, in '#RRGGBB' form."""
     distance: float
-    """阴影距离"""
+    """Shadow distance."""
     smoothing: float
-    """阴影平滑度"""
+    """Shadow smoothing."""
 
     def __init__(self, *, has_shadow: bool = False, alpha: float = 0.9, angle: float = -45.0,
                  color: str = "#000000", distance: float = 5.0, smoothing: float = 0.45):
         """
         Args:
-            has_shadow (`bool`, optional): 是否启用阴影，默认为False
-            alpha (`float`, optional): 阴影不透明度，取值范围[0, 1]，默认为0.9
-            angle (`float`, optional): 阴影角度，取值范围[-180, 180], 默认为-45.0
-            color (`str`, optional): 阴影颜色，格式为'#RRGGBB'，默认为黑色
-            distance (`float`, optional): 阴影距离，默认为5.0
-            smoothing (`float`, optional): 阴影平滑度，取值范围[0, 1], 默认0.15
+            has_shadow (`bool`, optional): enable the shadow. Default False
+            alpha (`float`, optional): shadow opacity, 0-1. Default 0.9
+            angle (`float`, optional): shadow angle, -180 to 180. Default -45.0
+            color (`str`, optional): shadow colour in '#RRGGBB' form. Default black
+            distance (`float`, optional): shadow distance. Default 5.0
+            smoothing (`float`, optional): shadow smoothing, 0-1. Default 0.15
         """
         self.has_shadow = has_shadow
         self.alpha = alpha
@@ -200,7 +200,7 @@ class Text_shadow:
         self.smoothing = smoothing
 
     def export_json(self) -> Dict[str, Any]:
-        """生成子JSON数据，在Text_segment导出时合并到其中"""
+        """Build the JSON fragment merged in when a Text_segment is exported."""
         return {
             "has_shadow": self.has_shadow,
             "shadow_alpha": self.alpha,
@@ -211,10 +211,10 @@ class Text_shadow:
         }
 
 class TextBubble:
-    """文本气泡素材, 与滤镜素材本质上一致"""
+    """A text bubble material, structurally the same as a filter material."""
 
     global_id: str
-    """气泡全局id, 由程序自动生成"""
+    """Global bubble id, generated automatically."""
 
     effect_id: str
     resource_id: str
@@ -232,11 +232,11 @@ class TextBubble:
             "resource_id": self.resource_id,
             "type": "text_shape",
             "value": 1.0,
-            # 不导出path和request_id
+            # path and request_id are deliberately not exported
         }
 
 class TextEffect(TextBubble):
-    """文本花字素材, 与滤镜素材本质上也一致"""
+    """A text effect material, also structurally the same as a filter material."""
 
     def export_json(self) -> Dict[str, Any]:
         ret = super().export_json()
@@ -245,28 +245,28 @@ class TextEffect(TextBubble):
         return ret
 
 class TextStyleRange:
-    """文本样式范围类，用于定义文本特定范围的样式"""
-    
+    """A style applied to one range of the text."""
+
     start: int
-    """起始位置（包含）"""
+    """Start position, inclusive."""
     end: int
-    """结束位置（不包含）"""
+    """End position, exclusive."""
     style: Text_style
-    """字体样式"""
+    """Font style."""
     border: Optional[Text_border]
-    """文本描边参数，None表示无描边"""
+    """Stroke settings; None means no stroke."""
     font: Optional[Effect_meta]
-    """字体设置，None表示使用全局字体"""
-    
-    def __init__(self, start: int, end: int, style: Text_style, border: Optional[Text_border] = None, font_str:str = None):
-        """创建文本样式范围
-        
+    """Font; None means the global font is used."""
+
+    def __init__(self, start: int, end: int, style: Text_style, border: Optional[Text_border] = None, font_str: str = None):
+        """Create a styled text range.
+
         Args:
-            start (`int`): 起始位置（包含）
-            end (`int`): 结束位置（不包含）
-            style (`Text_style`): 字体样式
-            border (`Text_border`, optional): 文本描边参数，默认为None（无描边）
-            font (optional): 字体设置，默认为None（使用全局字体）
+            start (`int`): start position, inclusive
+            end (`int`): end position, exclusive
+            style (`Text_style`): the font style
+            border (`Text_border`, optional): stroke settings. Default None, meaning no stroke
+            font (optional): the font. Default None, meaning the global font
         """
         self.start = start
         self.end = end
@@ -277,47 +277,47 @@ class TextStyleRange:
                 font_type = getattr(Font_type, font_str).value
             except:
                 available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
-                raise ValueError(f"不支持的字体：{font_str}，请使用Font_type中的字体之一：{available_fonts}")
+                raise ValueError(f"Unsupported font: {font_str}. Use one of the fonts in Font_type: {available_fonts}")
             self.font = font_type
-    
+
     def get_range(self) -> List[int]:
-        """获取范围列表
-        
+        """The range as a list.
+
         Returns:
-            `List[int]`: [start, end] 形式的范围列表
+            `List[int]`: the range as [start, end]
         """
         return [self.start, self.end]
 
 class Text_segment(Visual_segment):
-    """文本片段类, 目前仅支持设置基本的字体样式"""
+    """A text segment. Only basic font styling is supported so far."""
 
     text: str
-    """文本内容"""
+    """The text."""
     font: Optional[Effect_meta]
-    """字体类型"""
+    """Font type."""
     style: Text_style
-    """字体样式"""
+    """Font style."""
 
     border: Optional[Text_border]
-    """文本描边参数, None表示无描边"""
+    """Stroke settings; None means no stroke."""
     background: Optional[Text_background]
-    """文本背景参数, None表示无背景"""
+    """Background settings; None means no background."""
 
     shadow: Optional[Text_shadow]
-    """文本阴影参数, None表示无阴影"""
+    """Shadow settings; None means no shadow."""
 
     bubble: Optional[TextBubble]
-    """文本气泡效果, 在放入轨道时加入素材列表中"""
+    """Text bubble; registered as a material when placed on a track."""
     effect: Optional[TextEffect]
-    """文本花字效果, 在放入轨道时加入素材列表中, 目前仅支持一部分花字效果"""
-    
+    """Text effect; registered as a material when placed on a track. Only some effects are supported."""
+
     fixed_width: float
-    """固定宽度, -1表示不固定"""
+    """Fixed width; -1 means unconstrained."""
     fixed_height: float
-    """固定高度, -1表示不固定"""
-    
+    """Fixed height; -1 means unconstrained."""
+
     text_styles: List[TextStyleRange]
-    """文本的多种样式列表"""
+    """The per-range text styles."""
 
     def __init__(self, text: str, timerange: Timerange, *,
                  font: Optional[Font_type] = None,
@@ -325,20 +325,20 @@ class Text_segment(Visual_segment):
                  border: Optional[Text_border] = None, background: Optional[Text_background] = None,
                  shadow: Optional[Text_shadow] = None,
                  fixed_width: int = -1, fixed_height: int = -1):
-        """创建文本片段, 并指定其时间信息、字体样式及图像调节设置
+        """Create a text segment with its timing, font style and image adjustments.
 
-        片段创建完成后, 可通过`Script_file.add_segment`方法将其添加到轨道中
+        Once created, add it to a track with `Script_file.add_segment`.
 
         Args:
-            text (`str`): 文本内容
-            timerange (`Timerange`): 片段在轨道上的时间范围
-            font (`Font_type`, optional): 字体类型, 默认为系统字体
-            style (`Text_style`, optional): 字体样式, 包含大小/颜色/对齐/透明度等.
-            clip_settings (`Clip_settings`, optional): 图像调节设置, 默认不做任何变换
-            border (`Text_border`, optional): 文本描边参数, 默认无描边
-            background (`Text_background`, optional): 文本背景参数, 默认无背景
-            fixed_width (`int`, optional): 文本固定宽度（像素值）, 默认为-1（不固定宽度）
-            fixed_height (`int`, optional): 文本固定高度（像素值）, 默认为-1（不固定高度）
+            text (`str`): the text
+            timerange (`Timerange`): the segment's time range on the track
+            font (`Font_type`, optional): the font. Defaults to the system font
+            style (`Text_style`, optional): font style, covering size, colour, alignment, opacity and so on.
+            clip_settings (`Clip_settings`, optional): image adjustments; nothing is transformed by default
+            border (`Text_border`, optional): stroke settings; no stroke by default
+            background (`Text_background`, optional): background settings; no background by default
+            fixed_width (`int`, optional): fixed width in pixels. Default -1, unconstrained
+            fixed_height (`int`, optional): fixed height in pixels. Default -1, unconstrained
         """
         super().__init__(uuid.uuid4().hex, None, timerange, 1.0, 1.0, clip_settings=clip_settings)
 
@@ -348,29 +348,29 @@ class Text_segment(Visual_segment):
         self.border = border
         self.background = background
         self.shadow = shadow
-    
+
         self.bubble = None
         self.effect = None
-        
+
         self.fixed_width = fixed_width
         self.fixed_height = fixed_height
         self.text_styles = []
 
-    # 修改设置特定范围的文本样式的方法
+    # Set the style for a particular range of the text
     def add_text_style(self, textStyleRange: TextStyleRange) -> "Text_segment":
-        # 添加新的样式范围
+        # Add the new style range
         self.text_styles.append(textStyleRange)
         return self
-        
+
 
     @classmethod
     def create_from_template(cls, text: str, timerange: Timerange, template: "Text_segment") -> "Text_segment":
-        """根据模板创建新的文本片段, 并指定其文本内容"""
+        """Create a text segment from a template, with the given text."""
         new_segment = cls(text, timerange, style=deepcopy(template.style), clip_settings=deepcopy(template.clip_settings),
                           border=deepcopy(template.border), background=deepcopy(template.background))
         new_segment.font = deepcopy(template.font)
 
-        # 处理动画等
+        # Animations and so on
         if template.animations_instance:
             new_segment.animations_instance = deepcopy(template.animations_instance)
             new_segment.animations_instance.animation_id = uuid.uuid4().hex
@@ -384,14 +384,14 @@ class Text_segment(Visual_segment):
 
     def add_animation(self, animation_type: Union[CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim],
                       duration: Union[str, float] = 500000) -> "Text_segment":
-        """将给定的入场/出场/循环动画添加到此片段的动画列表中, 出入场动画的持续时间可以自行设置, 循环动画则会自动填满其余无动画部分
+        """Add an intro, outro or loop animation. Intro and outro durations may be set; a loop animation fills whatever time is left.
 
-        注意: 若希望同时使用循环动画和入出场动画, 请**先添加出入场动画再添加循环动画**
+        Note: to combine a loop animation with intro/outro animations, **add the intro and outro first**.
 
         Args:
-            animation_type (`CapCut_Text_intro`, `CapCut_Text_outro` or `CapCut_Text_loop_anim`): 文本动画类型.
-            duration (`str` or `float`, optional): 动画持续时间, 单位为微秒, 仅对入场/出场动画有效.
-                若传入字符串则会调用`tim()`函数进行解析. 默认为0.5秒
+            animation_type (`CapCut_Text_intro`, `CapCut_Text_outro` or `CapCut_Text_loop_anim`): the text animation type.
+            duration (`str` or `float`, optional): animation duration in microseconds; intro and outro animations only.
+                Strings are parsed with `tim()`. Default 0.5 seconds
         """
         duration = min(tim(duration), self.target_timerange.duration)
 
@@ -416,47 +416,47 @@ class Text_segment(Visual_segment):
         return self
 
     def add_bubble(self, effect_id: str, resource_id: str) -> "Text_segment":
-        """根据素材信息添加气泡效果, 相应素材信息可通过`Script_file.inspect_material`从模板中获取
+        """Add a text bubble. The material details come from `Script_file.inspect_material` on a template.
 
         Args:
-            effect_id (`str`): 气泡效果的effect_id
-            resource_id (`str`): 气泡效果的resource_id
+            effect_id (`str`): the bubble's effect_id
+            resource_id (`str`): the bubble's resource_id
         """
         self.bubble = TextBubble(effect_id, resource_id)
         self.extra_material_refs.append(self.bubble.global_id)
         return self
 
     def add_effect(self, effect_id: str) -> "Text_segment":
-        """根据素材信息添加花字效果, 相应素材信息可通过`Script_file.inspect_material`从模板中获取
+        """Add a text effect. The material details come from `Script_file.inspect_material` on a template.
 
         Args:
-            effect_id (`str`): 花字效果的effect_id, 也同时是其resource_id
+            effect_id (`str`): the text effect's effect_id, which doubles as its resource_id
         """
         self.effect = TextEffect(effect_id, effect_id)
         self.extra_material_refs.append(self.effect.global_id)
         return self
 
     def export_material(self) -> Dict[str, Any]:
-        """与此文本片段联系的素材, 以此不再单独定义Text_material类"""
-        # 叠加各类效果的flag
+        """The material for this text segment, avoiding a separate Text_material class."""
+        # Accumulate the effect flags
         check_flag: int = 7
         if self.border:
             check_flag |= 8
         if self.background:
             check_flag |= 16
-        if self.shadow and self.shadow.has_shadow:  # 如果有阴影且启用了阴影
-            check_flag |= 32  # 添加阴影标志
-    
-        # 构建styles数组
+        if self.shadow and self.shadow.has_shadow:
+            check_flag |= 32  # shadow flag
+
+        # Build the styles array
         styles = []
-        
+
         if self.text_styles:
-            # 创建一个排序后的样式范围列表
+            # Sort the style ranges
             sorted_styles = sorted(self.text_styles, key=lambda x: x.start)
-            
-            # 检查是否需要在开头添加默认样式
+
+            # A default style may be needed before the first range
             if sorted_styles[0].start > 0:
-                # 添加从0到第一个样式开始的默认样式
+                # Default style from 0 to the first styled range
                 default_style = {
                     "fill": {
                         "alpha": 1.0,
@@ -475,44 +475,44 @@ class Text_segment(Visual_segment):
                     "underline": self.style.underline,
                     "strokes": [self.border.export_json()] if self.border else []
                 }
-                
-                # 如果有阴影设置，添加到样式中
+
+                # Add the shadow to the style
                 if self.shadow and self.shadow.has_shadow:
-                    style_item["shadows"] = [
+                    default_style["shadows"] = [
                         {
                             "diffuse": self.shadow.smoothing / 6,  # diffuse = smoothing/6
                             "angle": self.shadow.angle,
                             "content": {
                                 "solid": {
-                                    "color": [int(self.shadow.color[1:3], 16)/255, 
-                                             int(self.shadow.color[3:5], 16)/255, 
-                                             int(self.shadow.color[5:7], 16)/255]
+                                    "color": [int(self.shadow.color[1:3], 16) / 255,
+                                             int(self.shadow.color[3:5], 16) / 255,
+                                             int(self.shadow.color[5:7], 16) / 255]
                                 }
                             },
                             "distance": self.shadow.distance,
                             "alpha": self.shadow.alpha
                         }
                     ]
-                
-                # 如果有全局字体设置，添加到样式中
+
+                # Add the global font to the style
                 if self.font:
                     default_style["font"] = {
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
-                # 如果有特效设置，添加到样式中
+
+                # Add the text effect to the style
                 if self.effect:
                     default_style["effectStyle"] = {
                         "id": self.effect.effect_id,
-                        "path": "C:"  # 并不会真正在此处放置素材文件
+                        "path": "C:"  # nothing is actually stored at this path
                     }
-                    
+
                 styles.append(default_style)
-            
-            # 处理每个样式范围
+
+            # Each style range
             for i, style_range in enumerate(sorted_styles):
-                # 添加当前样式范围的样式
+                # Style for the current range
                 style_item = {
                     "fill": {
                         "alpha": 1.0,
@@ -531,32 +531,32 @@ class Text_segment(Visual_segment):
                     "underline": style_range.style.underline,
                     "strokes": [style_range.border.export_json()] if style_range.border else []
                 }
-                
-                # 如果TextStyleRange有字体设置，优先使用它
+
+                # A range-level font takes precedence
                 if hasattr(style_range, 'font') and style_range.font:
                     style_item["font"] = {
                         "id": style_range.font.resource_id,
                         "path": "C:/%s.ttf" % style_range.font.name
                     }
-                # 否则，如果有全局字体设置，使用全局字体
+                # Otherwise fall back to the global font
                 elif self.font:
                     style_item["font"] = {
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
-                # 如果有特效设置，添加到样式中
+
+                # Add the text effect to the style
                 if self.effect:
                     style_item["effectStyle"] = {
                         "id": self.effect.effect_id,
-                        "path": "C:"  # 并不会真正在此处放置素材文件
+                        "path": "C:"  # nothing is actually stored at this path
                     }
-                    
+
                 styles.append(style_item)
-                
-                # 检查是否需要在当前样式和下一个样式之间添加默认样式
-                if i < len(sorted_styles) - 1 and style_range.end < sorted_styles[i+1].start:
-                    # 添加从当前样式结束到下一个样式开始的默认样式
+
+                # A default style may be needed between this range and the next
+                if i < len(sorted_styles) - 1 and style_range.end < sorted_styles[i + 1].start:
+                    # Default style between the two ranges
                     gap_style = {
                         "fill": {
                             "alpha": 1.0,
@@ -568,33 +568,33 @@ class Text_segment(Visual_segment):
                                 }
                             }
                         },
-                        "range": [style_range.end, sorted_styles[i+1].start],
+                        "range": [style_range.end, sorted_styles[i + 1].start],
                         "size": self.style.size,
                         "bold": self.style.bold,
                         "italic": self.style.italic,
                         "underline": self.style.underline,
                         "strokes": [self.border.export_json()] if self.border else []
                     }
-                    
-                    # 如果有全局字体设置，添加到样式中
+
+                    # Add the global font to the style
                     if self.font:
                         gap_style["font"] = {
                             "id": self.font.resource_id,
                             "path": "C:/%s.ttf" % self.font.name
                         }
-                    
-                    # 如果有特效设置，添加到样式中
+
+                    # Add the text effect to the style
                     if self.effect:
                         gap_style["effectStyle"] = {
                             "id": self.effect.effect_id,
-                            "path": "C:"  # 并不会真正在此处放置素材文件
+                            "path": "C:"  # nothing is actually stored at this path
                         }
-                        
+
                     styles.append(gap_style)
-            
-            # 检查是否需要在最后一个样式之后添加默认样式
+
+            # A default style may be needed after the last range
             if sorted_styles[-1].end < len(self.text):
-                # 添加从最后一个样式结束到文本结尾的默认样式
+                # Default style from the last range to the end of the text
                 end_style = {
                     "fill": {
                         "alpha": 1.0,
@@ -613,24 +613,24 @@ class Text_segment(Visual_segment):
                     "underline": self.style.underline,
                     "strokes": [self.border.export_json()] if self.border else []
                 }
-                
-                # 如果有全局字体设置，添加到样式中
+
+                # Add the global font to the style
                 if self.font:
                     end_style["font"] = {
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
-                # 如果有特效设置，添加到样式中
+
+                # Add the text effect to the style
                 if self.effect:
                     end_style["effectStyle"] = {
                         "id": self.effect.effect_id,
-                        "path": "C:"  # 并不会真正在此处放置素材文件
+                        "path": "C:"  # nothing is actually stored at this path
                     }
-                    
+
                 styles.append(end_style)
         else:
-            # 如果text_styles为空，使用全局样式创建一个默认的style
+            # With no per-range styles, build a single default style
             style_item = {
                 "fill": {
                     "alpha": 1.0,
@@ -649,8 +649,8 @@ class Text_segment(Visual_segment):
                 "underline": self.style.underline,
                 "strokes": [self.border.export_json()] if self.border else []
             }
-            
-            # 如果有阴影设置，添加到样式中
+
+            # Add the shadow to the style
             if self.shadow and self.shadow.has_shadow:
                 style_item["shadows"] = [
                     {
@@ -658,30 +658,30 @@ class Text_segment(Visual_segment):
                         "angle": self.shadow.angle,
                         "content": {
                             "solid": {
-                                "color": [int(self.shadow.color[1:3], 16)/255, 
-                                            int(self.shadow.color[3:5], 16)/255, 
-                                            int(self.shadow.color[5:7], 16)/255]
+                                "color": [int(self.shadow.color[1:3], 16) / 255,
+                                            int(self.shadow.color[3:5], 16) / 255,
+                                            int(self.shadow.color[5:7], 16) / 255]
                             }
                         },
                         "distance": self.shadow.distance,
                         "alpha": self.shadow.alpha
                     }
                 ]
-                
-            # 如果有全局字体设置，添加到样式中
+
+            # Add the global font to the style
             if self.font:
                 style_item["font"] = {
                     "id": self.font.resource_id,
-                    "path": "C:/%s.ttf" % self.font.name  # 并不会真正在此处放置字体文件
+                    "path": "C:/%s.ttf" % self.font.name  # nothing is actually stored at this path
                 }
-            
-            # 如果有特效设置，添加到样式中
+
+            # Add the text effect to the style
             if self.effect:
                 style_item["effectStyle"] = {
                     "id": self.effect.effect_id,
-                    "path": "C:"  # 并不会真正在此处放置素材文件
+                    "path": "C:"  # nothing is actually stored at this path
                 }
-                
+
             styles.append(style_item)
 
         content_json = {
@@ -705,16 +705,16 @@ class Text_segment(Visual_segment):
             "check_flag": check_flag,
 
             "type": "text",
-            
+
             "fixed_width": self.fixed_width,
             "fixed_height": self.fixed_height,
 
-            # 混合 (+4)
+            # blend (+4)
             # "global_alpha": 1.0,
 
-            # 发光 (+64)，属性由extra_material_refs记录
+            # glow (+64); its properties live in extra_material_refs
 
-            # 阴影 (+32)
+            # shadow (+32)
             # "has_shadow": False,
             # "shadow_alpha": 0.9,
             # "shadow_angle": -45.0,
@@ -726,7 +726,7 @@ class Text_segment(Visual_segment):
             # },
             # "shadow_smoothing": 0.45,
 
-                        # 整体字体设置
+                        # Overall font settings
             "font_category_id": "",
             "font_category_name": "",
             "font_id": "",
@@ -739,10 +739,10 @@ class Text_segment(Visual_segment):
             "font_title": "none",
             "font_url": "",
             "fonts": [] if not self.text_styles else [
-                # 根据text_styles生成fonts数组
+                # Build the fonts array from text_styles
                 *[{
                     "category_id": "preset",
-                    "category_name": "剪映预设",
+                    "category_name": "Editor presets",
                     "effect_id": style_range.font.resource_id if hasattr(style_range, 'font') and style_range.font else (self.font.resource_id if self.font else ""),
                     "file_uri": "",
                     "id": "BFBA9655-1FE5-41A0-A85D-577EFFF17BDD",
@@ -755,7 +755,7 @@ class Text_segment(Visual_segment):
                 } for style_range in self.text_styles if (hasattr(style_range, 'font') and style_range.font) or self.font]
             ],
 
-            # 似乎会被content覆盖
+            # appears to be overridden by `content`
             # "text_alpha": 1.0,
             # "text_color": "#FFFFFF",
             # "text_curve": None,
@@ -766,10 +766,10 @@ class Text_segment(Visual_segment):
 
         if self.background:
             ret.update(self.background.export_json())
-        
-        # 添加阴影参数
+
+        # Add the shadow settings
         if self.shadow and self.shadow.has_shadow:
             shadow_json = self.shadow.export_json()
-            ret.update(shadow_json)  # 将阴影参数合并到返回的字典中
-        
+            ret.update(shadow_json)  # merge the shadow settings into the result
+
         return ret

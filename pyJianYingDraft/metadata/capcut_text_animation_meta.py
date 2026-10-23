@@ -2,7 +2,7 @@ from .effect_meta import Effect_enum
 from .animation_meta import Animation_meta
 
 class CapCut_Text_intro(Effect_enum):
-    """CapCut自带的文字入场动画, 默认时长为0.5秒"""
+    """CapCut's built-in text intro animations; default duration 0.5 seconds."""
 
     Throw_Out    = Animation_meta("Throw Out", False, 0.500, "7233110260204966402", "7233110260204966402", "97162e8faa56cf163b8f2c1bfd5ad6e0")
     Typewriter   = Animation_meta("Typewriter", False, 0.500, "7210980292243231233", "7210980292243231233", "6828d67634e66ace1e76c4eb7cc2f8e6")
@@ -83,7 +83,7 @@ class CapCut_Text_intro(Effect_enum):
 
 
 class CapCut_Text_outro(Effect_enum):
-    """CapCut自带的文字出场动画, 默认时长为0.5秒"""
+    """CapCut's built-in text outro animations; default duration 0.5 seconds."""
 
     Fade_Out     = Animation_meta("Fade Out", False, 0.500, "6724919382104871427", "6724919382104871427", "6ecc8fa1d956c3e14c84cdc0679982a9")
     Blur         = Animation_meta("Blur", False, 0.500, "6923134492760609282", "6923134492760609282", "a455f364ad8079365e4d9c880ee58902")
@@ -156,7 +156,7 @@ class CapCut_Text_outro(Effect_enum):
 
 
 class CapCut_Text_loop_anim(Effect_enum):
-    """CapCut自带的文字循环动画, 默认时长为0.5秒"""
+    """CapCut's built-in text loop animations; default duration 0.5 seconds."""
 
     Flare        = Animation_meta("Flare", False, 0.500, "7128311749186425346", "7128311749186425346", "494af236e19eefc9895a4cc2b8d20736")
     Wobble_2     = Animation_meta("Wobble 2", False, 0.500, "7054065409686770178", "7054065409686770178", "8d180f0ad5ff173a44f9142baeee536c")

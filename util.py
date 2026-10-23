@@ -1,6 +1,4 @@
 import shutil
-import subprocess
-import json
 import re
 import os
 import hashlib
@@ -40,11 +38,11 @@ def zip_draft(draft_id):
 def url_to_hash(url, length=16):
     """
     Convert URL to a fixed-length hash string (without extension)
-    
+
     Parameters:
     - url: Original URL string
     - length: Length of the hash string (maximum 64, default 16)
-    
+
     Returns:
     - Hash string (e.g.: 3a7f9e7d9a1b4e2d)
     """

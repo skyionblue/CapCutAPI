@@ -3,7 +3,6 @@ import json
 import sys
 import time
 from util import timing_decorator
-import functools
 import threading
 
 
@@ -15,7 +14,7 @@ def make_request(endpoint, data, method='POST'):
     """Send HTTP request to the server and handle the response"""
     url = f"{BASE_URL}/{endpoint}"
     headers = {'Content-Type': 'application/json'}
-    
+
     try:
         if method == 'POST':
             response = requests.post(url, data=json.dumps(data), headers=headers)
@@ -23,7 +22,7 @@ def make_request(endpoint, data, method='POST'):
             response = requests.get(url, params=data, headers=headers)
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
-            
+
         response.raise_for_status()  # Raise an exception if the request fails
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -33,7 +32,7 @@ def make_request(endpoint, data, method='POST'):
         print("Unable to parse server response")
         sys.exit(1)
 
-def add_audio_track(audio_url, start, end, target_start, volume=1.0, 
+def add_audio_track(audio_url, start, end, target_start, volume=1.0,
                     speed=1.0, track_name="main_audio", effect_type=None, effect_params=None, draft_id=None):
     """API call to add audio track"""
     data = {
@@ -48,13 +47,13 @@ def add_audio_track(audio_url, start, end, target_start, volume=1.0,
         "effect_type": effect_type,
         "effect_params": effect_params
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("add_audio", data)
 
-def add_text_impl(text, start, end, font, font_color, font_size, track_name,draft_folder="123", draft_id=None,
+def add_text_impl(text, start, end, font, font_color, font_size, track_name, draft_folder="123", draft_id=None,
                   vertical=False, transform_x=0.5, transform_y=0.5, font_alpha=1.0,
                   border_color=None, border_width=0.0, border_alpha=1.0,
                   background_color=None, background_alpha=1.0, background_style=None,
@@ -76,36 +75,36 @@ def add_text_impl(text, start, end, font, font_color, font_size, track_name,draf
         "transform_x": transform_x,
         "transform_y": transform_y
     }
-    
+
     # Add border parameters
     if border_color:
         data["border_color"] = border_color
         data["border_width"] = border_width
         data["border_alpha"] = border_alpha
-    
+
     # Add background parameters
     if background_color:
         data["background_color"] = background_color
         data["background_alpha"] = background_alpha
         if background_style:
             data["background_style"] = background_style
-    
+
     # Add bubble effect parameters
     if bubble_effect_id:
         data["bubble_effect_id"] = bubble_effect_id
         if bubble_resource_id:
             data["bubble_resource_id"] = bubble_resource_id
-    
+
     # Add text effect parameters
     if effect_effect_id:
         data["effect_effect_id"] = effect_effect_id
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     if outro_animation:
         data["outro_animation"] = outro_animation
-        
+
     return make_request("add_text", data)
 
 def add_image_impl(image_url, width, height, start, end, track_name, draft_id=None,
@@ -140,10 +139,10 @@ def add_image_impl(image_url, width, height, start, end, track_name, draft_id=No
         "mask_rect_width": mask_rect_width,
         "mask_round_corner": mask_round_corner
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("add_image", data)
 
 def generate_image_impl(prompt, width, height, start, end, track_name, draft_id=None,
@@ -164,10 +163,10 @@ def generate_image_impl(prompt, width, height, start, end, track_name, draft_id=
         "transition": transition,
         "transition_duration": transition_duration or 0.5  # Default transition duration is 0.5 seconds
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("generate_image", data)
 
 def add_sticker_impl(resource_id, start, end, draft_id=None, transform_x=0, transform_y=0,
@@ -193,16 +192,16 @@ def add_sticker_impl(resource_id, start, end, draft_id=None, transform_x=0, tran
         "width": width,
         "height": height
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("add_sticker", data)
 
-def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None, value=None, 
+def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None, value=None,
                            property_types=None, times=None, values=None):
     """API call to add video keyframe
-    
+
     Supports two modes:
     1. Single keyframe: using property_type, time, value parameters
     2. Batch keyframes: using property_types, times, values parameters (in list form)
@@ -212,7 +211,7 @@ def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None,
         "draft_id": draft_id,
         "track_name": track_name
     }
-    
+
     # Add single keyframe parameters (if provided)
     if property_type is not None:
         data["property_type"] = property_type
@@ -220,7 +219,7 @@ def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None,
         data["time"] = time
     if value is not None:
         data["value"] = value
-    
+
     # Add batch keyframe parameters (if provided)
     if property_types is not None:
         data["property_types"] = property_types
@@ -228,7 +227,7 @@ def add_video_keyframe_impl(draft_id, track_name, property_type=None, time=None,
         data["times"] = times
     if values is not None:
         data["values"] = values
-    
+
     return make_request("add_video_keyframe", data)
 
 def add_video_impl(video_url, start=None, end=None, width=None, height=None, track_name="main",
@@ -287,31 +286,31 @@ def add_effect(effect_type, start, end, draft_id=None, track_name="effect_01",
         "width": width,
         "height": height
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("add_effect", data)
 
 def test_effect_01():
     """Test adding effect service"""
     # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
     draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
-    
+
     print("\nTest: Adding effect")
     effect_result = add_effect(
         start=0,
         end=5,
         track_name="effect_01",
-        # effect_type="金粉闪闪",  # Example using glow effect
+        # effect_type="Gold_Sparkles",  # Example using a glitter effect
         effect_type="Gold_Sparkles",
         params=[100, 50, 34]  # Example parameters, depending on the specific effect type
     )
     print(f"Effect adding result: {effect_result}")
     print(save_draft_impl(effect_result['output']['draft_id'], draft_folder))
-    
+
     # If needed, you can add other test cases here
-    
+
     # Return the first test result for subsequent operations (if any)
     return effect_result
 
@@ -326,7 +325,7 @@ def test_text():
         text="Hello, I am CapCut Assistant",
         start=0,
         end=3,
-        font="思源中宋",
+        font="SourceHanSerifCN_Regular",
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -341,7 +340,7 @@ def test_text():
         text="Vertical text demo",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -357,7 +356,7 @@ def test_text():
         text="Border and background test",
         start=6,
         end=9,
-        font="思源中宋",
+        font="SourceHanSerifCN_Regular",
         font_color="#FFFFFF",  # White text
         font_size=24.0,
         track_name="main_text",
@@ -371,12 +370,12 @@ def test_text():
         background_style=0  # Bubble style background
     )
     print("Test case 3 (Border and background) successful:", result3)
-    
+
     # Finally save and upload the draft
     if result3.get('success') and result3.get('output'):
-        save_result = save_draft_impl(result3['output']['draft_id'],draft_folder)
+        save_result = save_draft_impl(result3['output']['draft_id'], draft_folder)
         print(f"Draft save result: {save_result}")
-    
+
     # Return the last test result for subsequent operations (if any)
     return result3
 
@@ -421,7 +420,7 @@ def test_image02():
         track_name="main"
     )
     print(f"Image 1 added successfully! {image_result['output']['draft_id']}")
-    
+
     print("\nTest: Adding image 2")
     image_result = add_image_impl(
         draft_id=image_result['output']['draft_id'],
@@ -458,7 +457,7 @@ def test_image03():
         track_name="main"
     )
     print(f"Image 1 added successfully! {image_result['output']['draft_id']}")
-    
+
     print("\nTest: Adding image 2")
     image_result = add_image_impl(
         draft_id=image_result['output']['draft_id'],
@@ -532,7 +531,7 @@ def test_mask_01():
         track_name="main"
     )
     print(f"Image 1 added successfully! {image_result['output']['draft_id']}")
-    
+
     print("\nTest: Adding image 2")
     image_result = add_image_impl(
         draft_id=image_result['output']['draft_id'],
@@ -574,9 +573,9 @@ def test_mask_01():
 def test_mask_02():
     """Test adding videos to different tracks"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
-    
+
     # Add video to first track
     video_result = add_video_impl(
         draft_id=draft_id,  # Pass in draft_id
@@ -584,13 +583,13 @@ def test_mask_02():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Use first 5 seconds of video
+        end=5.0,  # Use first 5 seconds of video
         target_start=0,
         track_name="main_video_track"
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"First video addition result: {video_result}")
-    
+
     # Add video to second track
     video_result = add_video_impl(
         draft_id=draft_id,  # Use previous draft_id
@@ -598,7 +597,7 @@ def test_mask_02():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Use first 5 seconds of video
+        end=5.0,  # Use first 5 seconds of video
         target_start=0,
         track_name="main_video_track_2",  # Use different track name
         speed=1.0,  # Change playback speed
@@ -607,7 +606,7 @@ def test_mask_02():
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"Second video addition result: {video_result}")
-    
+
     # Third time add video to another track with circular mask
     video_result = add_video_impl(
         draft_id=draft_id,  # Use previous draft_id
@@ -615,7 +614,7 @@ def test_mask_02():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Use first 5 seconds of video
+        end=5.0,  # Use first 5 seconds of video
         target_start=0,
         track_name="main_video_track_3",  # Use third track
         speed=1.5,  # Faster playback speed
@@ -629,7 +628,7 @@ def test_mask_02():
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"Third video addition result: {video_result}")
-    
+
     # Finally save and upload draft
     save_result = save_draft_impl(draft_id, draft_folder)
     print(f"Draft save result: {save_result}")
@@ -649,7 +648,6 @@ def test_audio01():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -671,7 +669,6 @@ def test_audio02():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -687,7 +684,6 @@ def test_audio02():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -701,10 +697,10 @@ def test_audio03():
     draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
 
     draft_id = None  # Initialize draft_id
-    
+
     for i in range(10):
         target_start = i * 1.5  # Increment by 1.5 seconds each time
-        
+
         audio_result = add_audio_track(
             audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
             start=4,
@@ -713,15 +709,14 @@ def test_audio03():
             volume=0.8,
             speed=1.0,
             track_name="main_audio101",
-            # effect_type="麦霸",
-            effect_type="Tremble",
+                effect_type="Tremble",
             effect_params=[90.0, 50.0],
             draft_id=draft_id  # Pass the previous draft_id (None for the first time)
         )
-        
+
         draft_id = audio_result['output']['draft_id']  # Update draft_id
         print(f"Audio addition result {i+1}: {audio_result}")
-    
+
     # Finally save and upload draft
     save_result = save_draft_impl(draft_id, draft_folder)
     print(f"Draft save result: {save_result}")
@@ -741,7 +736,6 @@ def test_audio04():
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -757,7 +751,6 @@ def test_audio04():
         volume=0.8,
         speed=1.0,
         track_name="main_audio102",  # Use different track name
-        # effect_type="麦霸",
         effect_type="Tremble",
         effect_params=[90.0, 50.0]
     )
@@ -825,11 +818,11 @@ def query_draft_status_impl(task_id):
         "task_id": task_id
     }
     return make_request("query_draft_status", data)
-    
+
 def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
     """
     Poll for draft download status, implemented with async thread to avoid blocking the main thread
-    
+
     :param task_id: task ID returned by save_draft_impl
     :param timeout: timeout in seconds, default 5 minutes
     :param callback: optional callback function called when task completes, fails or times out, with final status as parameter
@@ -837,22 +830,22 @@ def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
     """
     # Create result container to store final result
     result_container = {"result": None}
-    
+
     def _polling_thread():
         start_time = time.time()
         print(f"Starting to query status for task {task_id}...")
-        
+
         while True:
             try:
                 # Get current task status
                 task_status = query_draft_status_impl(task_id).get("output", {})
-                
+
                 # Print current status
                 status = task_status.get("status", "unknown")
                 message = task_status.get("message", "")
                 progress = task_status.get("progress", 0)
                 print(f"Current status: {status}, progress: {progress}%, message: {message}")
-                
+
                 # Check if completed or failed
                 if status == "completed":
                     print(f"Task completed! Draft URL: {task_status.get('draft_url', 'Not provided')}")
@@ -872,7 +865,7 @@ def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
                     if callback:
                         callback(task_status)
                     break
-                
+
                 # Check if timed out
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
@@ -886,15 +879,15 @@ def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
                 print(f"Exception occurred during query: {e}")
                 time.sleep(1)  # Wait 1 second before retrying after error
                 continue
-            
+
             # Wait 1 second before querying again
             time.sleep(1)
-    
+
     # Create and start thread
     thread = threading.Thread(target=_polling_thread)
     # thread.daemon = True  # Set as daemon thread, automatically terminates when main thread ends
     thread.start()
-    
+
     # Return thread object and result container for external code to get results
     return thread, result_container
 
@@ -926,7 +919,7 @@ def test_subtitle():
         border_alpha=1.0  # Fully opaque
     )
     print(f"Text addition result: {text_result}")
-    
+
     # Save draft
     if text_result.get('success') and text_result.get('output'):
         save_result = save_draft_impl(text_result['output']['draft_id'], draft_folder)
@@ -939,7 +932,7 @@ def test01():
     # Combined test
     print("\nTest 2: Add audio")
     audio_result = add_audio_track(
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=2,
@@ -953,7 +946,7 @@ def test01():
 
     audio_result = add_audio_track(
         draft_id=audio_result['output']['draft_id'],
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=4,
@@ -967,7 +960,7 @@ def test01():
 
     audio_result = add_audio_track(
         draft_id=audio_result['output']['draft_id'],
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=6,
@@ -986,7 +979,7 @@ def test01():
         draft_id=audio_result['output']['draft_id'],
         start=0,
         end=3,
-        font="思源中宋",  # Use Source Han Serif font
+        font="SourceHanSerifCN_Regular",  # Use Source Han Serif font
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -1001,7 +994,7 @@ def test01():
         text="Vertical Text Test",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -1018,7 +1011,7 @@ def test01():
         image_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_image_v2/d6e33c84d7554146a25b1093b012838b_0.png?x-oss-process=image/resize,w_500/watermark,image_aW1nL3dhdGVyMjAyNDExMjkwLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSxtX2ZpeGVkLHdfMTQ1LGhfMjU=,t_80,g_se,x_10,y_10/format,webp",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 0,
+        start=0,
         end=5.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1035,7 +1028,7 @@ def test01():
         image_url="http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 0,
+        start=0,
         end=5.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1050,7 +1043,7 @@ def test01():
         image_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_image_v2/d6e33c84d7554146a25b1093b012838b_0.png?x-oss-process=image/resize,w_500/watermark,image_aW1nL3dhdGVyMjAyNDExMjkwLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSxtX2ZpeGVkLHdfMTQ1LGhfMjU=,t_80,g_se,x_10,y_10/format,webp",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 5,
+        start=5,
         end=10.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1080,7 +1073,7 @@ def test01():
         value="0.4"  # Move 300px
     )
     print(f"Keyframe addition result: {keyframe_result}")
-    
+
     query_draft_status_impl_polling(keyframe_result['output']['draft_id'])
     save_draft_impl(keyframe_result['output']['draft_id'], draft_folder)
 
@@ -1091,43 +1084,43 @@ def test02():
     # Combined test
     print("\nTest 2: Add audio")
     audio_result = add_audio_track(
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=2,
         volume=0.8,
         speed=1.0,
         track_name="main_audio100",
-        effect_type = "Big_House",
-        effect_params = [50.0]
+        effect_type="Big_House",
+        effect_params=[50.0]
     )
     print(f"Audio addition result 1: {audio_result}")
 
     audio_result = add_audio_track(
         draft_id=audio_result['output']['draft_id'],
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=4,
         volume=0.8,
         speed=1.0,
         track_name="main_audio100",
-        effect_type = "Big_House",
-        effect_params = [50.0]
+        effect_type="Big_House",
+        effect_params=[50.0]
     )
     print(f"Audio addition result 2: {audio_result}")
 
     audio_result = add_audio_track(
         draft_id=audio_result['output']['draft_id'],
-        audio_url = "https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
+        audio_url="https://lf3-lv-music-tos.faceu.com/obj/tos-cn-ve-2774/oYACBQRCMlWBIrZipvQZhI5LAlUFYii0RwEPh",
         start=4,
         end=5,
         target_start=6,
         volume=0.8,
         speed=1.0,
         track_name="main_audio101",
-        effect_type = "Big_House",
-        effect_params = [50.0]
+        effect_type="Big_House",
+        effect_params=[50.0]
     )
     print(f"Audio addition result 3: {audio_result}")
 
@@ -1138,7 +1131,7 @@ def test02():
         draft_id=audio_result['output']['draft_id'],
         start=0,
         end=3,
-        font="思源中宋",  # Use Source Han Serif font
+        font="SourceHanSerifCN_Regular",  # Use Source Han Serif font
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -1153,7 +1146,7 @@ def test02():
         text="Vertical Text Test",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -1170,7 +1163,7 @@ def test02():
         image_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_image_v2/d6e33c84d7554146a25b1093b012838b_0.png?x-oss-process=image/resize,w_500/watermark,image_aW1nL3dhdGVyMjAyNDExMjkwLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSxtX2ZpeGVkLHdfMTQ1LGhfMjU=,t_80,g_se,x_10,y_10/format,webp",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 0,
+        start=0,
         end=5.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1187,7 +1180,7 @@ def test02():
         image_url="http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 0,
+        start=0,
         end=5.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1202,7 +1195,7 @@ def test02():
         image_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_image_v2/d6e33c84d7554146a25b1093b012838b_0.png?x-oss-process=image/resize,w_500/watermark,image_aW1nL3dhdGVyMjAyNDExMjkwLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSxtX2ZpeGVkLHdfMTQ1LGhfMjU=,t_80,g_se,x_10,y_10/format,webp",  # Replace with actual image URL
         width=480,
         height=480,
-        start = 5,
+        start=5,
         end=10.0,  # Display for 5 seconds
         transform_y=0.7,
         scale_x=2.0,
@@ -1232,14 +1225,14 @@ def test02():
         value="0.4"  # Move 300px
     )
     print(f"Keyframe addition result: {keyframe_result}")
-    
+
     query_draft_status_impl_polling(keyframe_result['output']['draft_id'])
     save_draft_impl(keyframe_result['output']['draft_id'], draft_folder)
 
 def test_video_track01():
     """Test adding video track"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Add video track")
     video_result = add_video_impl(
@@ -1247,7 +1240,7 @@ def test_video_track01():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Cut the first 5 seconds of the video
+        end=5.0,  # Cut the first 5 seconds of the video
         target_start=0,
         track_name="main_video_track"
     )
@@ -1263,25 +1256,25 @@ def test_video_track01():
 def test_video_track02():
     """Test adding video tracks in a loop"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
-    
+
     for i in range(5):
         target_start = i * 5  # Increment by 5 seconds each time
-        
+
         video_result = add_video_impl(
             draft_id=draft_id,  # Pass in draft_id
             video_url=video_url,
             width=1920,
             height=1080,
             start=0,
-            end=5.0, # Cut the first 5 seconds of the video
+            end=5.0,  # Cut the first 5 seconds of the video
             target_start=target_start,
             track_name="main_video_track"
         )
         draft_id = video_result['output']['draft_id']  # Update draft_id
         print(f"Video addition result {i+1}: {video_result}")
-    
+
     # Finally save and upload the draft
     save_result = save_draft_impl(draft_id, draft_folder)
     print(f"Draft save result: {save_result}")
@@ -1290,9 +1283,9 @@ def test_video_track02():
 def test_video_track03():
     """Test adding videos to different tracks"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
-    
+
     # Add video to the first track
     video_result = add_video_impl(
         draft_id=draft_id,  # Pass in draft_id
@@ -1300,13 +1293,13 @@ def test_video_track03():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Cut the first 5 seconds of the video
+        end=5.0,  # Cut the first 5 seconds of the video
         target_start=0,
         track_name="main_video_track"
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"First video addition result: {video_result}")
-    
+
     # Add video to the second track
     video_result = add_video_impl(
         draft_id=draft_id,  # Use previous draft_id
@@ -1314,7 +1307,7 @@ def test_video_track03():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Cut the first 5 seconds of the video
+        end=5.0,  # Cut the first 5 seconds of the video
         target_start=0,
         track_name="main_video_track_2",  # Use different track name
         speed=1.0,  # Change playback speed
@@ -1323,7 +1316,7 @@ def test_video_track03():
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"Second video addition result: {video_result}")
-    
+
     # Third time add video to another track
     video_result = add_video_impl(
         draft_id=draft_id,  # Use previous draft_id
@@ -1331,7 +1324,7 @@ def test_video_track03():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Cut the first 5 seconds of the video
+        end=5.0,  # Cut the first 5 seconds of the video
         target_start=0,
         track_name="main_video_track_3",  # Use third track
         speed=1.5,  # Faster playback speed
@@ -1340,7 +1333,7 @@ def test_video_track03():
     )
     draft_id = video_result['output']['draft_id']  # Update draft_id
     print(f"Third video addition result: {video_result}")
-    
+
     # Finally save and upload the draft
     save_result = save_draft_impl(draft_id, draft_folder)
     print(f"Draft save result: {save_result}")
@@ -1348,7 +1341,7 @@ def test_video_track03():
 def test_video_track04():
     """Test adding video track"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Add video track")
     video_result = add_video_impl(
@@ -1373,7 +1366,7 @@ def test_keyframe():
     """Test adding keyframes"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
     draft_id = None  # Initialize draft_id
-    
+
     print("\nTest: Add basic video track")
     video_result = add_video_impl(
         video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4",
@@ -1385,7 +1378,7 @@ def test_keyframe():
         track_name="main_video_track"
     )
     print("Video addition result:", video_result)
-    
+
     if video_result.get('success') and video_result.get('output'):
         draft_id = video_result['output']['draft_id']
         print("Using existing draft_id:", draft_id)
@@ -1431,7 +1424,7 @@ def test_keyframe_02():
     """Test adding keyframes - Batch adding to implement fade-in and zoom bounce effects"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
     draft_id = None  # Initialize draft_id
-    
+
     print("\nTest: Adding basic video track")
     video_result = add_video_impl(
         video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4",
@@ -1443,7 +1436,7 @@ def test_keyframe_02():
         track_name="main_video_track"
     )
     print("Video adding result:", video_result)
-    
+
     if video_result.get('success') and video_result.get('output'):
         draft_id = video_result['output']['draft_id']
         print("Using existing draft_id:", draft_id)
@@ -1491,10 +1484,10 @@ def test_keyframe_02():
 def test_subtitle_01():
     """Test adding text subtitles"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    
+
     print("\nTest 3: Adding text subtitles")
     text_result = add_subtitle_impl(
-        srt="1\n00:00:00,000 --> 00:00:04,433\n你333好，我是孙关南开发的剪映草稿助手。\n\n2\n00:00:04,433 --> 00:00:11,360\n我擅长将音频、视频、图片素材拼接在一起剪辑输出剪映草稿。\n",
+        srt="1\n00:00:00,000 --> 00:00:04,433\nHello, this is the CapCut draft assistant.\n\n2\n00:00:04,433 --> 00:00:11,360\nIt stitches audio, video and images together and writes a CapCut draft.\n",
         font_size=8.0,
         bold=True,
         italic=True,
@@ -1508,18 +1501,18 @@ def test_subtitle_01():
         vertical=True
     )
     print(f"Text adding result: {text_result}")
-    
+
     if text_result.get('success') and text_result.get('output'):
         save_result = save_draft_impl(text_result['output']['draft_id'], draft_folder)
         print(f"Draft saving result: {save_result}")
-    
+
     return text_result
 
 
 def test_subtitle_02():
     """Test adding text subtitles via SRT URL"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    
+
     print("\nTest 3: Adding text subtitles (from URL)")
     text_result = add_subtitle_impl(
         srt="https://oss-oversea-bucket.oss-cn-hongkong.aliyuncs.com/dfd_srt_1748575460_kmtu56iu.srt?Expires=1748707452&OSSAccessKeyId=TMP.3Km5TL5giRLgDkc3CamKPcWZTmSrLVeRxPWxEisNB2CTymvUxrpX8VXzy5r99F6bJkwjwFM5d1RsiV3cF18iaMriAPtA1y&Signature=4JzB4YGiChsxcTFuvUyZ0v3MjMI%3D",
@@ -1536,11 +1529,11 @@ def test_subtitle_02():
         vertical=True
     )
     print(f"Text adding result: {text_result}")
-    
+
     if text_result.get('success') and text_result.get('output'):
         save_result = save_draft_impl(text_result['output']['draft_id'], draft_folder)
         print(f"Draft saving result: {save_result}")
-    
+
     return text_result
 
 
@@ -1549,7 +1542,7 @@ def test_video():
 
     print("\nTest: Adding video")
     video_result = add_video_impl(
-        video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4", # Replace with actual video URL
+        video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4",  # Replace with actual video URL
         start=0,
         end=5,
         width=1920,
@@ -1569,13 +1562,13 @@ def test_video():
     if video_result.get('success') and video_result.get('output'):
         query_draft_status_impl_polling(video_result['output']['draft_id'])
         save_draft_impl(video_result['output']['draft_id'], draft_folder)
-        
+
 def test_video_02():
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
 
     print("\nTest: Adding video")
     video_result = add_video_impl(
-        video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4", # Replace with actual video URL
+        video_url="https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4",  # Replace with actual video URL
         start=0,
         end=5,
         width=1920,
@@ -1592,7 +1585,7 @@ def test_video_02():
     print(f"Video adding result: {video_result}")
 
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-hd_1280_720_30fps.mp4", # Replace with actual video URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-hd_1280_720_30fps.mp4",  # Replace with actual video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1608,7 +1601,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_3840_2160_30fps.mp4", # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_3840_2160_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1624,7 +1617,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_426_240_30fps.mp4", # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_426_240_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1640,7 +1633,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_640_360_30fps.mp4", # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-sd_640_360_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1656,7 +1649,7 @@ def test_video_02():
         relative_index=0
     )
     video_result = add_video_impl(
-        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_2560_1440_30fps.mp4", # 替换为实际的视频URL
+        video_url="https://videos.pexels.com/video-files/3129769/3129769-uhd_2560_1440_30fps.mp4",  # replace with a real video URL
         draft_id=video_result['output']['draft_id'],
         start=0,
         end=5,
@@ -1676,7 +1669,7 @@ def test_video_02():
         print(json.loads(query_script_impl(video_result['output']['draft_id'])['output']))
         # query_draft_status_impl_polling(video_result['output']['draft_id'])
         # save_draft_impl(video_result['output']['draft_id'], draft_folder)
-   
+
 def test_stiker_01():
     """Test adding stickers"""
     # Add stickers, test various parameters
@@ -1739,7 +1732,7 @@ def test_stiker_03():
         rotation=45.0,        # Rotate 45 degrees
         scale_x=1.5,          # Horizontal scale 1.5x
         scale_y=1.5,          # Vertical scale 1.5x
-        flip_horizontal=True, # Horizontal flip
+        flip_horizontal=True,  # Horizontal flip
         track_name="stiker_main",
         relative_index=999
     )
@@ -1780,7 +1773,7 @@ def test_transition_01():
         transition_duration=1.0
     )
     print(f"Image 1 added successfully! {image_result['output']['draft_id']}")
-    
+
     print("\nTest: Adding image 2")
     image_result = add_image_impl(
         draft_id=image_result['output']['draft_id'],
@@ -1802,7 +1795,7 @@ def test_transition_01():
 def test_transition_02():
     """Test adding video tracks"""
     draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4" # Replace with actual video URL
+    video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Adding video track")
     video_result = add_video_impl(
@@ -1810,7 +1803,7 @@ def test_transition_02():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Trim first 5 seconds of video
+        end=5.0,  # Trim first 5 seconds of video
         target_start=0,
         track_name="main_video_track",
         transition="Dissolve",
@@ -1825,7 +1818,7 @@ def test_transition_02():
         width=1920,
         height=1080,
         start=0,
-        end=5.0, # Trim first 5 seconds of video
+        end=5.0,  # Trim first 5 seconds of video
         target_start=5.0,
         track_name="main_video_track"
     )
@@ -1857,10 +1850,10 @@ def test_generate_image01():
     print(f"Image generated successfully! {image_result['output']['draft_id']}")
     print(save_draft_impl(image_result['output']['draft_id'], draft_folder))
 
-def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="Chinese", 
-                        speaker_id="爽快思思/Skye",azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
+def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="English",
+                        speaker_id="Skye", azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
                         end_padding=0.0, interval_time=0.5, volume=1.0, width=1080, height=1920,
-                        add_subtitle=True, text_track_name=None, font="文轩体", 
+                        add_subtitle=True, text_track_name=None, font="Poppins_Regular",
                         font_color="#ffffff", font_size=8.0, transform_y=-0.8, transform_x=0,
                         vertical=False, font_alpha=1.0, border_alpha=1.0, border_color="#000000",
                         border_width=0.0, background_color="#000000", background_style=1,
@@ -1905,10 +1898,10 @@ def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="
         "outro_animation": outro_animation,
         "outro_duration": outro_duration
     }
-    
+
     if draft_id:
         data["draft_id"] = draft_id
-        
+
     return make_request("generate_speech", data)
 
 def test_generate_image02():
@@ -1952,10 +1945,11 @@ def test_speech_01():
 
     print("\nTest: Generate TTS speech and add subtitles")
     speech_result = generate_speech_impl(
-        texts=["Hello everyone, welcome to my video", "Today we will discuss an interesting topic","What to do when your child doesn't want to go to school", "Hope you enjoy this content","Hello everyone, welcome to my video", "Today we will discuss an interesting topic","What to do when your child doesn't want to go to school", "Hope you enjoy this content","Hello everyone, welcome to my video", "Today we will discuss an interesting topic","What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
+        texts=["Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic",
+            "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
         language="Chinese",
         draft_id="123",
-        speaker_id="渊博小叔",
+        speaker_id="Skye",
         azure_speaker_id="zh-CN-YunjianNeural",
         speed_ratio=1.0,
         start_offset=1.0,
@@ -1965,7 +1959,7 @@ def test_speech_01():
         width=1080,
         height=1920,
         add_subtitle=True,
-        font="文轩体",
+        font="Poppins_Regular",
         font_color="#ffffff",
         font_size=8.0,
         transform_y=-0.8,
@@ -1975,7 +1969,7 @@ def test_speech_01():
         border_alpha=0.8
     )
     print(f"TTS speech generation result: {speech_result}")
-    
+
     # if speech_result.get('success'):
     #     # Save draft
     #     save_result = save_draft_impl(speech_result['output']['draft_id'], draft_folder)

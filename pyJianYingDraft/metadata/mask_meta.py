@@ -1,24 +1,23 @@
-"""视频蒙版元数据"""
+"""Video mask metadata."""
 
-from .effect_meta import Effect_enum
 
 class Mask_meta:
-    """蒙版元数据"""
+    """Mask metadata."""
 
     name: str
-    """转场名称"""
+    """transition name"""
 
     resource_type: str
-    """资源类型, 与蒙版形状相关"""
+    """Resource type, tied to the mask shape."""
 
     resource_id: str
-    """资源ID"""
+    """resource ID"""
     effect_id: str
-    """效果ID"""
+    """effect ID"""
     md5: str
 
     default_aspect_ratio: float
-    """默认宽高比(宽高都是相对素材的比例)"""
+    """Default aspect ratio; width and height are both relative to the material."""
 
     def __init__(self, name: str, resource_type: str, resource_id: str, effect_id: str, md5: str, default_aspect_ratio: float):
         self.name = name
@@ -28,4 +27,3 @@ class Mask_meta:
         self.md5 = md5
 
         self.default_aspect_ratio = default_aspect_ratio
-
