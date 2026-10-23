@@ -412,8 +412,10 @@ or, on failure:
   session, so capabilities live in an internal catalogue reachable through `search_tools`
 - `pyproject.toml` declared eight dependencies the project never imported and omitted every
   real one; `pip install .` also failed outright on package discovery
-- Licence claims removed pending confirmation of the upstream position: the README asserted
-  Apache 2.0, `pyproject.toml` classified MIT, and no `LICENSE` file existed
+- No licence is declared anywhere. The README asserted Apache 2.0, `pyproject.toml` classified
+  MIT, and no `LICENSE` file existed; all of it is gone. The project is not distributed
+- The HTTP server binds `127.0.0.1` by default. It has no authentication, fetches caller-supplied
+  URLs and writes local files, so it is built for loopback and nothing else
 
 #### Known divergence
 - The HTTP and MCP surfaces disagree on 11 parameter defaults (text colour, subtitle styling,
