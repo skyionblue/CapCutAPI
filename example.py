@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 import sys
 import time
 from util import timing_decorator
@@ -9,6 +10,13 @@ import threading
 # Base URL of the service, please modify according to actual situation
 BASE_URL = "http://localhost:9000"
 LICENSE_KEY = "539C3FEB-74AE48D4-A964D52B-C520F801"  # Using trial version license key
+
+# Where CapCut keeps its drafts for the user running these examples. Override with
+# CAPCUT_DRAFT_FOLDER to point at a different account or a non-default install.
+DRAFT_FOLDER = os.environ.get(
+    "CAPCUT_DRAFT_FOLDER",
+    os.path.expanduser("~/Movies/CapCut/User Data/Projects/com.lveditor.draft"),
+)
 
 def make_request(endpoint, data, method='POST'):
     """Send HTTP request to the server and handle the response"""
@@ -294,8 +302,7 @@ def add_effect(effect_type, start, end, draft_id=None, track_name="effect_01",
 
 def test_effect_01():
     """Test adding effect service"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding effect")
     effect_result = add_effect(
@@ -317,7 +324,7 @@ def test_effect_01():
 
 def test_text():
     """Test adding text"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     # Test case 1: Basic text addition
     print("\nTest: Adding basic text")
@@ -382,8 +389,7 @@ def test_text():
 
 def test_image01():
     """Test adding image"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -404,7 +410,7 @@ def test_image01():
 
 def test_image02():
     """Test adding multiple images"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -441,7 +447,7 @@ def test_image02():
 
 def test_image03():
     """Test adding images to different tracks"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -494,7 +500,7 @@ def test_image03():
 
 def test_image04():
     """Test adding image"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -515,7 +521,7 @@ def test_image04():
 
 def test_mask_01():
     """Test adding images to different tracks"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -572,7 +578,7 @@ def test_mask_01():
 
 def test_mask_02():
     """Test adding videos to different tracks"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
 
@@ -636,8 +642,7 @@ def test_mask_02():
 
 def test_audio01():
     """Test adding audio"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding audio")
     audio_result = add_audio_track(
@@ -657,8 +662,7 @@ def test_audio01():
 
 def test_audio02():
     """Test adding multiple audio segments"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding audio 1")
     audio_result = add_audio_track(
@@ -693,8 +697,7 @@ def test_audio02():
 
 def test_audio03():
     """Test adding audio in a loop"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     draft_id = None  # Initialize draft_id
 
@@ -724,8 +727,7 @@ def test_audio03():
 
 def test_audio04():
     """Test adding audio to different tracks"""
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding audio 1")
     audio_result = add_audio_track(
@@ -892,7 +894,7 @@ def query_draft_status_impl_polling(task_id, timeout=300, callback=None):
     return thread, result_container
 
 def test_subtitle():
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     # Test case: Add text subtitles
     print("\nTest: Adding text subtitles")
@@ -926,8 +928,7 @@ def test_subtitle():
         print(f"Draft save result: {save_result}")
 
 def test01():
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    # draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     # Combined test
     print("\nTest 2: Add audio")
@@ -1078,8 +1079,7 @@ def test01():
     save_draft_impl(keyframe_result['output']['draft_id'], draft_folder)
 
 def test02():
-    # draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
-    draft_folder = "/Users/sunguannan/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     # Combined test
     print("\nTest 2: Add audio")
@@ -1231,7 +1231,7 @@ def test02():
 
 def test_video_track01():
     """Test adding video track"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Add video track")
@@ -1255,7 +1255,7 @@ def test_video_track01():
 
 def test_video_track02():
     """Test adding video tracks in a loop"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
 
@@ -1282,7 +1282,7 @@ def test_video_track02():
 
 def test_video_track03():
     """Test adding videos to different tracks"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
     draft_id = None  # Initialize draft_id
 
@@ -1340,7 +1340,7 @@ def test_video_track03():
 
 def test_video_track04():
     """Test adding video track"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Add video track")
     video_result = add_video_impl(
@@ -1363,7 +1363,7 @@ def test_video_track04():
 
 def test_keyframe():
     """Test adding keyframes"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     draft_id = None  # Initialize draft_id
 
     print("\nTest: Add basic video track")
@@ -1421,7 +1421,7 @@ def test_keyframe():
 
 def test_keyframe_02():
     """Test adding keyframes - Batch adding to implement fade-in and zoom bounce effects"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     draft_id = None  # Initialize draft_id
 
     print("\nTest: Adding basic video track")
@@ -1482,7 +1482,7 @@ def test_keyframe_02():
 
 def test_subtitle_01():
     """Test adding text subtitles"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest 3: Adding text subtitles")
     text_result = add_subtitle_impl(
@@ -1510,7 +1510,7 @@ def test_subtitle_01():
 
 def test_subtitle_02():
     """Test adding text subtitles via SRT URL"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest 3: Adding text subtitles (from URL)")
     text_result = add_subtitle_impl(
@@ -1537,7 +1537,7 @@ def test_subtitle_02():
 
 
 def test_video():
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding video")
     video_result = add_video_impl(
@@ -1671,7 +1671,7 @@ def test_video_02():
 def test_stiker_01():
     """Test adding stickers"""
     # Add stickers, test various parameters
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     result = add_sticker_impl(
         resource_id="7107529669750066445",
         start=1.0,
@@ -1689,7 +1689,7 @@ def test_stiker_01():
 def test_stiker_02():
     """Test adding stickers"""
     # Add stickers, test various parameters
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     result = add_sticker_impl(
         resource_id="7107529669750066445",
         start=1.0,
@@ -1719,7 +1719,7 @@ def test_stiker_02():
 def test_stiker_03():
     """Test adding stickers"""
     # Add stickers, test various parameters
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     result = add_sticker_impl(
         resource_id="7107529669750066445",
         start=1.0,
@@ -1753,7 +1753,7 @@ def test_stiker_03():
 
 def test_transition_01():
     """Test adding multiple images"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = add_image_impl(
@@ -1792,7 +1792,7 @@ def test_transition_01():
 
 def test_transition_02():
     """Test adding video tracks"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
     video_url = "https://cdn.wanx.aliyuncs.com/wanx/1719234057367822001/text_to_video/092faf3c94244973ab752ee1280ba76f.mp4?spm=5176.29623064.0.0.41ed26d6cBOhV3&file=092faf3c94244973ab752ee1280ba76f.mp4"  # Replace with actual video URL
 
     print("\nTest: Adding video track")
@@ -1830,7 +1830,7 @@ def test_transition_02():
 
 def test_generate_image01():
     """Test adding image"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = generate_image_impl(
@@ -1904,7 +1904,7 @@ def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="
 
 def test_generate_image02():
     """Test adding image"""
-    draft_folder = "/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft"
+    draft_folder = DRAFT_FOLDER
 
     print("\nTest: Adding image 1")
     image_result = generate_image_impl(

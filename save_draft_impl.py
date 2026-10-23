@@ -641,6 +641,17 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
     # Copy draft folder
     shutil.copytree(template_path, new_draft_path)
 
+    # The template ships these two fields blank because the folder it will live in is
+    # only known now. Leaving them unset makes CapCut treat the draft as misplaced.
+    meta_path = os.path.join(new_draft_path, 'draft_meta_info.json')
+    if os.path.exists(meta_path):
+        with open(meta_path, 'r', encoding='utf-8') as meta_file:
+            meta = json.load(meta_file)
+        meta['draft_fold_path'] = new_draft_path
+        meta['draft_root_path'] = draft_folder
+        with open(meta_path, 'w', encoding='utf-8') as meta_file:
+            json.dump(meta, meta_file, ensure_ascii=False, separators=(',', ':'))
+
     try:
         # 1. Fetch the script from the remote endpoint
         if script_data is None:
@@ -769,4 +780,4 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
 
 if __name__ == "__main__":
     print('hello')
-    download_script("dfd_cat_1751012163_a7e8c315", '/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft')
+    download_script("dfd_cat_1751012163_a7e8c315", os.path.expanduser('~/Movies/CapCut/User Data/Projects/com.lveditor.draft'))
