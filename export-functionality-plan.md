@@ -239,7 +239,7 @@ stroke, shadow, background box and text animation are lost; keyframes use static
 
 ### Phase 4 — Interchange and bundle exports (quick wins)
 
-- [ ] `export_draft`: zip the draft folder with assets and relative paths so a draft is portable
+- [x] `export_draft`: zip the draft folder with assets and relative paths so a draft is portable
       between machines (today `place_draft_locally` only handles the local case).
 - [x] `export_subtitles`: write SRT from the draft's text/subtitle segments — `add_subtitle_impl.py`
       already parses SRT in, so this closes the round trip.

@@ -2,7 +2,7 @@
 
 **Created:** 2026-10-22
 **Status (2026-10-23):** Tier A, Tier B and Phase C1 COMPLETE; CI deferred by decision.
-C2 Group 1 defects fixed, the remaining 11 divergences BLOCKED on a behaviour decision.
+C2 Group 1 defects fixed and the remaining 11 divergences DECIDED; the refactor itself is outstanding.
 C5 in progress (836 → 479 findings).
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
@@ -182,6 +182,146 @@ fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either w
    that exclusion never matched on macOS or Linux, and the `capcut_*` metadata tables were not
    excluded at all. Replaced with a single directory exclusion; `.venv` is now excluded too
    (linting it produced 83,566 findings).
+
+### Phase C2 — Remove the duplicated server layers — **DECIDED, refactor outstanding**
+
+Groundwork complete; the refactor itself is not, because it cannot be done without changing
+user-facing behaviour.
+
+#### What the investigation found
+
+The two surfaces are not symmetrical duplication:
+
+* **MCP is already thin** — `add_video_track(**arguments)` forwards the caller's arguments
+  straight through, so an omitted argument gets the *implementation's* default.
+* **HTTP re-declares every parameter** — `data.get(name, default)` — so an omitted argument
+  gets whatever default `capcut_server.py` happens to specify.
+
+Those two sets of defaults **have already drifted apart**. The same logical call produces
+different output depending on which transport made it:
+
+| Route | Parameter | HTTP sends | MCP sends |
+|---|---|---|---|
+| `add_video` | `track_name` | `video_main` | `main` |
+| `add_text` | `transform_y` | `0` | `-0.8` |
+| `add_text` | `font_color` | `#FF0000` (red) | `#ffffff` (white) |
+| `add_text` | `background_style` | `0` | `1` |
+| `add_image` | `track_name` | `image_main` | `main` |
+| `add_subtitle` | `font_size` | `5.0` | `8.0` |
+| `add_subtitle` | `background_style` | `0` | `1` |
+| `add_subtitle` | `vertical` | `False` | `True` |
+| `add_subtitle` | `alpha` | `1` | `0.4` |
+| `add_video_keyframe` | `track_name` | `video_main` | `main` |
+
+One further divergence in `add_sticker`: HTTP defaults `end` to `5.0`, while the implementation
+requires it and the MCP schema lists it as required.
+
+**Group 1 — two outright defects — were fixed separately** (PR #8): `add_video`'s `end`
+defaulting to `0`, and `add_sticker`'s argument being named `sticker_id` over HTTP but
+`resource_id` everywhere else. **11 divergences remain**, all genuine preferences.
+
+#### Done
+
+- [x] `tests/test_dispatch_parity.py` — characterization tests pinning all 13 divergences plus
+      the defaults the surfaces agree on, the `{success, output, error}` HTTP envelope, and
+      that validation runs before the implementation is invoked. 40 tests.
+      They record what the code does today, not what it should do.
+
+#### Design constraint discovered
+
+`mcp_server.py` is **not** a duplicate of the HTTP layer to be merged away. It is a deliberate
+2-tool gateway: 21 catalogue entries, 2 advertised tools. Advertising one tool per capability
+would load every schema into the model's context for the entire session — `add_video` alone
+takes over twenty parameters — so discovery lives behind `search_tools` instead.
+
+This changes the shape of the phase. The shared dispatch layer this plan asked for **already
+exists**: it is `TOOLS` plus `execute_tool`. The MCP side is already thin; the HTTP side is the
+one that re-declares everything. So the work is not "merge the two servers" but "make
+`capcut_server.py` a thin adapter over the catalogue the gateway already uses".
+
+That framing also decides the divergences by construction: if HTTP stops declaring its own
+defaults, it inherits the implementation's — which is exactly the breaking change below.
+
+Constraints any refactor must hold:
+
+- [ ] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
+      and an `execute_tool` branch, never a new registered tool function.
+- [ ] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
+
+#### Blocked
+
+- [ ] **Decide how to resolve each divergence.** Unifying changes behaviour for one transport:
+      adopting the implementation defaults changes long-standing HTTP behaviour (text turns
+      white instead of red, subtitles become vertical at 0.4 alpha); adopting the HTTP defaults
+      changes what MCP callers get today. This is a user-facing decision, not a refactor
+      detail, and it should be taken divergence by divergence.
+- [ ] Extract the shared dispatch layer once the target behaviour is settled.
+- [ ] Preserve both response shapes exactly — HTTP `{success, output, error}`, MCP
+      `{success, result}`.
+
+**Why not refactor first and unify later:** a shared dispatch layer has to pick one default per
+parameter. Doing that before the decision would silently change behaviour in 13 places, which
+is the opposite of what a refactor should do.
+
+**Coverage note:** the suite covers the export pipeline, draft persistence, save modes and now
+dispatch parity — but still not the internals of the 18 non-export tools. The parity tests make
+the refactor much safer than it was, not risk-free.
+
+#### Decisions taken (2026-10-23)
+
+**Group 2 — `track_name`: keep HTTP's type-specific names; move the implementation to match.**
+`video_main` / `image_main` / `sticker_main` become the single default. HTTP callers are
+unaffected; MCP callers' content moves to differently-named tracks. Chosen because a generic
+`main` would have video and image segments sharing a track name.
+
+**Group 3 — styling defaults: decided per parameter, not per surface.** Red default text and
+0.4-alpha subtitles read as leftover debugging values rather than intent:
+
+| Route | Parameter | Decision | Was |
+|---|---|---|---|
+| `add_text` | `font_color` | `#ffffff` white | HTTP `#FF0000`, impl `#ffffff` |
+| `add_text` | `transform_y` | `0` centre | HTTP `0`, impl `-0.8` |
+| `add_text` | `background_style` | `0` none | HTTP `0`, impl `1` |
+| `add_subtitle` | `font_size` | `8.0` | HTTP `5.0`, impl `8.0` |
+| `add_subtitle` | `vertical` | `False` | HTTP `False`, impl `True` |
+| `add_subtitle` | `alpha` | `1` opaque | HTTP `1`, impl `0.4` |
+
+Four keep the HTTP value, two keep the implementation's. MCP output changes for `font_color`,
+`transform_y`, `background_style`, `vertical` and `alpha`; HTTP output changes for `font_size`.
+
+**`add_sticker` `end`:** give the implementation a `5.0` default so both surfaces agree, rather
+than making HTTP callers start supplying it.
+
+#### Remaining work
+
+- [ ] Apply the decided defaults to the implementations and update the MCP schemas to match.
+- [ ] Make `capcut_server.py` a thin adapter over the `TOOLS` catalogue and `execute_tool`.
+- [ ] Convert `tests/test_dispatch_parity.py` divergence-by-divergence: each test that asserts
+      a difference becomes one that asserts agreement. They are the safety net for this
+      refactor, so convert deliberately rather than rewriting the file.
+- [ ] Preserve both response shapes — HTTP `{success, output, error}`, MCP `{success, result}` —
+      and the two-tool advertised surface.
+
+### Phase C3 — Harden before any non-local exposure
+
+Not urgent for local use; required before the HTTP API is reachable from anywhere else.
+
+- [ ] `add_video`/`add_audio`/`add_image` fetch arbitrary caller-supplied URLs server-side — an
+      SSRF vector. Add host allow-listing or outbound restrictions if exposed.
+- [ ] No authentication on any HTTP route.
+- [ ] Review `download_file` write paths for traversal via crafted material names
+      (`delete_draft` is already guarded; the download path has not been reviewed).
+- [ ] Document explicitly that the server is intended for localhost use.
+
+### Phase C4 — Finish the export plan's Tier 4 — **partially delivered**
+
+Carried over from `export-functionality-plan.md`, all optional:
+
+- [x] `export_draft` — portable zip of a draft with its media and relocatable paths.
+- [x] `export_subtitles` — SRT out, completing the round trip with `add_subtitle_impl.py`.
+- [ ] `export_timeline` — OpenTimelineIO, for finishing in Resolve/Premiere/FCP.
+- [ ] ffmpeg backend: crossfade transitions (`xfade`) and keyframe approximation, both currently
+      reported as fidelity warnings.
 
 ### Phase C5 — Burn down the legacy lint debt — **IN PROGRESS (2026-10-23)**
 

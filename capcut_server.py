@@ -22,6 +22,7 @@ from add_video_keyframe_impl import add_video_keyframe_impl
 from save_draft_impl import save_draft_impl, query_task_status, query_script_impl
 from export_impl import export_video, query_export_status, export_preflight
 from export_subtitles_impl import export_subtitles_impl
+from export_draft_impl import export_draft_impl
 from add_effect_impl import add_effect_impl
 from add_sticker_impl import add_sticker_impl
 from create_draft import create_draft
@@ -1318,6 +1319,45 @@ def export_subtitles_service():
 
     except Exception as e:
         error_message = f"Error occurred while exporting subtitles: {str(e)}."
+        result["error"] = error_message
+        return jsonify(result)
+
+
+@app.route('/export_draft', methods=['POST'])
+def export_draft_service():
+    data = request.get_json()
+
+    draft_id = data.get('draft_id')
+
+    result = {
+        "success": False,
+        "output": "",
+        "error": ""
+    }
+
+    # Validate required parameters
+    if not draft_id:
+        error_message = "Hi, the required parameter 'draft_id' is missing. Please add it and try again."
+        result["error"] = error_message
+        return jsonify(result)
+
+    try:
+        bundle = export_draft_impl(
+            draft_id=draft_id,
+            output_path=data.get('output_path'),
+            draft_folder=data.get('draft_folder')
+        )
+
+        if not bundle.get("success"):
+            result["error"] = bundle.get("error", "Draft bundling failed")
+            return jsonify(result)
+
+        result["success"] = True
+        result["output"] = bundle
+        return jsonify(result)
+
+    except Exception as e:
+        error_message = f"Error occurred while bundling draft: {str(e)}."
         result["error"] = error_message
         return jsonify(result)
 

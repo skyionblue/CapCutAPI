@@ -81,13 +81,14 @@
 | 🎭 **Sticker System** | ✅ | ✅ | Sticker assets, position control, animation effects |
 | 🎯 **Keyframes** | ✅ | ✅ | Property animations, timeline control, easing functions |
 | 📊 **Media Analysis** | ✅ | ✅ | Video duration detection, format analysis |
+| 📦 **Draft Bundling** | ✅ | ✅ | Zip a draft with its media into a portable bundle |
 | 📤 **Subtitle Export** | ✅ | ✅ | Write a draft's text segments back out as an SRT file |
 | 🎞️ **Video Export** | ✅ | ✅ | Render a draft to a finished MP4 — full fidelity via CapCut, or headless via ffmpeg |
 
 ### 🛠️ API Interface Overview
 
 <details>
-<summary><b>📡 HTTP API Endpoints (29 endpoints)</b></summary>
+<summary><b>📡 HTTP API Endpoints (30 endpoints)</b></summary>
 
 🎬 Draft Management
 ├── POST /create_draft        # Create new draft
@@ -98,7 +99,8 @@
 ├── POST /export_video        # Export a saved draft to a video file (async)
 ├── POST /query_export_status # Poll an export task's status by task_id
 ├── GET  /export_preflight    # Report which export backends are available here
-└── POST /export_subtitles    # Write a draft's text segments out as an SRT file
+├── POST /export_subtitles    # Write a draft's text segments out as an SRT file
+└── POST /export_draft        # Bundle a draft and its media into a portable zip
 
 🎥 Media Assets
 ├── POST /add_video           # Add video material
@@ -131,7 +133,7 @@
 </details>
 
 <details>
-<summary><b>🔧 MCP Tool Set (22 tools, via a 2-tool <code>search_tools</code>/<code>invoke_tool</code> gateway)</b></summary>
+<summary><b>🔧 MCP Tool Set (23 tools, via a 2-tool <code>search_tools</code>/<code>invoke_tool</code> gateway)</b></summary>
 
 `mcp_server.py` exposes exactly two top-level MCP tools — `search_tools(query)` to discover capabilities and `invoke_tool(name, arguments)` to run one — so the list below is what `invoke_tool` dispatches to, not top-level MCP tools themselves. See `MCP_Documentation_English.md` for the full reference and usage examples.
 
@@ -145,7 +147,8 @@
 ├── export_video            # Export a saved draft to a video file (async)
 ├── query_export_status     # Poll an export task's status by task_id
 ├── export_preflight        # Report which export backends are available here
-└── export_subtitles        # Write a draft's text segments out as an SRT file
+├── export_subtitles        # Write a draft's text segments out as an SRT file
+└── export_draft            # Bundle a draft and its media into a portable zip
 
 🎥 Media Editing
 ├── add_video               # Video track + transitions + full mask control + keyframable properties
@@ -483,6 +486,24 @@ curl -X POST http://localhost:9001/query_draft_status \
 
 When it completes, the status carries `local_path` — where the draft landed in CapCut's drafts
 folder.
+
+### Portable Draft Bundles
+
+`save_draft` writes a draft CapCut can open **on this machine** — the media it references
+usually lives somewhere else on disk, so zipping the folder by hand produces a bundle that opens
+with every clip missing.
+
+`export_draft` collects the referenced media as well and rewrites each path into CapCut's own
+relocatable form, so the zip can be unpacked into a drafts folder on another machine and opened.
+
+```bash
+curl -X POST http://localhost:9001/export_draft \
+  -H "Content-Type: application/json" \
+  -d '{"draft_id": "dfd_...", "output_path": "~/Desktop"}'
+```
+
+Returns `bundled_files`, `size_bytes` and `missing_media` — any referenced file it could not
+find is reported rather than quietly left out.
 
 ### Subtitle Export
 

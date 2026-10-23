@@ -18,7 +18,7 @@ This keeps the top-level MCP tool count fixed at 2 no matter how much CapCut fun
 - **Precise Control**: Timeline, layer stacking order, and full mask/animation parameter access
 - **Discoverability**: Enum lookups so effect/mask/font/transition names never have to be guessed
 
-### 🛠️ Available Tools (22 tools, via `invoke_tool`)
+### 🛠️ Available Tools (23 tools, via `invoke_tool`)
 
 | Tool Name | Description | Key Parameters |
 |-----------|-------------|----------------|
@@ -42,6 +42,7 @@ This keeps the top-level MCP tool count fixed at 2 no matter how much CapCut fun
 | `export_video` | Export a saved draft to a video file. Async — returns a `task_id`; poll `query_export_status`. `capcut` backend is full fidelity but needs a visible macOS GUI session and cannot set encoder options; `ffmpeg` is headless and honours `resolution`/`framerate`/`bitrate` but renders only cuts, transforms, audio and basic text, reporting everything it dropped in `fidelity_warnings` | `draft_id`, `backend`, `output_path`, `resolution`, `framerate`, `bitrate`, `draft_folder` |
 | `query_export_status` | Poll an export started by `export_video`; returns `status`, `progress`, `output_path`, `video_url`, `fidelity_warnings` | `task_id` |
 | `export_subtitles` | Write a draft's text segments out as an SRT file — the reverse of `add_subtitle`. Returns the SRT inline; `output_path` also writes it to disk | `draft_id`, `output_path`, `track_name`, `time_offset` |
+| `export_draft` | Bundle a saved draft **and the media it uses** into a portable zip, with paths rewritten to CapCut's relocatable form so it opens on another machine | `draft_id`, `output_path`, `draft_folder` |
 | `export_preflight` | Report which export backends can run here, their fidelity, and why any are unavailable | *(none)* |
 | `delete_draft` | Permanently remove a draft folder from the local CapCut drafts folder (path-traversal guarded) | `draft_id` |
 
@@ -354,6 +355,9 @@ or, on failure:
 - `save_draft` can now run in the background: pass `wait=false` for a `task_id` and poll
   `query_draft_status`, whose result carries `local_path` on completion. The default is
   unchanged, so existing callers still get a synchronous result
+
+#### Portability
+- Added `export_draft` — bundles a saved draft together with the media it references and rewrites paths into CapCut's relocatable form, so the zip opens on another machine. Zipping a draft folder alone does not achieve this, because the media usually lives elsewhere on disk
 
 #### Subtitles
 - Added `export_subtitles` — a draft's text segments can be written back out as SRT, completing the round trip with `add_subtitle` and letting captions ship as a separate file rather than burned into the video
