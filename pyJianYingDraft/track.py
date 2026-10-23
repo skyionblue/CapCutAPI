@@ -78,7 +78,7 @@ class Track(Base_track, Generic[Seg_type]):
 
     segments: List[Seg_type]
     """该轨道包含的片段列表"""
-    
+
     pending_keyframes: List[Dict[str, Any]]
     """待处理的关键帧列表"""
 
@@ -91,7 +91,7 @@ class Track(Base_track, Generic[Seg_type]):
         self.mute = mute
         self.segments = []
         self.pending_keyframes = []
-        
+
     def add_pending_keyframe(self, property_type: str, time: float, value: str) -> None:
         """添加待处理的关键帧
         
@@ -105,33 +105,33 @@ class Track(Base_track, Generic[Seg_type]):
             "time": time,
             "value": value
         })
-        
+
     def process_pending_keyframes(self) -> None:
         """处理所有待处理的关键帧"""
         if not self.pending_keyframes:
             return
-            
+
         for kf_info in self.pending_keyframes:
             property_type = kf_info["property_type"]
             time = kf_info["time"]
             value = kf_info["value"]
-            
+
             try:
                 # 找到时间点对应的片段（时间单位：微秒）
                 target_time = int(time * 1000000)  # 将秒转换为微秒
                 target_segment = next(
-                    (segment for segment in self.segments 
+                    (segment for segment in self.segments
                      if segment.target_timerange.start <= target_time <= segment.target_timerange.end),
                     None
                 )
-                        
+
                 if target_segment is None:
                     print(f"警告：在轨道 {self.name} 的时间点 {time}s 找不到对应的片段，跳过此关键帧")
                     continue
-                    
+
                 # 将属性类型字符串转换为枚举值
                 property_enum = getattr(draft.Keyframe_property, property_type)
-                    
+
                 # 解析value值
                 if property_type == 'alpha' and value.endswith('%'):
                     float_value = float(value[:-1]) / 100
@@ -148,16 +148,16 @@ class Track(Base_track, Generic[Seg_type]):
                         float_value = float(value)
                 else:
                     float_value = float(value)
-                    
+
                 # 计算时间偏移量
                 offset_time = target_time - target_segment.target_timerange.start
-                    
+
                 # 添加关键帧
                 target_segment.add_keyframe(property_enum, offset_time, float_value)
                 print(f"成功添加关键帧: {property_type} 在 {time}s")
             except Exception as e:
                 print(f"添加关键帧失败: {str(e)}")
-        
+
         # 清空待处理的关键帧
         self.pending_keyframes = []
 

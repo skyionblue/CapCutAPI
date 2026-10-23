@@ -453,11 +453,11 @@ class Video_segment(Visual_segment):
         # 获取草稿的宽高，而不是使用素材的宽高
         draft_width = draft.width
         draft_height = draft.height
-        
+
         width = rect_width or size * draft_height * mask_type.value.default_aspect_ratio / draft_width
         self.mask = Mask(mask_type.value, center_x / (draft_width / 2), center_y / (draft_height / 2),
                          w=width, h=size, ratio=mask_type.value.default_aspect_ratio,
-                         rot=rotation, inv=invert, feather=feather/100, round_corner=round_corner/100)
+                         rot=rotation, inv=invert, feather=feather / 100, round_corner=round_corner / 100)
         self.extra_material_refs.append(self.mask.global_id)
         return self
 

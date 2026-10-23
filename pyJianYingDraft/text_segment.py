@@ -246,7 +246,7 @@ class TextEffect(TextBubble):
 
 class TextStyleRange:
     """文本样式范围类，用于定义文本特定范围的样式"""
-    
+
     start: int
     """起始位置（包含）"""
     end: int
@@ -257,8 +257,8 @@ class TextStyleRange:
     """文本描边参数，None表示无描边"""
     font: Optional[Effect_meta]
     """字体设置，None表示使用全局字体"""
-    
-    def __init__(self, start: int, end: int, style: Text_style, border: Optional[Text_border] = None, font_str:str = None):
+
+    def __init__(self, start: int, end: int, style: Text_style, border: Optional[Text_border] = None, font_str: str = None):
         """创建文本样式范围
         
         Args:
@@ -279,7 +279,7 @@ class TextStyleRange:
                 available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
                 raise ValueError(f"不支持的字体：{font_str}，请使用Font_type中的字体之一：{available_fonts}")
             self.font = font_type
-    
+
     def get_range(self) -> List[int]:
         """获取范围列表
         
@@ -310,12 +310,12 @@ class Text_segment(Visual_segment):
     """文本气泡效果, 在放入轨道时加入素材列表中"""
     effect: Optional[TextEffect]
     """文本花字效果, 在放入轨道时加入素材列表中, 目前仅支持一部分花字效果"""
-    
+
     fixed_width: float
     """固定宽度, -1表示不固定"""
     fixed_height: float
     """固定高度, -1表示不固定"""
-    
+
     text_styles: List[TextStyleRange]
     """文本的多种样式列表"""
 
@@ -348,10 +348,10 @@ class Text_segment(Visual_segment):
         self.border = border
         self.background = background
         self.shadow = shadow
-    
+
         self.bubble = None
         self.effect = None
-        
+
         self.fixed_width = fixed_width
         self.fixed_height = fixed_height
         self.text_styles = []
@@ -361,7 +361,7 @@ class Text_segment(Visual_segment):
         # 添加新的样式范围
         self.text_styles.append(textStyleRange)
         return self
-        
+
 
     @classmethod
     def create_from_template(cls, text: str, timerange: Timerange, template: "Text_segment") -> "Text_segment":
@@ -446,14 +446,14 @@ class Text_segment(Visual_segment):
             check_flag |= 16
         if self.shadow and self.shadow.has_shadow:  # 如果有阴影且启用了阴影
             check_flag |= 32  # 添加阴影标志
-    
+
         # 构建styles数组
         styles = []
-        
+
         if self.text_styles:
             # 创建一个排序后的样式范围列表
             sorted_styles = sorted(self.text_styles, key=lambda x: x.start)
-            
+
             # 检查是否需要在开头添加默认样式
             if sorted_styles[0].start > 0:
                 # 添加从0到第一个样式开始的默认样式
@@ -475,7 +475,7 @@ class Text_segment(Visual_segment):
                     "underline": self.style.underline,
                     "strokes": [self.border.export_json()] if self.border else []
                 }
-                
+
                 # 如果有阴影设置，添加到样式中
                 if self.shadow and self.shadow.has_shadow:
                     style_item["shadows"] = [
@@ -484,32 +484,32 @@ class Text_segment(Visual_segment):
                             "angle": self.shadow.angle,
                             "content": {
                                 "solid": {
-                                    "color": [int(self.shadow.color[1:3], 16)/255, 
-                                             int(self.shadow.color[3:5], 16)/255, 
-                                             int(self.shadow.color[5:7], 16)/255]
+                                    "color": [int(self.shadow.color[1:3], 16) / 255,
+                                             int(self.shadow.color[3:5], 16) / 255,
+                                             int(self.shadow.color[5:7], 16) / 255]
                                 }
                             },
                             "distance": self.shadow.distance,
                             "alpha": self.shadow.alpha
                         }
                     ]
-                
+
                 # 如果有全局字体设置，添加到样式中
                 if self.font:
                     default_style["font"] = {
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
+
                 # 如果有特效设置，添加到样式中
                 if self.effect:
                     default_style["effectStyle"] = {
                         "id": self.effect.effect_id,
                         "path": "C:"  # 并不会真正在此处放置素材文件
                     }
-                    
+
                 styles.append(default_style)
-            
+
             # 处理每个样式范围
             for i, style_range in enumerate(sorted_styles):
                 # 添加当前样式范围的样式
@@ -531,7 +531,7 @@ class Text_segment(Visual_segment):
                     "underline": style_range.style.underline,
                     "strokes": [style_range.border.export_json()] if style_range.border else []
                 }
-                
+
                 # 如果TextStyleRange有字体设置，优先使用它
                 if hasattr(style_range, 'font') and style_range.font:
                     style_item["font"] = {
@@ -544,18 +544,18 @@ class Text_segment(Visual_segment):
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
+
                 # 如果有特效设置，添加到样式中
                 if self.effect:
                     style_item["effectStyle"] = {
                         "id": self.effect.effect_id,
                         "path": "C:"  # 并不会真正在此处放置素材文件
                     }
-                    
+
                 styles.append(style_item)
-                
+
                 # 检查是否需要在当前样式和下一个样式之间添加默认样式
-                if i < len(sorted_styles) - 1 and style_range.end < sorted_styles[i+1].start:
+                if i < len(sorted_styles) - 1 and style_range.end < sorted_styles[i + 1].start:
                     # 添加从当前样式结束到下一个样式开始的默认样式
                     gap_style = {
                         "fill": {
@@ -568,30 +568,30 @@ class Text_segment(Visual_segment):
                                 }
                             }
                         },
-                        "range": [style_range.end, sorted_styles[i+1].start],
+                        "range": [style_range.end, sorted_styles[i + 1].start],
                         "size": self.style.size,
                         "bold": self.style.bold,
                         "italic": self.style.italic,
                         "underline": self.style.underline,
                         "strokes": [self.border.export_json()] if self.border else []
                     }
-                    
+
                     # 如果有全局字体设置，添加到样式中
                     if self.font:
                         gap_style["font"] = {
                             "id": self.font.resource_id,
                             "path": "C:/%s.ttf" % self.font.name
                         }
-                    
+
                     # 如果有特效设置，添加到样式中
                     if self.effect:
                         gap_style["effectStyle"] = {
                             "id": self.effect.effect_id,
                             "path": "C:"  # 并不会真正在此处放置素材文件
                         }
-                        
+
                     styles.append(gap_style)
-            
+
             # 检查是否需要在最后一个样式之后添加默认样式
             if sorted_styles[-1].end < len(self.text):
                 # 添加从最后一个样式结束到文本结尾的默认样式
@@ -613,21 +613,21 @@ class Text_segment(Visual_segment):
                     "underline": self.style.underline,
                     "strokes": [self.border.export_json()] if self.border else []
                 }
-                
+
                 # 如果有全局字体设置，添加到样式中
                 if self.font:
                     end_style["font"] = {
                         "id": self.font.resource_id,
                         "path": "C:/%s.ttf" % self.font.name
                     }
-                
+
                 # 如果有特效设置，添加到样式中
                 if self.effect:
                     end_style["effectStyle"] = {
                         "id": self.effect.effect_id,
                         "path": "C:"  # 并不会真正在此处放置素材文件
                     }
-                    
+
                 styles.append(end_style)
         else:
             # 如果text_styles为空，使用全局样式创建一个默认的style
@@ -649,7 +649,7 @@ class Text_segment(Visual_segment):
                 "underline": self.style.underline,
                 "strokes": [self.border.export_json()] if self.border else []
             }
-            
+
             # 如果有阴影设置，添加到样式中
             if self.shadow and self.shadow.has_shadow:
                 style_item["shadows"] = [
@@ -658,30 +658,30 @@ class Text_segment(Visual_segment):
                         "angle": self.shadow.angle,
                         "content": {
                             "solid": {
-                                "color": [int(self.shadow.color[1:3], 16)/255, 
-                                            int(self.shadow.color[3:5], 16)/255, 
-                                            int(self.shadow.color[5:7], 16)/255]
+                                "color": [int(self.shadow.color[1:3], 16) / 255,
+                                            int(self.shadow.color[3:5], 16) / 255,
+                                            int(self.shadow.color[5:7], 16) / 255]
                             }
                         },
                         "distance": self.shadow.distance,
                         "alpha": self.shadow.alpha
                     }
                 ]
-                
+
             # 如果有全局字体设置，添加到样式中
             if self.font:
                 style_item["font"] = {
                     "id": self.font.resource_id,
                     "path": "C:/%s.ttf" % self.font.name  # 并不会真正在此处放置字体文件
                 }
-            
+
             # 如果有特效设置，添加到样式中
             if self.effect:
                 style_item["effectStyle"] = {
                     "id": self.effect.effect_id,
                     "path": "C:"  # 并不会真正在此处放置素材文件
                 }
-                
+
             styles.append(style_item)
 
         content_json = {
@@ -705,7 +705,7 @@ class Text_segment(Visual_segment):
             "check_flag": check_flag,
 
             "type": "text",
-            
+
             "fixed_width": self.fixed_width,
             "fixed_height": self.fixed_height,
 
@@ -766,10 +766,10 @@ class Text_segment(Visual_segment):
 
         if self.background:
             ret.update(self.background.export_json())
-        
+
         # 添加阴影参数
         if self.shadow and self.shadow.has_shadow:
             shadow_json = self.shadow.export_json()
             ret.update(shadow_json)  # 将阴影参数合并到返回的字典中
-        
+
         return ret

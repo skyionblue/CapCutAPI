@@ -22,7 +22,7 @@ def tim(inp: Union[str, float]) -> int:
 
     last_index: int = 0
     total_time: float = 0
-    for unit, factor in zip(["h", "m", "s"], [3600*SEC, 60*SEC, SEC]):
+    for unit, factor in zip(["h", "m", "s"], [3600 * SEC, 60 * SEC, SEC]):
         unit_index = inp.find(unit)
         if unit_index == -1: continue
 
@@ -94,6 +94,6 @@ def srt_tstamp(srt_tstamp: str) -> int:
     parts = sec_str.split(":") + [ms_str]
 
     total_time = 0
-    for value, factor in zip(parts, [3600*SEC, 60*SEC, SEC, 1000]):
+    for value, factor in zip(parts, [3600 * SEC, 60 * SEC, SEC, 1000]):
         total_time += int(value) * factor
     return total_time

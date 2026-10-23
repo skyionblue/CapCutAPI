@@ -302,7 +302,7 @@ class Script_file:
             NameError: 指定了轨道名称但未找到对应轨道
         """
         result_tracks = []
-        
+
         # 如果指定了轨道名称
         if track_name is not None:
             # 在普通轨道中查找
@@ -327,7 +327,7 @@ class Script_file:
                 raise NameError("不存在接受 '%s' 的轨道" % segment_type)
             if len(result_tracks) > 1:
                 raise NameError("存在多个接受 '%s' 的轨道, 请指定轨道名称" % segment_type)
-        
+
         return result_tracks
 
     def add_segment(self, segment: Union[Video_segment, Sticker_segment, Audio_segment, Text_segment],
@@ -344,7 +344,7 @@ class Script_file:
             `SegmentOverlap`: 新片段与已有片段重叠
         """
         tracks = self._get_track_and_imported_track(type(segment), track_name)
-        target = tracks[0] 
+        target = tracks[0]
 
         # 加入轨道并更新时长
         target.add_segment(segment)
@@ -524,7 +524,7 @@ class Script_file:
                 fixed_width = int(1080 * 0.6)
             else:  # 横屏
                 fixed_width = int(1920 * 0.7)
-            
+
             if style_reference:
                 seg = Text_segment.create_from_template(text, t_range, style_reference)
                 if clip_settings is not None:
@@ -546,7 +546,7 @@ class Script_file:
             else:
                 seg = Text_segment(text, t_range, style=text_style, clip_settings=clip_settings,
                                   border=border, background=background,
-                                  font = font_type,
+                                  font=font_type,
                                   fixed_width=fixed_width)
                 # 添加气泡和花字效果
                 if bubble:
@@ -571,7 +571,7 @@ class Script_file:
                     index += 1
                     continue
                 if not line.isdigit():
-                    raise ValueError("Expected a number at line %d, got '%s'" % (index+1, line))
+                    raise ValueError("Expected a number at line %d, got '%s'" % (index + 1, line))
                 index += 1
                 read_state = "timestamp"
             elif read_state == "timestamp":
