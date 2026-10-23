@@ -119,7 +119,8 @@ class CapCut_Voice_characters_effect_type(Effect_enum):
         - change_voice_param_pitch: default 0.50, 0.00 ~ 1.00
         - change_voice_param_timbre: default 0.50, 0.00 ~ 1.00
     """
-    Trickster    = Effect_meta("Trickster", False, "7254407946195440130", "11F394B0-E601-4DD5-BBEA-76A8CADE222A", "8dd8889045e6c065177df791ddb3dfb8", [])
+    Trickster    = Effect_meta("Trickster", False, "7254407946195440130",
+                               "11F394B0-E601-4DD5-BBEA-76A8CADE222A", "8dd8889045e6c065177df791ddb3dfb8", [])
     Elf          = Effect_meta("Elf", False, "7021052754512581122", "EF781DEC-265B-4B6D-A68E-5EDC75DDCA84", "bbf0f0d1532a249e9a1f7f3444e1e437", [
                               Effect_param("change_voice_param_pitch", 0.750, 0.000, 1.000),
                               Effect_param("change_voice_param_timbre", 0.600, 0.000, 1.000)])
@@ -127,10 +128,14 @@ class CapCut_Voice_characters_effect_type(Effect_enum):
         - change_voice_param_pitch: default 0.75, 0.00 ~ 1.00
         - change_voice_param_timbre: default 0.60, 0.00 ~ 1.00
     """
-    Elfy         = Effect_meta("Elfy", False, "7311544785477571074", "58E4D6DE-5D7A-42C8-BE16-1AFF43666512", "8dd8889045e6c065177df791ddb3dfb8", [])
-    Santa        = Effect_meta("Santa", False, "7311544442723242497", "8E8A0DA9-1267-41E6-AFA4-20B2A4171BA4", "8dd8889045e6c065177df791ddb3dfb8", [])
-    Jessie       = Effect_meta("Jessie", False, "7254408415026352642", "F3EBF9DB-195D-4531-94A8-F52964DB0C83", "8dd8889045e6c065177df791ddb3dfb8", [])
-    Good_Guy     = Effect_meta("Good Guy", False, "7259231960889823746", "27D9D7EC-BFF2-4481-92D0-40E3CBF9C2FB", "8dd8889045e6c065177df791ddb3dfb8", [])
+    Elfy         = Effect_meta("Elfy", False, "7311544785477571074", "58E4D6DE-5D7A-42C8-BE16-1AFF43666512",
+                               "8dd8889045e6c065177df791ddb3dfb8", [])
+    Santa        = Effect_meta("Santa", False, "7311544442723242497", "8E8A0DA9-1267-41E6-AFA4-20B2A4171BA4",
+                               "8dd8889045e6c065177df791ddb3dfb8", [])
+    Jessie       = Effect_meta("Jessie", False, "7254408415026352642",
+                               "F3EBF9DB-195D-4531-94A8-F52964DB0C83", "8dd8889045e6c065177df791ddb3dfb8", [])
+    Good_Guy     = Effect_meta("Good Guy", False, "7259231960889823746",
+                               "27D9D7EC-BFF2-4481-92D0-40E3CBF9C2FB", "8dd8889045e6c065177df791ddb3dfb8", [])
     Robot        = Effect_meta("Robot", False, "7021052669863137794", "DD71C5CB-683A-4FFA-BEAA-33D568333486", "123114835bda73b8de4aa106ccde0bb2", [
                               Effect_param("change_voice_param_strength", 1.000, 0.000, 1.000)])
     """Parameters:

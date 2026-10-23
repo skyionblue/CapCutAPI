@@ -164,7 +164,8 @@ def download_file(url: str, local_filename, max_retries=3, timeout=180):
 
                             if total_size > 0:
                                 progress = bytes_written / total_size * 100
-                                # For frequently updated progress, consider using logger.debug or more granular control to avoid large log files
+                                # Frequent progress updates belong at debug level, or the
+                                # log file grows very large.
                                 # Or only output progress to console, not write to file
                                 print(f"\r[PROGRESS] {progress:.2f}% ({bytes_written/1024:.2f}KB/{total_size/1024:.2f}KB)", end='')
                                 pass  # Avoid printing too much progress information in log files

@@ -253,7 +253,9 @@ class Script_file:
             track_name (str, optional): the track name. May only be omitted for the first track of a type.
             mute (bool, optional): whether the track is muted. Not muted by default.
             relative_index (int, optional): layer position relative to tracks of the same type; higher is nearer the foreground. Default 0.
-            absolute_index (int, optional): absolute layer position; higher is nearer the foreground. Overwrites each segment's `render_index` directly -- for experienced users.
+            absolute_index (int, optional): absolute layer position; higher is nearer the
+                foreground. Overwrites each segment's `render_index` directly -- for
+                experienced users.
                 Cannot be combined with `relative_index`.
 
         Raises:
@@ -414,7 +416,8 @@ class Script_file:
             t_range (`Timerange`): the effect segment's time range
             track_name (`str`, optional): the target track. May be omitted when only one effect track exists.
             params (`List[Optional[float]]`, optional): effect parameters; omitted or None entries use the default.
-                Values run 0-100, as in the editor. Which parameters an effect takes, and in what order, is given by the enum member's annotation.
+                Values run 0-100, as in the editor. Which parameters an effect takes, and
+                in what order, is given by the enum member's annotation.
 
         Raises:
             `NameError`: no track of that name, or `track_name` was required but omitted
@@ -453,8 +456,11 @@ class Script_file:
             style_reference (`Text_segment`, optional): a text segment whose style is copied.
             font (`Optional[str]`, optional): the font. Defaults to None.
             time_offset (`Union[str, float]`, optional): shift every subtitle by this many microseconds. Default 0.
-            text_style (`Text_style`, optional): subtitle style; defaults to the editor's own imported-subtitle style, and is overridden by `style_reference`.
-            clip_settings (`Clip_settings`, optional): image adjustments; defaults to the editor's own imported-subtitle settings and overrides `style_reference` unless set to `None`.
+            text_style (`Text_style`, optional): subtitle style; defaults to the editor's own
+                imported-subtitle style, and is overridden by `style_reference`.
+            clip_settings (`Clip_settings`, optional): image adjustments; defaults to the
+                editor's own imported-subtitle settings and overrides `style_reference`
+                unless set to `None`.
             border (`Text_border`, optional): stroke settings; the reference's stroke is kept by default
             background (`Text_background`, optional): background settings; the reference's background is kept by default
             bubble (`TextBubble`, optional): a text bubble; none is added by default
@@ -474,7 +480,7 @@ class Script_file:
         if font:
             try:
                 font_type = getattr(Font_type, font)
-            except:
+            except AttributeError:
                 available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
                 raise ValueError(f"Unsupported font: {font}, please use one of the fonts in Font_type: {available_fonts}")
 
@@ -519,9 +525,9 @@ class Script_file:
                     seg.font = font_type.value
             else:
                 seg = Text_segment(text, t_range, style=text_style, clip_settings=clip_settings,
-                                  border=border, background=background,
-                                  font=font_type,
-                                  fixed_width=fixed_width)
+                                   border=border, background=background,
+                                   font=font_type,
+                                   fixed_width=fixed_width)
                 # Add the bubble and text effect
                 if bubble:
                     seg.bubble = deepcopy(bubble)
@@ -580,9 +586,11 @@ class Script_file:
         Filtering by track name is preferred where the name is known.
 
         Args:
-            track_type (`Track_type.video`, `Track_type.audio` or `Track_type.text`): the track type; only audio, video and text are supported
+            track_type (`Track_type.video`, `Track_type.audio` or `Track_type.text`): the
+                track type; only audio, video and text are supported
             name (`str`, optional): filter by track name; omitted, no name filter is applied.
-            index (`int`, optional): index among **imported tracks of the same type**, 0 being the bottom. Omitted, no index filter is applied.
+            index (`int`, optional): index among **imported tracks of the same type**, 0 being
+                the bottom. Omitted, no index filter is applied.
 
         Raises:
             `TrackNotFound`: no track matched
@@ -712,9 +720,12 @@ class Script_file:
             track (`Editable_track`): the track, obtained from `get_imported_track`
             segment_index (`int`): index of the segment, starting at 0
             material (`Video_material` or `Audio_material`): the replacement, which must match the original type
-            source_timerange (`Timerange`, optional): the portion of the new material to use. Defaults to the whole of it, or to the original segment length for images.
-            handle_shrink (`Shrink_mode`, optional): what to do when the replacement is shorter. Defaults to trimming the tail so the segment matches the material.
-            handle_extend (`Extend_mode` or `List[Extend_mode]`, optional): what to do when the replacement is longer; each is tried in turn until one succeeds or all fail.
+            source_timerange (`Timerange`, optional): the portion of the new material to use.
+                Defaults to the whole of it, or the original segment length for images.
+            handle_shrink (`Shrink_mode`, optional): what to do when the replacement is
+                shorter. Defaults to trimming the tail so the segment matches the material.
+            handle_extend (`Extend_mode` or `List[Extend_mode]`, optional): what to do when the
+                replacement is longer; each is tried in turn until one succeeds or all fail.
                 Defaults to trimming the material's tail so the segment keeps its length.
 
         Raises:
@@ -756,7 +767,8 @@ class Script_file:
             track (`Editable_track`): the text track, obtained from `get_imported_track`
             segment_index (`int`): index of the segment, starting at 0
             text (`str` or `List[str]`): the new text; a list of strings for text templates.
-            recalc_style (`bool`): recompute how the font styles are distributed, keeping each style's share of the text roughly as it was. Enabled by default.
+            recalc_style (`bool`): recompute how the font styles are distributed, keeping each
+                style's share of the text roughly as it was. Enabled by default.
 
         Raises:
             `IndexError`: `segment_index` is out of range

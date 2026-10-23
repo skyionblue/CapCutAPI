@@ -46,7 +46,9 @@ def add_image_impl(
 ) -> Dict[str, str]:
     """
     Add an image track to the specified draft
-    :param animation: Entrance animation name, supported animations include: Zoom Out, Fade In, Zoom In, Rotate, Kira Float, Shake Down, Mirror Flip, Rotate Open, Fold Open, Vortex Rotate, Jump Open, etc.
+    :param animation: Entrance animation name. Supported animations include Zoom Out, Fade In,
+        Zoom In, Rotate, Kira Float, Shake Down, Mirror Flip, Rotate Open, Fold Open,
+        Vortex Rotate and Jump Open.
     :param animation_duration: Entrance animation duration (seconds), default 0.5 seconds
     :param intro_animation: New entrance animation parameter, higher priority than animation
     :param intro_animation_duration: New entrance animation duration (seconds), default 0.5 seconds
@@ -54,7 +56,8 @@ def add_image_impl(
     :param outro_animation_duration: Exit animation duration (seconds), default 0.5 seconds
     :param combo_animation: Combo animation parameter
     :param combo_animation_duration: Combo animation duration (seconds), default 0.5 seconds
-    :param transition: Transition type, supported transitions include: Dissolve, Move Up, Move Down, Move Left, Move Right, Split, Compress, Anime Cloud, Anime Vortex, etc.
+    :param transition: Transition type. Supported transitions include Dissolve, Move Up,
+        Move Down, Move Left, Move Right, Split, Compress, Anime Cloud and Anime Vortex.
     :param transition_duration: Transition duration (seconds), default 0.5 seconds
     :param draft_folder: Draft folder path, optional parameter
     :param image_url: Image URL
@@ -132,7 +135,8 @@ def add_image_impl(
 
     # Create image material
     if draft_image_path:
-        image_material = draft.Video_material(path=None, material_type='photo', replace_path=draft_image_path, remote_url=image_url, material_name=material_name)
+        image_material = draft.Video_material(path=None, material_type='photo', replace_path=draft_image_path,
+                                              remote_url=image_url, material_name=material_name)
     else:
         image_material = draft.Video_material(path=None, material_type='photo', remote_url=image_url, material_name=material_name)
 

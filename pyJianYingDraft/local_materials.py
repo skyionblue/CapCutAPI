@@ -132,7 +132,7 @@ class Video_material:
                 # Use placeholder dimensions; the real ones are read at download time
                 self.width = 0
                 self.height = 0
-            except Exception as e:
+            except Exception:
                 # Fall back to defaults if that fails
                 self.width = 1920
                 self.height = 1080

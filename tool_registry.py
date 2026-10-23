@@ -123,7 +123,11 @@ TOOLS: List[Dict[str, Any]] = [
                 "volume": {"type": "number", "default": 1.0, "description": "Volume (0.0-1.0+)"},
                 "transition": {"type": "string", "description": "Transition type — see list_option_values('transition')"},
                 "transition_duration": {"type": "number", "default": 0.5, "description": "Transition duration (seconds)"},
-                "relative_index": {"type": "integer", "default": 0, "description": "Stacking order among tracks of the same type (higher = closer to foreground)"},
+                "relative_index": {
+                    'type': 'integer',
+                    'default': 0,
+                    'description': 'Stacking order among tracks of the same type (higher = closer to foreground)',
+                },
                 "duration": {"type": "number", "description": "Override detected clip duration (seconds); skips duration probing"},
                 "mask_type": {"type": "string", "description": "Mask type — see list_option_values('mask')"},
                 "mask_center_x": {"type": "number", "default": 0.5, "description": "Mask center X (0-1)"},
@@ -132,7 +136,10 @@ TOOLS: List[Dict[str, Any]] = [
                 "mask_rotation": {"type": "number", "default": 0.0, "description": "Mask rotation angle (degrees)"},
                 "mask_feather": {"type": "number", "default": 0.0, "description": "Mask feather amount (0-1)"},
                 "mask_invert": {"type": "boolean", "default": False, "description": "Invert the mask"},
-                "mask_rect_width": {"type": "number", "description": "Rectangle mask width, fraction of material width (rectangle mask only)"},
+                "mask_rect_width": {
+                    'type': 'number',
+                    'description': 'Rectangle mask width, fraction of material width (rectangle mask only)',
+                },
                 "mask_round_corner": {"type": "number", "description": "Rectangle mask corner radius, 0-100 (rectangle mask only)"},
                 "background_blur": {"type": "integer", "description": "Background blur level (1-4)"},
                 "draft_folder": {"type": "string", "description": "Local draft folder path override (rarely needed)"},
@@ -183,23 +190,48 @@ TOOLS: List[Dict[str, Any]] = [
                 "scale_x": {"type": "number", "default": 1, "description": "X scale"},
                 "scale_y": {"type": "number", "default": 1, "description": "Y scale"},
                 "track_name": {"type": "string", "default": "image_main", "description": "Track name"},
-                "relative_index": {"type": "integer", "default": 0, "description": "Stacking order among tracks of the same type (higher = closer to foreground)"},
-                "intro_animation": {"type": "string", "description": "Intro animation type — see list_option_values('intro_animation'); mutually exclusive with combo_animation"},
+                "relative_index": {
+                    'type': 'integer',
+                    'default': 0,
+                    'description': 'Stacking order among tracks of the same type (higher = closer to foreground)',
+                },
+                "intro_animation": {
+                    'type': 'string',
+                    'description': "Intro animation type -- see "
+                                   "list_option_values('intro_animation'); mutually "
+                                   "exclusive with combo_animation",
+                },
                 "intro_animation_duration": {"type": "number", "default": 0.5, "description": "Intro animation duration (seconds)"},
                 "outro_animation": {"type": "string", "description": "Outro animation type — see list_option_values('outro_animation')"},
                 "outro_animation_duration": {"type": "number", "default": 0.5, "description": "Outro animation duration (seconds)"},
-                "combo_animation": {"type": "string", "description": "Combo animation type — see list_option_values('combo_animation'); mutually exclusive with intro_animation"},
+                "combo_animation": {
+                    'type': 'string',
+                    'description': "Combo animation type -- see "
+                                   "list_option_values('combo_animation'); mutually "
+                                   "exclusive with intro_animation",
+                },
                 "combo_animation_duration": {"type": "number", "default": 0.5, "description": "Combo animation duration (seconds)"},
                 "transition": {"type": "string", "description": "Transition type — see list_option_values('transition')"},
                 "transition_duration": {"type": "number", "default": 0.5, "description": "Transition duration (seconds)"},
                 "mask_type": {"type": "string", "description": "Mask type — see list_option_values('mask')"},
-                "mask_center_x": {"type": "number", "default": 0.0, "description": "Mask center X (material pixels; default is material center)"},
-                "mask_center_y": {"type": "number", "default": 0.0, "description": "Mask center Y (material pixels; default is material center)"},
+                "mask_center_x": {
+                    'type': 'number',
+                    'default': 0.0,
+                    'description': 'Mask center X (material pixels; default is material center)',
+                },
+                "mask_center_y": {
+                    'type': 'number',
+                    'default': 0.0,
+                    'description': 'Mask center Y (material pixels; default is material center)',
+                },
                 "mask_size": {"type": "number", "default": 0.5, "description": "Mask size, fraction of material height"},
                 "mask_rotation": {"type": "number", "default": 0.0, "description": "Mask rotation angle (degrees, clockwise)"},
                 "mask_feather": {"type": "number", "default": 0.0, "description": "Mask feather amount (0-100)"},
                 "mask_invert": {"type": "boolean", "default": False, "description": "Invert the mask"},
-                "mask_rect_width": {"type": "number", "description": "Rectangle mask width, fraction of material width (rectangle mask only)"},
+                "mask_rect_width": {
+                    'type': 'number',
+                    'description': 'Rectangle mask width, fraction of material width (rectangle mask only)',
+                },
                 "mask_round_corner": {"type": "number", "description": "Rectangle mask corner radius, 0-100 (rectangle mask only)"},
                 "background_blur": {"type": "integer", "description": "Background blur level (1-4)"},
                 "draft_folder": {"type": "string", "description": "Local draft folder path override (rarely needed)"},
@@ -336,7 +368,11 @@ TOOLS: List[Dict[str, Any]] = [
                 "flip_horizontal": {"type": "boolean", "default": False, "description": "Flip horizontally"},
                 "flip_vertical": {"type": "boolean", "default": False, "description": "Flip vertically"},
                 "track_name": {"type": "string", "default": "sticker_main", "description": "Track name"},
-                "relative_index": {"type": "integer", "default": 0, "description": "Stacking order among tracks of the same type (higher = closer to foreground)"},
+                "relative_index": {
+                    'type': 'integer',
+                    'default': 0,
+                    'description': 'Stacking order among tracks of the same type (higher = closer to foreground)',
+                },
                 "width": {"type": "integer", "default": 1080, "description": "Video width in pixels"},
                 "height": {"type": "integer", "default": 1920, "description": "Video height in pixels"},
             },
@@ -345,7 +381,10 @@ TOOLS: List[Dict[str, Any]] = [
     },
     {
         "name": "add_video_keyframe",
-        "description": "Add keyframe(s) animating a property (position, scale, rotation, opacity, ...) over time. Use property_type/time/value for one keyframe, or the plural property_types/times/values for several at once.",
+        "description": ("Add keyframe(s) animating a property (position, scale, rotation, "
+                        "opacity, ...) over time. Use property_type/time/value for one "
+                        "keyframe, or the plural property_types/times/values for several "
+                        "at once."),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -353,7 +392,9 @@ TOOLS: List[Dict[str, Any]] = [
                 "track_name": {"type": "string", "default": "video_main", "description": "Track name"},
                 "property_type": {
                     "type": "string",
-                    "description": "Keyframe property (position_x, position_y, rotation, scale_x, scale_y, uniform_scale, alpha, saturation, contrast, brightness, volume)",
+                    "description": ("Keyframe property (position_x, position_y, rotation, "
+                                    "scale_x, scale_y, uniform_scale, alpha, saturation, "
+                                    "contrast, brightness, volume)"),
                 },
                 "time": {"type": "number", "default": 0.0, "description": "Keyframe time (seconds)"},
                 "value": {"type": "string", "description": "Keyframe value"},
@@ -490,9 +531,23 @@ TOOLS: List[Dict[str, Any]] = [
                 "draft_id": {"type": "string", "description": "Draft ID from create_draft"},
                 "material_name": {"type": "string", "description": "Exact name of the existing material to replace, from query_script"},
                 "new_url": {"type": "string", "description": "Local file path or URL of the replacement file"},
-                "material_type": {"type": "string", "enum": ["video", "audio"], "default": "video", "description": "'video' also covers images; 'audio' for audio materials"},
-                "duration": {"type": "number", "description": "Duration of the new file (seconds). Rarely needed — replacing a material doesn't change the segment's timerange."},
-                "replace_crop": {"type": "boolean", "default": False, "description": "Also replace the original material's crop settings (video only)"},
+                "material_type": {
+                    'type': 'string',
+                    'enum': ['video', 'audio'],
+                    'default': 'video',
+                    'description': "'video' also covers images; 'audio' for audio materials",
+                },
+                "duration": {
+                    'type': 'number',
+                    'description': "Duration of the new file (seconds). Rarely needed -- "
+                                   "replacing a material does not change the segment's "
+                                   "timerange.",
+                },
+                "replace_crop": {
+                    'type': 'boolean',
+                    'default': False,
+                    'description': "Also replace the original material's crop settings (video only)",
+                },
                 "draft_folder": {"type": "string", "description": "Local draft folder path override (rarely needed)"},
             },
             "required": ["draft_id", "material_name", "new_url"],
@@ -767,9 +822,11 @@ def replace_material(
 
     matches = [m for m in material_list if m.material_name == material_name]
     if not matches:
-        return {"error": f"No {material_type} material named {material_name!r} found on draft {draft_id!r}. Use query_script to find the exact name."}
+        return {"error": f"No {material_type} material named {material_name!r} on draft "
+                         f"{draft_id!r}. Use query_script to find the exact name."}
     if len(matches) > 1:
-        return {"error": f"Multiple {material_type} materials named {material_name!r} found on draft {draft_id!r}; can't tell which to replace."}
+        return {"error": f"Multiple {material_type} materials named {material_name!r} on draft "
+                         f"{draft_id!r}; cannot tell which to replace."}
     target = matches[0]
 
     if material_type == "video":

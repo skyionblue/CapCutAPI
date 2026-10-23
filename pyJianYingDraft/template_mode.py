@@ -308,7 +308,9 @@ def import_track(json_data: Dict[str, Any], imported_materials: Dict[str, Any] =
                     if "audio_effects" in imported_materials and imported_materials["audio_effects"]:
                         effect_data = imported_materials["audio_effects"][0]
                         # Find the effect type by resource id
-                        for effect_enum in (CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type):
+                        for effect_enum in (CapCut_Voice_filters_effect_type,
+                                            CapCut_Voice_characters_effect_type,
+                                            CapCut_Speech_to_song_effect_type):
                             found = False
                             for effect_type in effect_enum:
                                 if effect_type.value.resource_id == effect_data["resource_id"]:
