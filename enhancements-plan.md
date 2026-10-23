@@ -181,153 +181,42 @@ fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either w
    excluded at all. Replaced with a single directory exclusion; `.venv` is now excluded too
    (linting it produced 83,566 findings).
 
-### Phase C5 — Burn down the legacy lint debt
+### Phase C5 — Burn down the legacy lint debt — **IN PROGRESS (2026-10-23)**
 
-With `.venv` and generated metadata excluded, the pre-existing modules carry **836 flake8
-findings** (`example.py` 212, `save_draft_impl.py` 102, `capcut_server.py` 88, …). CI lints the
-export modules and tests **strictly**, and the whole repo **advisorily** (`continue-on-error`), so
-the debt stays visible without CI being red from day one.
-
-- [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
-
-**Completion criteria:** `flake8 .` is clean from the repository root.
-
-### Phase C2 — Remove the duplicated server layers — **BLOCKED on a decision**
-
-Groundwork complete; the refactor itself is not, because it cannot be done without changing
-user-facing behaviour.
-
-#### What the investigation found
-
-The two surfaces are not symmetrical duplication:
-
-* **MCP is already thin** — `add_video_track(**arguments)` forwards the caller's arguments
-  straight through, so an omitted argument gets the *implementation's* default.
-* **HTTP re-declares every parameter** — `data.get(name, default)` — so an omitted argument
-  gets whatever default `capcut_server.py` happens to specify.
-
-Those two sets of defaults **have already drifted apart**. The same logical call produces
-different output depending on which transport made it:
-
-| Route | Parameter | HTTP sends | MCP sends |
-|---|---|---|---|
-| `add_video` | `end` | `0` | `None` |
-| `add_video` | `track_name` | `video_main` | `main` |
-| `add_text` | `transform_y` | `0` | `-0.8` |
-| `add_text` | `font_color` | `#FF0000` (red) | `#ffffff` (white) |
-| `add_text` | `background_style` | `0` | `1` |
-| `add_image` | `track_name` | `image_main` | `main` |
-| `add_subtitle` | `font_size` | `5.0` | `8.0` |
-| `add_subtitle` | `background_style` | `0` | `1` |
-| `add_subtitle` | `vertical` | `False` | `True` |
-| `add_subtitle` | `alpha` | `1` | `0.4` |
-| `add_video_keyframe` | `track_name` | `video_main` | `main` |
-
-Two further divergences in `add_sticker`:
-
-* **The required argument has two names.** HTTP reads `sticker_id`; MCP and the implementation
-  call it `resource_id`. An HTTP caller following the MCP schema is told
-  *"the required parameter 'sticker_id' is missing"*.
-* **HTTP defaults an argument the implementation requires.** `end` has no default in
-  `add_sticker_impl` and is `required` in the MCP schema, but the HTTP route substitutes `5.0`
-  — so an omitted `end` silently yields a 5-second sticker over HTTP and an error over MCP.
-
-**13 divergences in total.** This is precisely the drift this phase exists to prevent, and it
-has already happened.
+Started at **836** findings; now at **479**.
 
 #### Done
 
-- [x] `tests/test_dispatch_parity.py` — characterization tests pinning all 13 divergences plus
-      the defaults the surfaces agree on, the `{success, output, error}` HTTP envelope, and
-      that validation runs before the implementation is invoked. 40 tests.
-      They record what the code does today, not what it should do.
+- [x] **Whitespace pass** over the project's own modules — trailing whitespace, whitespace in
+      blank lines, missing final newlines, inline comment spacing, spacing around commas,
+      operators and keyword defaults. Provably behaviour-free: `git diff -w` was empty, 332
+      insertions against 332 deletions.
+- [x] **Unused locals (F841, 8 of them) — all resolved, and one was a real bug.**
+      Seven were `imported_track = script.get_imported_track(...)`, an existence probe whose
+      binding was never used; the call is kept, the binding dropped. The eighth was
+      `draft_folder` in `/generate_draft_url`, a parameter the route accepted and then ignored.
+- [x] **Bare excepts (E722, 7 of them) narrowed to `except Exception`.** Same behaviour for
+      ordinary errors, but `KeyboardInterrupt` and `SystemExit` now propagate instead of being
+      swallowed by validation guards.
 
-#### Design constraint discovered
+#### Real defect found and fixed
 
-`mcp_server.py` is **not** a duplicate of the HTTP layer to be merged away. It is a deliberate
-2-tool gateway: 21 catalogue entries, 2 advertised tools. Advertising one tool per capability
-would load every schema into the model's context for the entire session — `add_video` alone
-takes over twenty parameters — so discovery lives behind `search_tools` instead.
+`/generate_draft_url` built its URL by hand as `?=<draft_id>` — **a query string with no
+parameter name** — while `util.generate_draft_url`, used by the MCP tool *and* by every
+`add_*` response from the same server, emits `?draft_id=<draft_id>`. The route had the helper
+imported already and did not call it. Now it does, which fixes the URL and removes the
+duplication. Pinned by a regression test, verified to fail against the old code.
 
-This changes the shape of the phase. The shared dispatch layer this plan asked for **already
-exists**: it is `TOOLS` plus `execute_tool`. The MCP side is already thin; the HTTP side is the
-one that re-declares everything. So the work is not "merge the two servers" but "make
-`capcut_server.py` a thin adapter over the catalogue the gateway already uses".
+#### Remaining
 
-That framing also decides the divergences by construction: if HTTP stops declaring its own
-defaults, it inherits the implementation's — which is exactly the breaking change below.
-
-Constraints any refactor must hold:
-
-- [ ] The advertised MCP surface stays at two tools. Adding a capability means a `TOOLS` entry
-      and an `execute_tool` branch, never a new registered tool function.
-- [ ] Both response shapes survive — HTTP `{success, output, error}`, MCP `{success, result}`.
-
-#### Blocked
-
-- [ ] **Decide how to resolve each divergence.** Unifying changes behaviour for one transport:
-      adopting the implementation defaults changes long-standing HTTP behaviour (text turns
-      white instead of red, subtitles become vertical at 0.4 alpha); adopting the HTTP defaults
-      changes what MCP callers get today. This is a user-facing decision, not a refactor
-      detail, and it should be taken divergence by divergence.
-- [ ] Extract the shared dispatch layer once the target behaviour is settled.
-- [ ] Preserve both response shapes exactly — HTTP `{success, output, error}`, MCP
-      `{success, result}`.
-
-**Why not refactor first and unify later:** a shared dispatch layer has to pick one default per
-parameter. Doing that before the decision would silently change behaviour in 13 places, which
-is the opposite of what a refactor should do.
-
-**Coverage note:** the suite covers the export pipeline, draft persistence, save modes and now
-dispatch parity — but still not the internals of the 18 non-export tools. The parity tests make
-the refactor much safer than it was, not risk-free.
-
-### Phase C5 — Burn down the legacy lint debt
-
-With `.venv` and generated metadata excluded, the pre-existing modules carry **836 flake8
-findings** (`example.py` 212, `save_draft_impl.py` 102, `capcut_server.py` 88, …). CI lints the
-export modules and tests **strictly**, and the whole repo **advisorily** (`continue-on-error`), so
-the debt stays visible without CI being red from day one.
-
-- [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
+- [ ] `example.py` (212) — standalone examples, deliberately skipped this pass.
+- [ ] `pyJianYingDraft` (137) — vendored library, deserves its own pass.
+- [ ] `E501` line-length and `E128` continuation-indent across the project: manual wrapping,
+      tedious but low risk.
+- [ ] `E402` module-level imports not at top (24) — structural, matches the existing pattern in
+      those files; leave unless the import blocks are restructured.
 
 **Completion criteria:** `flake8 .` is clean from the repository root.
-
-### Phase C2 — Remove the duplicated server layers
-
-`capcut_server.py` (1274 lines) and `mcp_server.py` (944 lines) wire the same implementation
-functions with separately written argument handling and validation. Adding the export feature
-required writing the same surface twice, which is how the two drift apart.
-
-- [ ] Extract a shared dispatch layer: one place mapping tool name → implementation, with shared
-      validation and error shaping.
-- [ ] Reduce both servers to thin protocol adapters over it.
-- [ ] Preserve both response shapes exactly — HTTP returns `{success, output, error}` and MCP
-      returns `{success, result}`; **this refactor must not change either**.
-- [ ] Do this *after* Phase C1, so the tests can prove behaviour is unchanged.
-
-**Risk:** a large refactor with no tests is how regressions enter. Strictly gated on C1.
-
-### Phase C3 — Harden before any non-local exposure
-
-Not urgent for local use; required before the HTTP API is reachable from anywhere else.
-
-- [ ] `add_video`/`add_audio`/`add_image` fetch arbitrary caller-supplied URLs server-side — an
-      SSRF vector. Add host allow-listing or outbound restrictions if exposed.
-- [ ] No authentication on any HTTP route.
-- [ ] Review `download_file` write paths for traversal via crafted material names
-      (`delete_draft` is already guarded; the download path has not been reviewed).
-- [ ] Document explicitly that the server is intended for localhost use.
-
-### Phase C4 — Finish the export plan's Tier 4
-
-Carried over from `export-functionality-plan.md`, all optional:
-
-- [ ] `export_draft` — portable zip of a draft with relocated asset paths.
-- [ ] `export_subtitles` — SRT out, completing the round trip with `add_subtitle_impl.py`.
-- [ ] `export_timeline` — OpenTimelineIO, for finishing in Resolve/Premiere/FCP.
-- [ ] ffmpeg backend: crossfade transitions (`xfade`) and keyframe approximation, both currently
-      reported as fidelity warnings.
 
 ---
 

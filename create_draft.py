@@ -14,14 +14,14 @@ def create_draft(width=1080, height=1920):
     unix_time = int(time.time())
     unique_id = uuid.uuid4().hex[:8]  # Take the first 8 digits of UUID
     draft_id = f"dfd_cat_{unix_time}_{unique_id}"  # Use Unix timestamp and UUID combination
-    
+
     # Create CapCut draft with specified resolution
     script = draft.Script_file(width, height)
-    
+
     # Store in global cache and write through to the durable store
     update_cache(draft_id, script)
     persist_draft(draft_id, script)
-    
+
     return script, draft_id
 
 def get_or_create_draft(draft_id=None, width=1080, height=1920):
@@ -33,7 +33,7 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
     :return: (draft_name, draft_path, draft_id, draft_dir, script)
     """
     global DRAFT_CACHE  # Declare use of global variable
-    
+
     if draft_id is not None:
         # Cache first, then the durable store: after a restart the draft is no longer in
         # memory, and silently creating a new one would lose the caller's work.
@@ -49,4 +49,4 @@ def get_or_create_draft(draft_id=None, width=1080, height=1920):
         height=height,
     )
     return generate_draft_id, script
-    
+

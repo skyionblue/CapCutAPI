@@ -17,14 +17,14 @@ import uuid
 import threading
 from collections import OrderedDict
 import time
-import requests # Import requests for making HTTP calls
+import requests  # Import requests for making HTTP calls
 import logging
 # Import configuration
 from settings import IS_UPLOAD_DRAFT
 
 # --- Get your Logger instance ---
 # The name here must match the logger name you configured in app.py
-logger = logging.getLogger('flask_video_generator') 
+logger = logging.getLogger('flask_video_generator')
 
 # Define task status enumeration type
 TaskStatus = Literal["initialized", "processing", "completed", "failed", "not_found"]
@@ -39,7 +39,7 @@ def build_asset_path(draft_folder: str, draft_id: str, asset_type: str, material
     :return: Built path
     """
     if is_windows_path(draft_folder):
-        if os.name == 'nt': # 'nt' for Windows
+        if os.name == 'nt':  # 'nt' for Windows
             draft_real_path = os.path.join(draft_folder, draft_id, "assets", asset_type, material_name)
         else:
             windows_drive, windows_path = re.match(r'([a-zA-Z]:)(.*)', draft_folder).groups()
@@ -67,9 +67,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
             update_tasks_cache(task_id, task_status)  # Use new cache management function
             logger.error(f"Draft {draft_id} does not exist in cache, task {task_id} failed.")
             return
-            
+
         logger.info(f"Successfully retrieved draft {draft_id}.")
-        
+
         # Update task status to processing
         task_status = {
             "status": "processing",
@@ -81,7 +81,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
         }
         update_tasks_cache(task_id, task_status)  # Use new cache management function
         logger.info(f"Task {task_id} status updated to 'processing': Preparing draft files.")
-        
+
         # Delete possibly existing draft_id folder
         if os.path.exists(draft_id):
             logger.warning(f"Deleting existing draft folder (current working directory): {draft_id}")
@@ -92,16 +92,16 @@ def save_draft_background(draft_id, draft_folder, task_id):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         draft_folder_for_duplicate = draft.Draft_folder(current_dir)
         draft_folder_for_duplicate.duplicate_as_template("template", draft_id)
-        
+
         # Update task status
         update_task_field(task_id, "message", "Updating media file metadata")
         update_task_field(task_id, "progress", 5)
         logger.info(f"Task {task_id} progress 5%: Updating media file metadata.")
-        
+
         update_media_metadata(script, task_id)
-        
+
         download_tasks = []
-        
+
         audios = script.materials.audios
         if audios:
             for audio in audios:
@@ -113,7 +113,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
                 if not remote_url:
                     logger.warning(f"Audio file {material_name} has no remote_url, skipping download.")
                     continue
-                
+
                 # Add audio download task
                 download_tasks.append({
                     'type': 'audio',
@@ -121,14 +121,14 @@ def save_draft_background(draft_id, draft_folder, task_id):
                     'args': (remote_url, os.path.join(current_dir, f"{draft_id}/assets/audio/{material_name}")),
                     'material': audio
                 })
-        
+
         # Collect video and image download tasks
         videos = script.materials.videos
         if videos:
             for video in videos:
                 remote_url = video.remote_url
                 material_name = video.material_name
-                
+
                 if video.material_type == 'photo':
                     # Use helper function to build path
                     if draft_folder:
@@ -136,7 +136,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
                     if not remote_url:
                         logger.warning(f"Image file {material_name} has no remote_url, skipping download.")
                         continue
-                    
+
                     # Add image download task
                     download_tasks.append({
                         'type': 'image',
@@ -144,7 +144,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
                         'args': (remote_url, os.path.join(current_dir, f"{draft_id}/assets/image/{material_name}")),
                         'material': video
                     })
-                
+
                 elif video.material_type == 'video':
                     # Use helper function to build path
                     if draft_folder:
@@ -152,7 +152,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
                     if not remote_url:
                         logger.warning(f"Video file {material_name} has no remote_url, skipping download.")
                         continue
-                    
+
                     # Add video download task
                     download_tasks.append({
                         'type': 'video',
@@ -170,22 +170,22 @@ def save_draft_background(draft_id, draft_folder, task_id):
         completed_files = 0
         if download_tasks:
             logger.info(f"Starting concurrent download of {len(download_tasks)} files...")
-            
+
             # Use thread pool for concurrent downloads, maximum concurrency of 16
             with ThreadPoolExecutor(max_workers=16) as executor:
                 # Submit all download tasks
                 future_to_task = {
-                    executor.submit(task['func'], *task['args']): task 
+                    executor.submit(task['func'], *task['args']): task
                     for task in download_tasks
                 }
-                
+
                 # Wait for all tasks to complete
                 for future in as_completed(future_to_task):
                     task = future_to_task[future]
                     try:
                         local_path = future.result()
                         downloaded_paths.append(local_path)
-                        
+
                         # Update task status - only update completed files count
                         completed_files += 1
                         update_task_field(task_id, "completed_files", completed_files)
@@ -197,19 +197,19 @@ def save_draft_background(draft_id, draft_folder, task_id):
                         download_progress = 10 + int((completed / total) * 60)
                         update_task_field(task_id, "progress", download_progress)
                         update_task_field(task_id, "message", f"Downloaded {completed}/{total} files")
-                        
+
                         logger.info(f"Task {task_id}: Successfully downloaded {task['type']} file, progress {download_progress}.")
                     except Exception as e:
                         logger.error(f"Task {task_id}: Download {task['type']} file failed: {str(e)}", exc_info=True)
                         # Continue processing other files, don't interrupt the entire process
-            
+
             logger.info(f"Task {task_id}: Concurrent download completed, downloaded {len(downloaded_paths)} files in total.")
-        
+
         # Update task status - Start saving draft information
         update_task_field(task_id, "progress", 70)
         update_task_field(task_id, "message", "Saving draft information")
         logger.info(f"Task {task_id} progress 70%: Saving draft information.")
-        
+
         script.dump(os.path.join(current_dir, f"{draft_id}/draft_info.json"))
         logger.info(f"Draft information has been saved to {os.path.join(current_dir, draft_id)}/draft_info.json.")
 
@@ -220,16 +220,16 @@ def save_draft_background(draft_id, draft_folder, task_id):
             update_task_field(task_id, "progress", 80)
             update_task_field(task_id, "message", "Compressing draft files")
             logger.info(f"Task {task_id} progress 80%: Compressing draft files.")
-            
+
             # Compress the entire draft directory
             zip_path = zip_draft(draft_id)
             logger.info(f"Draft directory {os.path.join(current_dir, draft_id)} has been compressed to {zip_path}.")
-            
+
             # Update task status - Start uploading to OSS
             update_task_field(task_id, "progress", 90)
             update_task_field(task_id, "message", "Uploading to cloud storage")
             logger.info(f"Task {task_id} progress 90%: Uploading to cloud storage.")
-            
+
             # Upload to OSS
             draft_url = upload_to_oss(zip_path)
             logger.info(f"Draft archive has been uploaded to OSS, URL: {draft_url}")
@@ -240,7 +240,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
                 shutil.rmtree(os.path.join(current_dir, draft_id))
                 logger.info(f"Cleaned up temporary draft folder: {os.path.join(current_dir, draft_id)}")
 
-    
+
         # Update task status - Completed
         update_task_field(task_id, "status", "completed")
         update_task_field(task_id, "progress", 100)
@@ -250,7 +250,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
 
     except Exception as e:
         # Update task status - Failed
-        update_task_fields(task_id, 
+        update_task_fields(task_id,
                           status="failed",
                           message=f"Failed to save draft: {str(e)}")
         logger.error(f"Saving draft {draft_id} task {task_id} failed: {str(e)}", exc_info=True)
@@ -348,7 +348,7 @@ def update_media_metadata(script, task_id=None):
             if not remote_url:
                 logger.warning(f"Warning: Audio file {material_name} has no remote_url, skipped.")
                 continue
-            
+
             try:
                 video_command = [
                     'ffprobe',
@@ -380,7 +380,7 @@ def update_media_metadata(script, task_id=None):
                     # Convert seconds to microseconds
                     audio.duration = int(duration_result["output"] * 1000000)
                     logger.info(f"Successfully obtained audio {material_name} duration: {duration_result['output']:.2f} seconds ({audio.duration} microseconds).")
-                    
+
                     # Update timerange for all segments using this audio material
                     for track_name, track in script.tracks.items():
                         if track.track_type == draft.Track_type.audio:
@@ -390,7 +390,7 @@ def update_media_metadata(script, task_id=None):
                                     current_target = segment.target_timerange
                                     current_source = segment.source_timerange
                                     speed = segment.speed.speed
-                                    
+
                                     # If the end time of source_timerange exceeds the new audio duration, adjust it
                                     if current_source.end > audio.duration or current_source.end <= 0:
                                         # Adjust source_timerange to fit the new audio duration
@@ -398,20 +398,20 @@ def update_media_metadata(script, task_id=None):
                                         if new_source_duration <= 0:
                                             logger.warning(f"Warning: Audio segment {segment.segment_id} start time {current_source.start} exceeds audio duration {audio.duration}, will skip this segment.")
                                             continue
-                                            
+
                                         # Update source_timerange
                                         segment.source_timerange = draft.Timerange(current_source.start, new_source_duration)
-                                        
+
                                         # Update target_timerange based on new source_timerange and speed
                                         new_target_duration = int(new_source_duration / speed)
                                         segment.target_timerange = draft.Timerange(current_target.start, new_target_duration)
-                                        
+
                                         logger.info(f"Adjusted audio segment {segment.segment_id} timerange to fit the new audio duration.")
                 else:
                     logger.warning(f"Warning: Unable to get audio {material_name} duration: {duration_result['error']}.")
             except Exception as e:
                 logger.error(f"Error occurred while getting audio {material_name} duration: {str(e)}", exc_info=True)
-    
+
     # Process video and image file metadata
     videos = script.materials.videos
     if not videos:
@@ -423,7 +423,7 @@ def update_media_metadata(script, task_id=None):
             if not remote_url:
                 logger.warning(f"Warning: Media file {material_name} has no remote_url, skipped.")
                 continue
-                
+
             if video.material_type == 'photo':
                 # Use imageio to get image width/height and set it
                 try:
@@ -436,7 +436,7 @@ def update_media_metadata(script, task_id=None):
                     logger.error(f"Failed to set image {material_name} dimensions: {str(e)}, using default values 1920x1080.", exc_info=True)
                     video.width = 1920
                     video.height = 1080
-            
+
             elif video.material_type == 'video':
                 # Get video duration and width/height information
                 try:
@@ -459,20 +459,20 @@ def update_media_metadata(script, task_id=None):
                     if json_start != -1:
                         json_str = result_str[json_start:]
                         info = json.loads(json_str)
-                        
+
                         if 'streams' in info and len(info['streams']) > 0:
                             stream = info['streams'][0]
                             # Set width and height
                             video.width = int(stream.get('width', 0))
                             video.height = int(stream.get('height', 0))
                             logger.info(f"Successfully set video {material_name} dimensions: {video.width}x{video.height}.")
-                            
+
                             # Set duration
                             # Prefer stream duration, if not available use format duration
                             duration = stream.get('duration') or info['format'].get('duration', '0')
                             video.duration = int(float(duration) * 1000000)  # Convert to microseconds
                             logger.info(f"Successfully obtained video {material_name} duration: {float(duration):.2f} seconds ({video.duration} microseconds).")
-                            
+
                             # Update timerange for all segments using this video material
                             for track_name, track in script.tracks.items():
                                 if track.track_type == draft.Track_type.video:
@@ -490,14 +490,14 @@ def update_media_metadata(script, task_id=None):
                                                 if new_source_duration <= 0:
                                                     logger.warning(f"Warning: Video segment {segment.segment_id} start time {current_source.start} exceeds video duration {video.duration}, will skip this segment.")
                                                     continue
-                                                    
+
                                                 # Update source_timerange
                                                 segment.source_timerange = draft.Timerange(current_source.start, new_source_duration)
-                                                
+
                                                 # Update target_timerange based on new source_timerange and speed
                                                 new_target_duration = int(new_source_duration / speed)
                                                 segment.target_timerange = draft.Timerange(current_target.start, new_target_duration)
-                                                
+
                                                 logger.info(f"Adjusted video segment {segment.segment_id} timerange to fit the new video duration.")
                         else:
                             logger.warning(f"Warning: Unable to get video {material_name} stream information.")
@@ -514,7 +514,7 @@ def update_media_metadata(script, task_id=None):
                     # Set default values
                     video.width = 1920
                     video.height = 1080
-                    
+
                     # Try to get duration separately
                     try:
                         duration_result = get_video_duration(remote_url)
@@ -532,25 +532,25 @@ def update_media_metadata(script, task_id=None):
     for track_name, track in script.tracks.items():
         # Use a set to record segment indices that need to be deleted
         to_remove = set()
-        
+
         # Check for conflicts between all segments
         for i in range(len(track.segments)):
             # Skip if current segment is already marked for deletion
             if i in to_remove:
                 continue
-                
+
             for j in range(len(track.segments)):
                 # Skip self-comparison and segments already marked for deletion
                 if i == j or j in to_remove:
                     continue
-                    
+
                 # Check if there is a conflict
                 if track.segments[i].overlaps(track.segments[j]):
                     # Always keep the segment with the smaller index (added first)
                     later_index = max(i, j)
                     logger.warning(f"Time range conflict between segments {track.segments[min(i, j)].segment_id} and {track.segments[later_index].segment_id} in track {track_name}, deleting the later segment")
                     to_remove.add(later_index)
-        
+
         # Delete marked segments from back to front to avoid index change issues
         for index in sorted(to_remove, reverse=True):
             track.segments.pop(index)
@@ -562,7 +562,7 @@ def update_media_metadata(script, task_id=None):
             max_duration = max(max_duration, segment.end)
     script.duration = max_duration
     logger.info(f"Updated script total duration to: {script.duration} microseconds.")
-    
+
     # Process all pending keyframes in tracks
     logger.info("Processing pending keyframes...")
     for track_name, track in script.tracks.items():
@@ -586,12 +586,12 @@ def query_script_impl(draft_id: str, force_update: bool = True):
         return None
 
     logger.info(f"Retrieved draft {draft_id}.")
-    
+
     # If force_update is True, force refresh media metadata
     if force_update:
         logger.info(f"Force refreshing media metadata for draft {draft_id}.")
         update_media_metadata(script)
-    
+
     # Return script object
     return script
 
@@ -622,7 +622,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
 
     # Copy draft folder
     shutil.copytree(template_path, new_draft_path)
-    
+
     try:
         # 1. Fetch the script from the remote endpoint
         if script_data is None:
@@ -633,7 +633,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
             logger.info(f"Attempting to get script for draft ID: {draft_id} from {query_url}.")
             response = requests.post(query_url, headers=headers, json=payload)
             response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
-            
+
             script_data = json.loads(response.json().get('output'))
             logger.info(f"Successfully retrieved script data for draft {draft_id}.")
         else:
@@ -641,21 +641,21 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
 
         # Collect download tasks
         download_tasks = []
-        
+
         # Collect audio download tasks
-        audios = script_data.get('materials',{}).get('audios',[])
+        audios = script_data.get('materials', {}).get('audios', [])
         if audios:
             for audio in audios:
                 remote_url = audio['remote_url']
                 material_name = audio['name']
                 # Use helper function to build path
                 if draft_folder:
-                    audio['path']=build_asset_path(draft_folder, draft_id, "audio", material_name)
+                    audio['path'] = build_asset_path(draft_folder, draft_id, "audio", material_name)
                     logger.debug(f"Local path for audio {material_name}: {audio['path']}")
                 if not remote_url:
                     logger.warning(f"Audio file {material_name} has no remote_url, skipping download.")
                     continue
-                
+
                 # Add audio download task
                 download_tasks.append({
                     'type': 'audio',
@@ -663,14 +663,14 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
                     'args': (remote_url, audio['path']),
                     'material': audio
                 })
-        
+
         # Collect video and image download tasks
         videos = script_data['materials']['videos']
         if videos:
             for video in videos:
                 remote_url = video['remote_url']
                 material_name = video['material_name']
-                
+
                 if video['type'] == 'photo':
                     # Use helper function to build path
                     if draft_folder:
@@ -678,7 +678,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
                     if not remote_url:
                         logger.warning(f"Image file {material_name} has no remote_url, skipping download.")
                         continue
-                    
+
                     # Add image download task
                     download_tasks.append({
                         'type': 'image',
@@ -686,7 +686,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
                         'args': (remote_url, video['path']),
                         'material': video
                     })
-                
+
                 elif video['type'] == 'video':
                     # Use helper function to build path
                     if draft_folder:
@@ -694,7 +694,7 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
                     if not remote_url:
                         logger.warning(f"Video file {material_name} has no remote_url, skipping download.")
                         continue
-                    
+
                     # Add video download task
                     download_tasks.append({
                         'type': 'video',
@@ -708,22 +708,22 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
         completed_files = 0
         if download_tasks:
             logger.info(f"Starting concurrent download of {len(download_tasks)} files...")
-            
+
             # Use thread pool for concurrent downloads, maximum concurrency of 16
             with ThreadPoolExecutor(max_workers=16) as executor:
                 # Submit all download tasks
                 future_to_task = {
-                    executor.submit(task['func'], *task['args']): task 
+                    executor.submit(task['func'], *task['args']): task
                     for task in download_tasks
                 }
-                
+
                 # Wait for all tasks to complete
                 for future in as_completed(future_to_task):
                     task = future_to_task[future]
                     try:
                         local_path = future.result()
                         downloaded_paths.append(local_path)
-                        
+
                         # Update task status - only update completed files count
                         completed_files += 1
                         logger.info(f"Downloaded {completed_files}/{len(download_tasks)} files.")
@@ -731,9 +731,9 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
                         logger.error(f"Failed to download {task['type']} file {task['args'][0]}: {str(e)}", exc_info=True)
                         logger.error("Download failed.")
                         # Continue processing other files, don't interrupt the entire process
-            
+
             logger.info(f"Concurrent download completed, downloaded {len(downloaded_paths)} files in total.")
-        
+
         """Write draft file content to file"""
         with open(f"{draft_folder}/{draft_id}/draft_info.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(script_data))
@@ -751,4 +751,4 @@ def download_script(draft_id: str, draft_folder: str = None, script_data: Dict =
 
 if __name__ == "__main__":
     print('hello')
-    download_script("dfd_cat_1751012163_a7e8c315",'/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft')
+    download_script("dfd_cat_1751012163_a7e8c315", '/Users/sunguannan/Movies/JianyingPro/User Data/Projects/com.lveditor.draft')

@@ -19,7 +19,7 @@ def add_audio_track(
     volume: float = 1.0,
     track_name: str = "audio_main",
     speed: float = 1.0,
-    sound_effects: Optional[List[Tuple[str, Optional[List[Optional[float]]]]]]=None,
+    sound_effects: Optional[List[Tuple[str, Optional[List[Optional[float]]]]]] = None,
     width: int = 1080,
     height: int = 1920,
     duration: Optional[float] = None  # Added duration parameter
@@ -44,11 +44,12 @@ def add_audio_track(
         width=width,
         height=height
     )
-    
+
     # Add audio track (only when track doesn't exist)
     if track_name is not None:
         try:
-            imported_track = script.get_imported_track(draft.Track_type.audio, name=track_name)
+            # Probe for an existing track; TrackNotFound below means it must be created.
+            script.get_imported_track(draft.Track_type.audio, name=track_name)
             # If no exception is thrown, the track already exists
         except exceptions.TrackNotFound:
             # Track doesn't exist, create a new track
@@ -66,18 +67,18 @@ def add_audio_track(
         # duration_result = get_video_duration(audio_url)  # Reuse video duration retrieval function
         # if not duration_result["success"]:
         #     print(f"Failed to get audio duration: {duration_result['error']}")
-        
+
         # # Check if audio duration exceeds 10 minutes
         # if duration_result["output"] > 600:  # 600 seconds = 10 minutes
         #     raise Exception(f"Audio duration exceeds 10-minute limit, current duration: {duration_result['output']} seconds")
-        
+
         # audio_duration = duration_result["output"]
-    
+
     # Download audio to local
     # local_audio_path = download_audio(audio_url, draft_dir)
 
     material_name = f"audio_{url_to_hash(audio_url)}.mp3"  # Use original filename + timestamp + fixed mp3 extension
-    
+
     # Build draft_audio_path
     draft_audio_path = None
     if draft_folder:
@@ -91,13 +92,13 @@ def add_audio_track(
         else:
             # macOS/Linux path processing
             draft_audio_path = os.path.join(draft_folder, draft_id, "assets", "audio", material_name)
-    
+
     # Set default value for audio end time
     audio_end = end if end is not None else audio_duration
-    
+
     # Calculate audio duration
     duration = audio_end - start
-    
+
     # Create audio segment
     if draft_audio_path:
         print('replace_path:', draft_audio_path)
@@ -111,7 +112,7 @@ def add_audio_track(
         speed=speed,  # Set playback speed
         volume=volume  # Set volume
     )
-    
+
     # Add scene sound effects
     if sound_effects:
         for effect_name, params in sound_effects:
@@ -136,10 +137,10 @@ def add_audio_track(
                 audio_segment.add_effect(effect_type, params)
             else:
                 print(f"Warning: Audio effect named {effect_name} not found")
-    
+
     # Add audio segment to track
     script.add_segment(audio_segment, track_name=track_name)
-    
+
     # Write the edit through to the draft store so a restart cannot lose it.
     persist_draft(draft_id)
 

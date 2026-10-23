@@ -185,3 +185,29 @@ def test_missing_required_parameter_is_rejected_without_calling_the_impl(monkeyp
     assert body["success"] is False
     assert body["error"]
     assert not called, "validation must run before the implementation is invoked"
+
+
+# --------------------------------------------------------------- draft url consistency
+
+def test_generate_draft_url_matches_every_other_response_from_the_same_server():
+    """Regression: the route hand-rolled "?=<id>" — a query string with no parameter name.
+
+    Every other response from this server, and the MCP tool, use util.generate_draft_url,
+    which emits "?draft_id=<id>". The route now uses the same helper.
+    """
+    from util import generate_draft_url
+
+    client = capcut_server.app.test_client()
+    body = client.post("/generate_draft_url", json={"draft_id": "dfd_123"}).get_json()
+
+    assert body["success"] is True
+    assert body["output"]["draft_url"] == generate_draft_url("dfd_123")
+    assert "?draft_id=dfd_123" in body["output"]["draft_url"]
+    assert "?=" not in body["output"]["draft_url"]
+
+
+def test_generate_draft_url_still_requires_a_draft_id():
+    client = capcut_server.app.test_client()
+    body = client.post("/generate_draft_url", json={}).get_json()
+    assert body["success"] is False
+    assert "draft_id" in body["error"]

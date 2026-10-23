@@ -108,10 +108,10 @@ def add_text_impl(
     # Validate if font is in Font_type
     try:
         font_type = getattr(Font_type, font)
-    except:
+    except Exception:
         available_fonts = [attr for attr in dir(Font_type) if not attr.startswith('_')]
         raise ValueError(f"Unsupported font: {font}, please use one of the fonts in Font_type: {available_fonts}")
-    
+
     # Validate alpha value range
     if not 0.0 <= font_alpha <= 1.0:
         raise ValueError("alpha value must be between 0.0 and 1.0")
@@ -119,7 +119,7 @@ def add_text_impl(
         raise ValueError("border_alpha value must be between 0.0 and 1.0")
     if not 0.0 <= background_alpha <= 1.0:
         raise ValueError("background_alpha value must be between 0.0 and 1.0")
-    
+
     # Get or create draft
     draft_id, script = get_or_create_draft(
         draft_id=draft_id,
@@ -130,7 +130,8 @@ def add_text_impl(
     # Add text track
     if track_name is not None:
         try:
-            imported_track = script.get_imported_track(draft.Track_type.text, name=track_name)
+            # Probe for an existing track; TrackNotFound below means it must be created.
+            script.get_imported_track(draft.Track_type.text, name=track_name)
             # If no exception is thrown, the track already exists
         except exceptions.TrackNotFound:
             # Track doesn't exist, create a new track
@@ -144,7 +145,7 @@ def add_text_impl(
         rgb_border_color = hex_to_rgb(border_color)
     except ValueError as e:
         raise ValueError(f"Color parameter error: {str(e)}")
-    
+
     # Create text_border
     text_border = None
     if border_width > 0:
@@ -153,7 +154,7 @@ def add_text_impl(
             color=rgb_border_color,
             width=border_width
         )
-    
+
     # Create text_background
     text_background = None
     if background_alpha > 0:
@@ -167,7 +168,7 @@ def add_text_impl(
             horizontal_offset=background_horizontal_offset,
             vertical_offset=background_vertical_offset
         )
-    
+
     # 创建text_shadow (阴影)
     text_shadow = None
     if shadow_enabled:
@@ -187,14 +188,14 @@ def add_text_impl(
             effect_id=bubble_effect_id,
             resource_id=bubble_resource_id
         )
-    
+
     # Create text effect
     text_effect = None
     if effect_effect_id:
         text_effect = TextEffect(
             effect_id=effect_effect_id
         )
-    
+
     # Convert ratio to pixel value
     pixel_fixed_width = -1
     pixel_fixed_height = -1
@@ -202,7 +203,7 @@ def add_text_impl(
         pixel_fixed_width = int(fixed_width * script.width)
     if fixed_height > 0:
         pixel_fixed_height = int(fixed_height * script.height)
-    
+
     # Create text segment (using configurable parameters)
     text_segment = draft.Text_segment(
         text,
@@ -245,7 +246,7 @@ def add_text_impl(
             # Convert seconds to microseconds
             duration_microseconds = int(intro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add intro animation, set duration
-        except:
+        except Exception:
             print(f"Warning: Unsupported intro animation type {intro_animation}, this parameter will be ignored")
 
     # Add outro animation
@@ -255,7 +256,7 @@ def add_text_impl(
             # Convert seconds to microseconds
             duration_microseconds = int(outro_duration * 1000000)
             text_segment.add_animation(animation_type, duration_microseconds)  # Add outro animation, set duration
-        except:
+        except Exception:
             print(f"Warning: Unsupported outro animation type {outro_animation}, this parameter will be ignored")
 
     # Add text segment to track
