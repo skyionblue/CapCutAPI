@@ -325,7 +325,7 @@ def test_text():
         text="Hello, I am CapCut Assistant",
         start=0,
         end=3,
-        font="思源中宋",
+        font="SourceHanSerifCN_Regular",
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -340,7 +340,7 @@ def test_text():
         text="Vertical text demo",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -356,7 +356,7 @@ def test_text():
         text="Border and background test",
         start=6,
         end=9,
-        font="思源中宋",
+        font="SourceHanSerifCN_Regular",
         font_color="#FFFFFF",  # White text
         font_size=24.0,
         track_name="main_text",
@@ -979,7 +979,7 @@ def test01():
         draft_id=audio_result['output']['draft_id'],
         start=0,
         end=3,
-        font="思源中宋",  # Use Source Han Serif font
+        font="SourceHanSerifCN_Regular",  # Use Source Han Serif font
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -994,7 +994,7 @@ def test01():
         text="Vertical Text Test",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -1131,7 +1131,7 @@ def test02():
         draft_id=audio_result['output']['draft_id'],
         start=0,
         end=3,
-        font="思源中宋",  # Use Source Han Serif font
+        font="SourceHanSerifCN_Regular",  # Use Source Han Serif font
         font_color="#FF0000",  # Red
         track_name="main_text",
         transform_y=0.8,
@@ -1146,7 +1146,7 @@ def test02():
         text="Vertical Text Test",
         start=3,
         end=6,
-        font="云书法三行魏碑体",
+        font="ZY_Flourishing_Italic",
         font_color="#00FF00",  # Green
         font_size=8.0,
         track_name="main_text",
@@ -1850,10 +1850,10 @@ def test_generate_image01():
     print(f"Image generated successfully! {image_result['output']['draft_id']}")
     print(save_draft_impl(image_result['output']['draft_id'], draft_folder))
 
-def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="Chinese",
-                        speaker_id="爽快思思/Skye", azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
+def generate_speech_impl(texts, draft_id=None, audio_track_name=None, language="English",
+                        speaker_id="Skye", azure_speaker_id=None, speed_ratio=1.0, start_offset=0.0,
                         end_padding=0.0, interval_time=0.5, volume=1.0, width=1080, height=1920,
-                        add_subtitle=True, text_track_name=None, font="文轩体",
+                        add_subtitle=True, text_track_name=None, font="Poppins_Regular",
                         font_color="#ffffff", font_size=8.0, transform_y=-0.8, transform_x=0,
                         vertical=False, font_alpha=1.0, border_alpha=1.0, border_color="#000000",
                         border_width=0.0, background_color="#000000", background_style=1,
@@ -1945,10 +1945,11 @@ def test_speech_01():
 
     print("\nTest: Generate TTS speech and add subtitles")
     speech_result = generate_speech_impl(
-        texts=["Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
+        texts=["Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic",
+            "What to do when your child doesn't want to go to school", "Hope you enjoy this content", "Hello everyone, welcome to my video", "Today we will discuss an interesting topic", "What to do when your child doesn't want to go to school", "Hope you enjoy this content"],
         language="Chinese",
         draft_id="123",
-        speaker_id="渊博小叔",
+        speaker_id="Skye",
         azure_speaker_id="zh-CN-YunjianNeural",
         speed_ratio=1.0,
         start_offset=1.0,
@@ -1958,7 +1959,7 @@ def test_speech_01():
         width=1080,
         height=1920,
         add_subtitle=True,
-        font="文轩体",
+        font="Poppins_Regular",
         font_color="#ffffff",
         font_size=8.0,
         transform_y=-0.8,

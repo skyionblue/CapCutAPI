@@ -18,7 +18,7 @@ def add_text_impl(
     draft_id: str | None = None,
     transform_y: float = 0,
     transform_x: float = 0,
-    font: str = "文轩体",
+    font: str = "Poppins_Regular",
     font_color: str = "#ffffff",
     font_size: float = 8.0,
     track_name: str = "text_main",

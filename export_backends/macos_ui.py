@@ -225,6 +225,24 @@ def list_elements(window: int) -> List[Dict[str, Any]]:
     return elements
 
 
+def list_main_elements() -> List[Dict[str, Any]]:
+    """Elements of the main window, re-resolving the index if the window list shifts.
+
+    CapCut opens and closes empty overlay windows, so an index resolved a moment ago can be
+    gone by the time it is used -- AppleScript then reports "Invalid index" (-1719). Retrying
+    the same script cannot help, because the index itself is stale; the index has to be
+    resolved again.
+    """
+    last_error: Optional[Exception] = None
+    for _ in range(4):
+        try:
+            return list_elements(main_window_index())
+        except UIAutomationError as e:
+            last_error = e
+            time.sleep(0.5)
+    raise UIAutomationError(f"Could not read CapCut's main window: {last_error}")
+
+
 def sheet_count(window: int) -> int:
     try:
         return int(osa(f'tell application "System Events" to tell process "{APP_NAME}" '

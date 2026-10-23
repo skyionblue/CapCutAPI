@@ -94,13 +94,15 @@ def draft_duration_seconds(draft_id: str, draft_folder: Optional[str] = None) ->
     return None
 
 
-def _current_state(window: int) -> str:
+def _current_state(window: int = 0) -> str:
     """'home', 'editor' or 'unknown'.
 
     The File > Export menu item alone is ambiguous: it is disabled both on the home page and
     while a modal sheet is open, so the window's own elements are what decide.
     """
-    tags = [(element["name"] or element["desc"]) for element in ui.list_elements(window)]
+    # Resolve the window index inside the call: CapCut's overlay windows come and go, so an
+    # index captured earlier may already be invalid.
+    tags = [(element["name"] or element["desc"]) for element in ui.list_main_elements()]
     if any(EDITOR_MARKER in tag for tag in tags):
         return "editor"
     if any(DRAFT_CARD_DESC in tag for tag in tags):
@@ -122,9 +124,9 @@ def _dismiss_success_panel(window: int) -> bool:
     return True
 
 
-def _find_draft_card(window: int, draft_id: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
+def _find_draft_card(draft_id: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     """Locate a draft's clickable card by its folder name, plus what else is on screen."""
-    elements = ui.list_elements(window)
+    elements = ui.list_main_elements()
     title_key = DRAFT_TITLE_PREFIX + draft_id
     available = [
         element["name"][len(DRAFT_TITLE_PREFIX):]
@@ -171,7 +173,7 @@ def _open_draft(task_id: str, draft_id: str, timeout: int = 60) -> int:
             "CapCut and retry."
         )
 
-    card, available = _find_draft_card(window, draft_id)
+    card, available = _find_draft_card(draft_id)
     if not card:
         raise ui.UIAutomationError(
             f"Draft {draft_id!r} is not on CapCut's home page. Drafts visible: "

@@ -127,7 +127,8 @@ class Segment_animations:
                 raise ValueError("A combo animation cannot be added to a segment that already has an animation")
         elif isinstance(animation, Text_animation):
             if any(ani.animation_type == "loop" for ani in self.animations):
-                raise ValueError("This segment already has a loop animation. To combine a loop animation with intro/outro animations, add the intro/outro ones first")
+                raise ValueError(
+                    "This segment already has a loop animation. To combine a loop animation with intro/outro animations, add the intro/outro ones first")
 
         self.animations.append(animation)
 

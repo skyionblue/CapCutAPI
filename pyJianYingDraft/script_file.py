@@ -810,7 +810,8 @@ class Script_file:
             if isinstance(text, str):
                 text = [text]
             if len(text) > len(resources):
-                raise ValueError(f"Text template '{template['name']}' has {len(resources)} text slots, but {len(text)} replacements were given")
+                raise ValueError(
+                    f"Text template '{template['name']}' has {len(resources)} text slots, but {len(text)} replacements were given")
 
             for sub_material_id, new_text in zip(map(lambda x: x["text_material_id"], resources), text):
                 for mat in self.imported_materials["texts"]:
