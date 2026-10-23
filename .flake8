@@ -17,3 +17,6 @@ max-line-length = 140
 # sys.path.insert() above them has run. The ordering is deliberate, not an oversight.
 per-file-ignores =
     tool_registry.py:E402
+    # A demo script: its long lines are URL and prompt literals that cannot be
+    # wrapped without making the examples harder to copy.
+    example.py:E501
