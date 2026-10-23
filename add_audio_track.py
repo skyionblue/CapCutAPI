@@ -63,6 +63,8 @@ def add_audio_track(
         audio_duration = duration
     else:
         # Use default audio duration of 0 seconds, real duration will be obtained when downloading the draft
+        # See the note in add_video_track.py: the probe is deferred to save_draft on purpose,
+        # and the zero placeholder is what makes update_media_metadata correct the timerange.
         audio_duration = 0.0  # Default audio duration is 0 seconds
         # duration_result = get_video_duration(audio_url)  # Reuse video duration retrieval function
         # if not duration_result["success"]:
