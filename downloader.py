@@ -4,7 +4,6 @@ import time
 import requests
 import shutil
 from requests.exceptions import RequestException, Timeout
-from urllib.parse import urlparse, unquote
 
 def download_video(video_url, draft_name, material_name):
     """

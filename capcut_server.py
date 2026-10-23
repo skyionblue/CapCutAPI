@@ -1,7 +1,4 @@
-import requests
-from flask import Flask, request, jsonify, Response
-from datetime import datetime
-import pyJianYingDraft as draft
+from flask import Flask, request, jsonify
 from pyJianYingDraft.metadata.capcut_animation_meta import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
 from pyJianYingDraft.metadata.capcut_transition_meta import CapCut_Transition_type
 from pyJianYingDraft.metadata.capcut_mask_meta import CapCut_Mask_type
@@ -9,10 +6,6 @@ from pyJianYingDraft.metadata.capcut_audio_effect_meta import CapCut_Voice_filte
 from pyJianYingDraft.metadata.font_meta import Font_type
 from pyJianYingDraft.metadata.capcut_text_animation_meta import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
 from pyJianYingDraft.metadata.capcut_effect_meta import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type
-import random
-import uuid
-import json
-import codecs
 from save_draft_impl import save_draft_impl, query_task_status, query_script_impl
 from export_impl import export_video, query_export_status, export_preflight
 from export_subtitles_impl import export_subtitles_impl

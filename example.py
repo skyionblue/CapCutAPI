@@ -3,7 +3,6 @@ import json
 import sys
 import time
 from util import timing_decorator
-import functools
 import threading
 
 

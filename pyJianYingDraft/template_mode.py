@@ -12,7 +12,7 @@ from .local_materials import Video_material, Audio_material
 from .video_segment import Video_segment, Clip_settings
 from .audio_segment import Audio_segment
 from .keyframe import Keyframe_list, Keyframe_property, Keyframe
-from .metadata import CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type, Effect_param_instance
+from .metadata import CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type, CapCut_Speech_to_song_effect_type
 
 from typing import List, Dict, Any
 

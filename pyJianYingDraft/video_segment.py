@@ -6,7 +6,7 @@
 import uuid
 from copy import deepcopy
 
-from typing import Optional, Literal, Union, overload
+from typing import Optional, Literal, Union
 from typing import Dict, List, Tuple, Any
 
 from pyJianYingDraft.metadata.capcut_effect_meta import CapCut_Video_character_effect_type, CapCut_Video_scene_effect_type

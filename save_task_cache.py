@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import threading
 from typing import Dict, Any
 
 # Using OrderedDict to implement LRU cache, limiting the maximum number to 1000

@@ -1,6 +1,5 @@
 import os
 import pyJianYingDraft as draft
-import time
 from util import generate_draft_url, is_windows_path, url_to_hash
 from pyJianYingDraft import trange, Clip_settings
 import re

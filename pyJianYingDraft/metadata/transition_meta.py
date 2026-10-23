@@ -1,6 +1,5 @@
 """转场效果元数据"""
 
-from .effect_meta import Effect_enum
 
 class Transition_meta:
     """转场元数据"""

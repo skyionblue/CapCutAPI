@@ -1,6 +1,5 @@
 """视频蒙版元数据"""
 
-from .effect_meta import Effect_enum
 
 class Mask_meta:
     """蒙版元数据"""

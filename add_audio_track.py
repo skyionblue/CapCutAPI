@@ -1,7 +1,6 @@
 # 导入必要的模块
 import os
 import pyJianYingDraft as draft
-import time
 from util import generate_draft_url, is_windows_path, url_to_hash
 import re
 from typing import Optional, Dict, Tuple, List

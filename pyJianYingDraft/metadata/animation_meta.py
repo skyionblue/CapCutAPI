@@ -1,4 +1,3 @@
-from .effect_meta import Effect_enum
 
 class Animation_meta:
     title: str

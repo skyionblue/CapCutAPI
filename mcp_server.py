@@ -24,7 +24,6 @@ tests/test_gateway_surface.py enforces it.
 Runs over stdio using the official `mcp` SDK (FastMCP).
 """
 
-import sys
 from typing import Any, Dict, List, Optional  # noqa: F401
 
 from mcp.server.mcpserver import MCPServer
