@@ -5,7 +5,7 @@ import shutil
 from util import zip_draft, is_windows_path
 from oss import upload_to_oss
 from typing import Dict, Literal
-from draft_cache import DRAFT_CACHE
+from draft_cache import DRAFT_CACHE, get_script
 from save_task_cache import DRAFT_TASKS, get_task_status, update_tasks_cache, update_task_field, increment_task_field, update_task_fields, create_task
 from downloader import download_audio, download_file, download_image, download_video
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -54,7 +54,8 @@ def save_draft_background(draft_id, draft_folder, task_id):
     """Background save draft to OSS"""
     try:
         # Get draft information from global cache
-        if draft_id not in DRAFT_CACHE:
+        script = get_script(draft_id)
+        if script is None:
             task_status = {
                 "status": "failed",
                 "message": f"Draft {draft_id} does not exist in cache",
@@ -67,8 +68,7 @@ def save_draft_background(draft_id, draft_folder, task_id):
             logger.error(f"Draft {draft_id} does not exist in cache, task {task_id} failed.")
             return
             
-        script = DRAFT_CACHE[draft_id]
-        logger.info(f"Successfully retrieved draft {draft_id} from cache.")
+        logger.info(f"Successfully retrieved draft {draft_id}.")
         
         # Update task status to processing
         task_status = {
@@ -539,12 +539,12 @@ def query_script_impl(draft_id: str, force_update: bool = True):
     :return: Script object
     """
     # Get draft information from global cache
-    if draft_id not in DRAFT_CACHE:
-        logger.warning(f"Draft {draft_id} does not exist in cache.")
+    script = get_script(draft_id)
+    if script is None:
+        logger.warning(f"Draft {draft_id} does not exist in cache or the draft store.")
         return None
-        
-    script = DRAFT_CACHE[draft_id]
-    logger.info(f"Retrieved draft {draft_id} from cache.")
+
+    logger.info(f"Retrieved draft {draft_id}.")
     
     # If force_update is True, force refresh media metadata
     if force_update:

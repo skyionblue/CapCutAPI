@@ -2,6 +2,7 @@ from pyJianYingDraft import trange, CapCut_Video_scene_effect_type, CapCut_Video
 import pyJianYingDraft as draft
 from typing import Optional, Dict, List, Union
 from create_draft import get_or_create_draft
+from draft_cache import persist_draft
 from util import generate_draft_url
 
 def add_effect_impl(
@@ -58,6 +59,9 @@ def add_effect_impl(
 
     # Add effect
     script.add_effect(effect_enum, t_range, params=params[::-1] if params is not None else None, track_name=track_name)
+
+    # Write the edit through to the draft store so a restart cannot lose it.
+    persist_draft(draft_id)
 
     return {
         "draft_id": draft_id,
