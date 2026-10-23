@@ -1,7 +1,7 @@
 # CapCutAPI Enhancements Plan
 
 **Created:** 2026-10-22
-**Status:** Phase C1 COMPLETE (2026-10-23). Remaining phases proposed.
+**Status:** Phase C1 tests COMPLETE (2026-10-23); CI deferred by decision. Remaining phases proposed.
 **Scope:** Project-wide improvements outside the export feature (tracked separately in
 `export-functionality-plan.md`, delivered in PR #1).
 
@@ -150,7 +150,7 @@ progress through `query_draft_status`.
 
 ## Tier C — Engineering quality
 
-### Phase C1 — Add a test suite and CI — **COMPLETE (2026-10-23)**
+### Phase C1 — Add a test suite — **COMPLETE (2026-10-23)**
 
 Delivered on `feature/tests-and-ci`. **63 tests, running in ~0.2 s, with no CapCut installed.**
 
@@ -170,7 +170,12 @@ Delivered on `feature/tests-and-ci`. **63 tests, running in ~0.2 s, with no CapC
       snapshot isolation.
 - [x] `test_export_impl.py` (12) — backend resolution, validation, async contract, failure
       recording.
-- [x] GitHub Actions on push and PR, Python 3.10 and 3.12, with ffmpeg installed.
+- [x] Documented in the README so the suite is discoverable without a pipeline.
+- [~] **CI deferred.** There is no build pipeline for this project at present, by
+      decision. A GitHub Actions workflow was written and removed again: with no
+      runner it only produced a failed check on every push and implied a safety net
+      that did not exist. The suite is fast and dependency-light precisely so it
+      stays useful when run by hand.
 
 **The regression tests were verified against the broken code**, not just the fixed code: both
 fail on `e2a4b75^` and pass on `e2a4b75`. A regression test that passes either way proves nothing.
@@ -193,10 +198,8 @@ export modules and tests **strictly**, and the whole repo **advisorily** (`conti
 the debt stays visible without CI being red from day one.
 
 - [ ] Burn down per module, starting with the files Phase C2 will touch anyway.
-- [ ] Flip the advisory whole-repo lint step to blocking once it reaches zero.
 
-**Completion criteria:** `flake8 .` is clean and the advisory CI step is removed in favour of a
-single blocking one.
+**Completion criteria:** `flake8 .` is clean from the repository root.
 
 ### Phase C2 — Remove the duplicated server layers
 

@@ -415,6 +415,26 @@ print(f"Project saved: {result['result']['local_path']}")
 
 </details>
 
+### Running the Tests
+
+```bash
+pip install pytest
+pytest
+```
+
+63 tests covering the export pipeline — draft parsing, ffmpeg command compilation, task status
+and backend dispatch. They run in well under a second and need **no CapCut installation**;
+`ffmpeg`/`ffprobe` must be on `PATH` (tests that need them skip automatically if absent).
+
+Tests that would require a macOS GUI session are marked `gui` and are excluded by default.
+Run them with `pytest -m gui`.
+
+Lint the export modules with:
+
+```bash
+flake8 export_impl.py export_task_cache.py export_backends/ tests/
+```
+
 ### Testing with REST Client
 
 You can use the `rest_client_test.http` file with REST Client IDE plugins for HTTP testing.
