@@ -130,8 +130,11 @@ UNSUPPORTED_COLLECTIONS = {
 _DRAFT_PATH_PLACEHOLDER = re.compile(r"^##_draftpath_placeholder_[^#]*_##[/\\]?")
 
 
-def _resolve_path(path: str, draft_folder: str) -> str:
-    """Expand CapCut's draft-relative path token into a usable absolute path."""
+def resolve_path(path: str, draft_folder: str) -> str:
+    """Expand CapCut's draft-relative path token into a usable absolute path.
+
+    Shared with the draft bundler, which rewrites paths back into this form.
+    """
     if not path:
         return ""
     stripped = _DRAFT_PATH_PLACEHOLDER.sub("", path)
@@ -223,7 +226,7 @@ def load_draft(draft_id: str, draft_folder: str) -> Draft:
             if segment.material_id in videos:
                 material = videos[segment.material_id]
                 segment.kind = material.get("type") or "video"   # "video" or "photo"
-                segment.path = _resolve_path(material.get("path") or "", draft.folder)
+                segment.path = resolve_path(material.get("path") or "", draft.folder)
                 recorded_audio = material.get("has_audio")
                 segment.has_audio = (
                     bool(recorded_audio) if recorded_audio is not None
@@ -234,7 +237,7 @@ def load_draft(draft_id: str, draft_folder: str) -> Draft:
             elif segment.material_id in audios:
                 material = audios[segment.material_id]
                 segment.kind = "audio"
-                segment.path = _resolve_path(material.get("path") or "", draft.folder)
+                segment.path = resolve_path(material.get("path") or "", draft.folder)
                 segment.has_audio = True
             elif segment.material_id in texts:
                 material = texts[segment.material_id]

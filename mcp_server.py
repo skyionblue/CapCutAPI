@@ -55,6 +55,7 @@ from save_draft_impl import save_draft_impl, query_script_impl, query_task_statu
 from util import generate_draft_url as util_generate_draft_url
 from export_impl import export_video, query_export_status, export_preflight
 from export_subtitles_impl import export_subtitles_impl
+from export_draft_impl import export_draft_impl
 from pyJianYingDraft.text_segment import TextStyleRange
 from pyJianYingDraft import Text_style, Video_material, Audio_material
 
@@ -614,6 +615,33 @@ TOOLS: List[Dict[str, Any]] = [
         },
     },
     {
+        "name": "export_draft",
+        "description": (
+            "Bundle a saved draft and the media it uses into a portable zip. Zipping a draft "
+            "folder by hand is not enough: the media usually lives elsewhere on disk, so such a "
+            "bundle opens with every clip missing. This collects the referenced files too and "
+            "rewrites each path into CapCut's relocatable form, so the zip can be unpacked into "
+            "a drafts folder on another machine and opened. Run save_draft first — this bundles "
+            "what is on disk. Reports any referenced file it could not find rather than "
+            "producing a silently incomplete bundle."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "draft_id": {"type": "string", "description": "Draft ID that has already been saved"},
+                "output_path": {
+                    "type": "string",
+                    "description": "Where to write the .zip. A directory is also accepted.",
+                },
+                "draft_folder": {
+                    "type": "string",
+                    "description": f"Folder holding the draft. Defaults to {DEFAULT_DRAFT_FOLDER}",
+                },
+            },
+            "required": ["draft_id"],
+        },
+    },
+    {
         "name": "export_preflight",
         "description": (
             "Report which export backends can actually run in this environment, each one's "
@@ -974,6 +1002,16 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
                 if not subtitles.get("success"):
                     return {"success": False, "error": subtitles.get("error", "Subtitle export failed")}
                 result = subtitles
+
+            elif tool_name == "export_draft":
+                bundle = export_draft_impl(
+                    draft_id=arguments.get("draft_id"),
+                    output_path=arguments.get("output_path"),
+                    draft_folder=arguments.get("draft_folder") or DEFAULT_DRAFT_FOLDER,
+                )
+                if not bundle.get("success"):
+                    return {"success": False, "error": bundle.get("error", "Draft bundling failed")}
+                result = bundle
 
             elif tool_name == "export_preflight":
                 result = export_preflight()
