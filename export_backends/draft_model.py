@@ -81,8 +81,11 @@ def _clip(segment: Dict[str, Any], out: Segment) -> None:
     out.flip_v = bool(flip.get("vertical", False))
 
 
-def _extract_text(material: Dict[str, Any]) -> Dict[str, Any]:
-    """CapCut stores text as a JSON blob in `content`. Pull out what drawtext can use."""
+def extract_text(material: Dict[str, Any]) -> Dict[str, Any]:
+    """CapCut stores text as a JSON blob in `content`. Pull out the parts callers need.
+
+    Shared with the SRT exporter, which needs only `text`.
+    """
     result = {"text": "", "size": 0.0, "color": ""}
     raw = material.get("content")
     if isinstance(raw, str) and raw.strip().startswith("{"):
@@ -236,7 +239,7 @@ def load_draft(draft_id: str, draft_folder: str) -> Draft:
             elif segment.material_id in texts:
                 material = texts[segment.material_id]
                 segment.kind = "text"
-                extracted = _extract_text(material)
+                extracted = extract_text(material)
                 segment.text = extracted["text"]
                 segment.font_size = extracted["size"]
                 segment.font_color = extracted["color"]

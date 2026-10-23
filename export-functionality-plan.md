@@ -2,7 +2,7 @@
 
 **Project:** CapCutAPI
 **Created:** 2026-10-22
-**Status:** Phases 0, 1, 2, 3 and 5 COMPLETE — both export backends work and the docs are current.
+**Status:** Phases 0, 1, 2, 3 and 5 COMPLETE; Phase 4 started (`export_subtitles` delivered).
 Phase 4 (interchange formats) is the remaining optional work. Checkboxes audited 2026-10-23;
 what is still unticked is genuinely outstanding.
 
@@ -241,7 +241,7 @@ stroke, shadow, background box and text animation are lost; keyframes use static
 
 - [ ] `export_draft`: zip the draft folder with assets and relative paths so a draft is portable
       between machines (today `place_draft_locally` only handles the local case).
-- [ ] `export_subtitles`: write SRT from the draft's text/subtitle segments — `add_subtitle_impl.py`
+- [x] `export_subtitles`: write SRT from the draft's text/subtitle segments — `add_subtitle_impl.py`
       already parses SRT in, so this closes the round trip.
 - [ ] `export_timeline`: OpenTimelineIO and/or FCPXML. Timeline structure (cuts, timings,
       transforms, audio levels) converts losslessly; the user finishes in Resolve/Premiere/FCP.

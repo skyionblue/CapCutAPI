@@ -493,6 +493,10 @@ class Script_file:
         if style_reference is None and clip_settings is None:
             raise ValueError("未提供样式参考时请提供`clip_settings`参数")
 
+        # Must exist even when no font was requested: the nested __add_text_segment below
+        # references it unconditionally, so leaving it unbound made import_srt raise
+        # NameError for the default font=None.
+        font_type = None
         if font:
             try:
                 font_type = getattr(Font_type, font)
