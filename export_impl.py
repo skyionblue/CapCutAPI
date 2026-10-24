@@ -302,6 +302,15 @@ def query_export_status(task_id: str) -> Dict[str, Any]:
     return get_export_task_status(task_id)
 
 
+def _ffmpeg_can_render_text() -> bool:
+    """Whether the ffmpeg backend can draw text, which needs a libfreetype build."""
+    try:
+        from export_backends.ffmpeg_render import has_drawtext
+        return has_drawtext()
+    except Exception:  # noqa: BLE001 - preflight must never raise
+        return False
+
+
 def export_preflight() -> Dict[str, Any]:
     """Report which backends can run here, for diagnostics and tool descriptions."""
     gui = gui_session_available()
@@ -318,6 +327,9 @@ def export_preflight() -> Dict[str, Any]:
             "available": ff,
             "fidelity": "subset",
             "reason": "" if ff else "needs ffmpeg and ffprobe on PATH",
+            # Worth knowing before exporting rather than after: a build without drawtext
+            # renders everything except the text, and the caller may prefer capcut.
+            "can_render_text": _ffmpeg_can_render_text() if ff else False,
         },
     ]
     return {
