@@ -1,14 +1,14 @@
 from flask import Flask, request, jsonify
-from pyJianYingDraft.metadata.capcut_animation_meta import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
-from pyJianYingDraft.metadata.capcut_transition_meta import CapCut_Transition_type
-from pyJianYingDraft.metadata.capcut_mask_meta import CapCut_Mask_type
-from pyJianYingDraft.metadata.capcut_audio_effect_meta import (
+from capcut_draft.metadata.capcut_animation_meta import CapCut_Intro_type, CapCut_Outro_type, CapCut_Group_animation_type
+from capcut_draft.metadata.capcut_transition_meta import CapCut_Transition_type
+from capcut_draft.metadata.capcut_mask_meta import CapCut_Mask_type
+from capcut_draft.metadata.capcut_audio_effect_meta import (
     CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type,
     CapCut_Speech_to_song_effect_type,
 )
-from pyJianYingDraft.metadata.font_meta import Font_type
-from pyJianYingDraft.metadata.capcut_text_animation_meta import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
-from pyJianYingDraft.metadata.capcut_effect_meta import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type
+from capcut_draft.metadata.font_meta import Font_type
+from capcut_draft.metadata.capcut_text_animation_meta import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
+from capcut_draft.metadata.capcut_effect_meta import CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type
 from save_draft_impl import save_draft_impl, query_task_status, query_script_impl
 from export_impl import export_video, query_export_status, export_preflight
 from export_subtitles_impl import export_subtitles_impl

@@ -9,7 +9,7 @@ from copy import deepcopy
 from typing import Optional, Literal, Union
 from typing import Dict, List, Any
 
-from pyJianYingDraft.metadata.capcut_audio_effect_meta import (
+from capcut_draft.metadata.capcut_audio_effect_meta import (
     CapCut_Speech_to_song_effect_type, CapCut_Voice_characters_effect_type,
     CapCut_Voice_filters_effect_type,
 )

@@ -1,11 +1,11 @@
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from util import generate_draft_url, hex_to_rgb
-from pyJianYingDraft import trange, Font_type
+from capcut_draft import trange, Font_type
 from typing import List
-from pyJianYingDraft import exceptions
+from capcut_draft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
-from pyJianYingDraft.text_segment import TextBubble, TextEffect, TextStyleRange
+from capcut_draft.text_segment import TextBubble, TextEffect, TextStyleRange
 
 # Python 3.10+: unions can be written with |
 # from typing import Union

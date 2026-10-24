@@ -1,0 +1,30 @@
+NOTICE — provenance of the vendored draft library
+=================================================
+
+This file records where part of this codebase came from. It is a statement of fact, not a
+grant of rights: this project asserts no licence, and nothing here should be read as one.
+
+The `capcut_draft/` package is not original to this repository. It is a vendored, modified
+copy of the open-source library **pyJianYingDraft**, which arrived here by way of the
+`sun-guannan/CapCutAPI` project that this codebase descends from. It was carried in-tree
+under its original name, `pyJianYingDraft/`, and renamed to `capcut_draft/` on 2026-10-23.
+The rename was cosmetic — it changed the directory and import path, nothing about the code's
+origin.
+
+The vendored copy has since diverged substantially from what was imported. Changes made here
+include translating the source and its documentation from Chinese to English, removing
+JianYing-mode support so the library targets CapCut only, deleting the JianYing-only
+effect/transition/mask/animation enum catalogs, and adding `Text_shadow` and `TextStyleRange`
+support. Defects in the vendored code are therefore as likely to be ours as upstream's.
+
+Licensing status
+----------------
+
+The licence terms of pyJianYingDraft and of `sun-guannan/CapCutAPI` have not been confirmed
+by this project, and no claim is made about them here. This repository carries no licence of
+its own, which is a deliberate decision recorded in `enhancements-plan.md` (Phase A2): the
+project is for private use and is not distributed, so no terms are asserted.
+
+A derivative cannot be licensed more permissively than what it derives from. If this project
+is ever published or distributed, the upstream licensing positions must be established first,
+and this notice updated to reflect whatever those turn out to be.

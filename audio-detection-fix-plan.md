@@ -3,7 +3,7 @@
 **Created:** 2026-10-22
 **Status:** Complete — delivered 2026-10-22
 **Scope:** `export_backends/draft_model.py` — two defects that make the ffmpeg backend render
-drafts incorrectly. Does not touch the CapCut backend or the vendored `pyJianYingDraft`.
+drafts incorrectly. Does not touch the CapCut backend or the vendored `capcut_draft`.
 
 ---
 
@@ -27,7 +27,7 @@ Both are in the export read path, so fixing them corrects drafts already on disk
 ### D1 — audio dropped
 
 `add_video` copies the source into the draft's assets and writes no `has_audio` key at all
-(`pyJianYingDraft/local_materials.py:246` `Video_material.export_json` has no such field). The
+(`capcut_draft/local_materials.py:246` `Video_material.export_json` has no such field). The
 draft therefore carries `has_audio: None`.
 
 `export_backends/draft_model.py:186`:
@@ -101,7 +101,7 @@ directory.
 
 ## 6. Deliberately not changed
 
-- **`pyJianYingDraft/local_materials.py`** — adding `has_audio` to `Video_material.export_json`
+- **`capcut_draft/local_materials.py`** — adding `has_audio` to `Video_material.export_json`
   would fix the metadata at write time, but diverges the vendored library from upstream for no
   additional benefit: probing in the export path already covers drafts from every writer,
   including those already on disk. Worth revisiting only if the vendored copy is forked anyway.

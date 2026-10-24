@@ -426,7 +426,7 @@ or, on failure:
 - Refactored from one MCP tool per capability into the `search_tools`/`invoke_tool` gateway
 - Expanded every existing tool's schema to expose parameters the underlying implementation already supported but weren't wired up (full mask fine-tuning, text font/border/bubble/animation, subtitle styling, sticker flip, etc.)
 - Added `list_option_values`, `query_script`, `list_drafts`, `delete_draft`, `query_draft_status`, `generate_draft_url`, `replace_material`
-- Added `Text_shadow` and `TextStyleRange` support to `pyJianYingDraft`
+- Added `Text_shadow` and `TextStyleRange` support to `capcut_draft`
 - Became an independent repository rather than a GitHub fork
 - Removed JianYing-mode support (this project only ever runs in CapCut mode) — deleted the JianYing-only effect/transition/mask/animation enum catalogs, collapsed every CapCut-vs-JianYing branch in the codebase down to the CapCut path, and removed the two Chinese-language doc files
 - Fixed `add_effect` crashing with `'NoneType' object is not subscriptable` when called without a `params` argument

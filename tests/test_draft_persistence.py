@@ -10,7 +10,7 @@ import os
 import pytest
 
 import draft_cache
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from draft_cache import (
     DRAFT_CACHE, forget_draft, get_script, list_persisted_drafts,
     load_persisted_draft, persist_draft, store_path, update_cache,

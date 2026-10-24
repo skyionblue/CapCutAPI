@@ -1,5 +1,5 @@
-from pyJianYingDraft import trange, CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, exceptions
-import pyJianYingDraft as draft
+from capcut_draft import trange, CapCut_Video_scene_effect_type, CapCut_Video_character_effect_type, exceptions
+import capcut_draft as draft
 from typing import Optional, Dict, List
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft

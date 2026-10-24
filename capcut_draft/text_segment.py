@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Dict, Tuple, Any, List
 from typing import Union, Optional, Literal
 
-from pyJianYingDraft.metadata.capcut_text_animation_meta import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
+from capcut_draft.metadata.capcut_text_animation_meta import CapCut_Text_intro, CapCut_Text_outro, CapCut_Text_loop_anim
 
 from .time_util import Timerange, tim
 from .segment import Clip_settings, Visual_segment

@@ -7,7 +7,7 @@ from typing import TypeVar, Generic, Type
 from typing import Dict, List, Any, Union
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-import pyJianYingDraft as draft
+import capcut_draft as draft
 
 from .exceptions import SegmentOverlap
 from .segment import Base_segment

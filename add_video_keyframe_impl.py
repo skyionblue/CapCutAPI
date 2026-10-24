@@ -1,5 +1,5 @@
-import pyJianYingDraft as draft
-from pyJianYingDraft import exceptions
+import capcut_draft as draft
+from capcut_draft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
 from typing import Optional, Dict, List

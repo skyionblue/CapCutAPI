@@ -16,7 +16,7 @@ import threading
 from collections import OrderedDict
 from typing import Dict, Optional
 
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from settings.local import DRAFT_STORE_DIR
 
 logger = logging.getLogger('flask_video_generator')
