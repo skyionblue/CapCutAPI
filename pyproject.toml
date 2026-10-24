@@ -60,5 +60,6 @@ testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
     "gui: requires a macOS GUI session with CapCut installed (excluded by default)",
+    "real_osa: exercises macos_ui.osa itself; stubs subprocess rather than osa",
 ]
 addopts = "-m 'not gui'"
