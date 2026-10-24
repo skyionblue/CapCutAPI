@@ -346,8 +346,11 @@ renders wrapped across two lines.
 
 ## 9. Open Questions
 
-- [ ] Should `export_video` auto-call `save_draft` when the draft isn't yet on disk, or require it
-      first? (Leaning: auto-save, since it removes a step the AI could forget.)
+- [x] **Should `export_video` auto-call `save_draft`?** Yes (2026-10-23). Both backends read the
+      draft from disk, so an unsaved draft failed with an error naming a step the caller had
+      every reason to think was optional. `export_video` now saves first when the draft is not
+      on disk, and leaves an already-saved draft alone -- re-saving re-downloads every remote
+      asset. A draft that is neither on disk nor in the cache fails early, naming `create_draft`.
 - [x] Default backend when the caller doesn't specify: `capcut` when a GUI session is detected,
       else `ffmpeg`?
 - [x] **Is OSS upload wanted?** No, not for now (2026-10-23). A local path is sufficient.

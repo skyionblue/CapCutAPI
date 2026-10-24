@@ -34,6 +34,8 @@ from export_task_cache import (
     update_export_task,
 )
 from settings.local import MP4_OSS_CONFIG
+from draft_cache import get_script
+from save_draft_impl import save_draft_impl
 
 logger = logging.getLogger('flask_video_generator')
 
@@ -155,10 +157,58 @@ def _finish(task_id: str, produced_path: str, requested_output: Optional[str]) -
     return final_path
 
 
+DEFAULT_DRAFT_FOLDER = os.path.expanduser(
+    "~/Movies/CapCut/User Data/Projects/com.lveditor.draft"
+)
+
+
+def _ensure_on_disk(task_id: str, draft_id: str, draft_folder: Optional[str]) -> None:
+    """Save the draft first if it is not on disk yet.
+
+    Both backends read a draft from the CapCut drafts folder, so an export of a draft that
+    only exists in the cache used to fail with an error about the draft being missing --
+    accurate, but it named a step the caller had every reason to think was optional.
+
+    Already-saved drafts are left alone. Re-saving one re-downloads every remote asset it
+    references, which is slow and pointless when the draft is already where it needs to be.
+    """
+    folder = draft_folder or DEFAULT_DRAFT_FOLDER
+    if os.path.exists(os.path.join(folder, draft_id, "draft_info.json")):
+        return
+
+    if get_script(draft_id) is None:
+        raise ExportError(
+            f"Draft {draft_id!r} is neither saved in {folder} nor held in this server's "
+            f"draft cache, so there is nothing to export. Create it with create_draft first, "
+            f"or point draft_folder at the folder that holds it."
+        )
+
+    update_export_task(task_id, message="Saving the draft to disk first", progress=8)
+    logger.info("Export %s: draft %s is not on disk; saving it to %s", task_id, draft_id, folder)
+
+    # save_draft_impl builds the draft under the project root and leaves it there --
+    # place_draft_locally is what moves it where CapCut looks, and save_draft runs it as
+    # its on_complete. Calling save_draft_impl without it saves to the wrong place, which
+    # is exactly the bug a mocked save hid in the first version of this.
+    from tool_registry import place_draft_locally  # imported late: tool_registry imports this module
+
+    result = save_draft_impl(draft_id, folder,
+                             on_complete=lambda did: place_draft_locally(did, folder))
+    if not result.get("success", True):
+        raise ExportError(f"Could not save draft {draft_id!r} before exporting: {result.get('error')}")
+
+    if not os.path.exists(os.path.join(folder, draft_id, "draft_info.json")):
+        raise ExportError(
+            f"Saved draft {draft_id!r} but it did not land in {folder}. "
+            f"Export cannot continue."
+        )
+
+
 def _export_background(task_id: str, draft_id: str, backend: str, options: Dict[str, Any]) -> None:
     """Worker thread: run the backend and record the outcome in the task cache."""
     try:
         update_export_task(task_id, status="processing", message=f"Exporting with {backend}", progress=5)
+        _ensure_on_disk(task_id, draft_id, options.get("draft_folder"))
         produced = _run_backend(backend, task_id, draft_id, options)
         if not produced or not os.path.exists(produced):
             raise ExportError("Backend reported success but produced no output file")
@@ -193,7 +243,8 @@ def export_video(
 ) -> Dict[str, Any]:
     """Start exporting a saved draft to a video file.
 
-    :param draft_id: Draft ID (the draft must already have been saved with save_draft)
+    :param draft_id: Draft ID. If the draft is not on disk yet it is saved first, so
+        calling save_draft beforehand is optional
     :param backend: "auto", "capcut" (full fidelity, needs a GUI) or "ffmpeg" (headless, subset)
     :param output_path: Where to put the finished file. A directory is also accepted.
     :param resolution: e.g. "1080p"; None leaves the backend default

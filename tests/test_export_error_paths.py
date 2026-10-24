@@ -19,6 +19,16 @@ from export_impl import export_video
 from export_task_cache import get_export_task_status
 
 
+@pytest.fixture(autouse=True)
+def draft_already_saved(monkeypatch):
+    """Most tests here exercise a backend, not the save-first step export_video does.
+
+    Tests that care about that step opt out with `no_autosave_patch`.
+    """
+    monkeypatch.setattr(export_impl, "_ensure_on_disk",
+                        lambda task_id, draft_id, draft_folder: None)
+
+
 class FakeProc:
     def __init__(self, returncode=1, stdout="", stderr=""):
         self.returncode = returncode

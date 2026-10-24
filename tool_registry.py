@@ -750,13 +750,19 @@ def convert_text_styles(text_styles_data):
         return None
 
 
-def place_draft_locally(draft_id: str) -> Optional[str]:
-    """Move the freshly rendered draft folder into CapCut's local drafts directory."""
+def place_draft_locally(draft_id: str, destination: Optional[str] = None) -> Optional[str]:
+    """Move the freshly rendered draft folder into CapCut's local drafts directory.
+
+    save_draft_impl builds the draft under PROJECT_ROOT and does not move it; this is what
+    puts it where CapCut looks. `destination` overrides that folder, for callers that were
+    given an explicit one.
+    """
     src = os.path.join(PROJECT_ROOT, draft_id)
     if not draft_id or not os.path.isdir(src):
         return None
-    os.makedirs(DEFAULT_DRAFT_FOLDER, exist_ok=True)
-    dest = os.path.join(DEFAULT_DRAFT_FOLDER, draft_id)
+    folder = destination or DEFAULT_DRAFT_FOLDER
+    os.makedirs(folder, exist_ok=True)
+    dest = os.path.join(folder, draft_id)
     if os.path.exists(dest):
         shutil.rmtree(dest)
     shutil.move(src, dest)
