@@ -338,8 +338,10 @@ renders wrapped across two lines.
       both fixed in PR #16.
 - [x] Both backends exercised against the same draft; differences match the declared fidelity
       warnings.
-- [ ] Error paths tested: CapCut closed, permission missing, ffmpeg absent, bad `draft_id`,
-      concurrent export requests.
+- [x] Error paths tested: CapCut closed, permission missing, ffmpeg absent, bad `draft_id`,
+      concurrent export requests. 21 tests in `tests/test_export_error_paths.py`, each checked
+      against a mutated copy of the code it covers. That exercise found a real gap: deleting the
+      "backend reported success but produced no output file" check left the whole suite green.
 - [x] `flake8` clean per `.flake8`. Clean from the repository root; 198 tests pass, 1 skipped.
 
 ---
