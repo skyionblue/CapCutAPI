@@ -428,7 +428,7 @@ or, on failure:
 - Added `list_option_values`, `query_script`, `list_drafts`, `delete_draft`, `query_draft_status`, `generate_draft_url`, `replace_material`
 - Added `Text_shadow` and `TextStyleRange` support to `capcut_draft`
 - Became an independent repository rather than a GitHub fork
-- Removed JianYing-mode support (this project only ever runs in CapCut mode) — deleted the JianYing-only effect/transition/mask/animation enum catalogs, collapsed every CapCut-vs-JianYing branch in the codebase down to the CapCut path, and removed the two Chinese-language doc files
+- Dropped the unused second editor mode (this project only ever runs in CapCut mode) — deleted its effect/transition/mask/animation enum catalogs, collapsed every dual-mode branch in the codebase down to the CapCut path, and removed the two Chinese-language doc files
 - Fixed `add_effect` crashing with `'NoneType' object is not subscriptable` when called without a `params` argument
 
 ### v1.0.0
