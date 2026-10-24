@@ -29,6 +29,18 @@ def draft_already_saved(monkeypatch):
                         lambda task_id, draft_id, draft_folder: None)
 
 
+def stub_ui(monkeypatch, *, state):
+    """Stub every UI call _open_draft makes before it reaches the branch under test.
+
+    These three tests originally patched only _current_state and main_window_index and so
+    still called _dismiss_success_panel for real. They passed with CapCut open and took ten
+    seconds each with it closed.
+    """
+    monkeypatch.setattr(capcut_macos, "_current_state", lambda window: state)
+    monkeypatch.setattr(capcut_macos, "_dismiss_success_panel", lambda window: None)
+    monkeypatch.setattr(macos_ui, "main_window_index", lambda: 1)
+
+
 class FakeProc:
     def __init__(self, returncode=1, stdout="", stderr=""):
         self.returncode = returncode
@@ -60,8 +72,7 @@ def test_capcut_closed_and_no_ffmpeg_says_both_are_missing(monkeypatch):
 
 def test_capcut_not_on_the_home_page_lists_what_was_visible(monkeypatch):
     """The common cause is a draft CapCut has not noticed yet, so name the drafts it did see."""
-    monkeypatch.setattr(capcut_macos, "_current_state", lambda window: "home")
-    monkeypatch.setattr(macos_ui, "main_window_index", lambda: 1)
+    stub_ui(monkeypatch, state="home")
     monkeypatch.setattr(capcut_macos, "_find_draft_card", lambda draft_id: (None, ["1017", "1019"]))
 
     with pytest.raises(macos_ui.UIAutomationError) as excinfo:
@@ -74,8 +85,7 @@ def test_capcut_not_on_the_home_page_lists_what_was_visible(monkeypatch):
 
 
 def test_an_empty_drafts_folder_is_reported_as_none_not_as_a_blank(monkeypatch):
-    monkeypatch.setattr(capcut_macos, "_current_state", lambda window: "home")
-    monkeypatch.setattr(macos_ui, "main_window_index", lambda: 1)
+    stub_ui(monkeypatch, state="home")
     monkeypatch.setattr(capcut_macos, "_find_draft_card", lambda draft_id: (None, []))
 
     with pytest.raises(macos_ui.UIAutomationError, match="none"):
@@ -84,8 +94,7 @@ def test_an_empty_drafts_folder_is_reported_as_none_not_as_a_blank(monkeypatch):
 
 def test_an_unreachable_home_page_tells_the_user_to_close_the_dialog(monkeypatch):
     """A modal sheet left open in CapCut blocks everything; that is the usual cause."""
-    monkeypatch.setattr(capcut_macos, "_current_state", lambda window: "unknown")
-    monkeypatch.setattr(macos_ui, "main_window_index", lambda: 1)
+    stub_ui(monkeypatch, state="unknown")
 
     with pytest.raises(macos_ui.UIAutomationError, match="dialog"):
         capcut_macos._open_draft("task-1", "d1")
@@ -93,6 +102,7 @@ def test_an_unreachable_home_page_tells_the_user_to_close_the_dialog(monkeypatch
 
 # -------------------------------------------------------- Accessibility permission
 
+@pytest.mark.real_osa
 @pytest.mark.parametrize("stderr", [
     "osascript is not allowed assistive access. (-1719)",
     "execution error: An error of type -25211 has occurred. (-25211)",
@@ -116,6 +126,7 @@ def test_accessibility_error_is_catchable_as_a_ui_error():
     assert issubclass(macos_ui.NotVisibleError, macos_ui.UIAutomationError)
 
 
+@pytest.mark.real_osa
 def test_a_hung_applescript_is_reported_as_a_timeout(monkeypatch):
     def hang(*args, **kwargs):
         raise subprocess.TimeoutExpired(cmd="osascript", timeout=60)

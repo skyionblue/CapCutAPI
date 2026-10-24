@@ -20,6 +20,8 @@ import uuid
 
 import pytest
 
+from export_backends import macos_ui
+
 US = 1_000_000
 
 
@@ -176,3 +178,27 @@ def isolate_draft_folder(tmp_path_factory):
             + f"\nRemove them from {REAL_DRAFT_FOLDER} and make the test write "
             "to tmp_path or to os.environ['CAPCUT_DRAFT_FOLDER'] instead."
         )
+
+
+@pytest.fixture(autouse=True)
+def no_real_gui(request, monkeypatch):
+    """Keep the suite away from the real CapCut UI.
+
+    Every macos_ui call funnels through `osa`, which shells out to osascript. Left alone,
+    a test that forgets to stub one UI call drives the actual app: it passes on a machine
+    with CapCut open and behaves differently everywhere else. Three export tests were doing
+    exactly that -- with CapCut closed, ensure_foreground retried for ten seconds each and
+    the suite went from 1.4s to 33s.
+
+    Refusing here makes the leak loud and immediate. Tests of `osa` itself carry the
+    `real_osa` marker and stub subprocess instead.
+    """
+    if request.node.get_closest_marker("real_osa"):
+        return
+
+    def refuse(*args, **kwargs):
+        raise AssertionError(
+            "This test reached real macOS automation (macos_ui.osa). Stub the UI calls it "
+            "makes; the suite must not depend on whether CapCut is running."
+        )
+    monkeypatch.setattr(macos_ui, "osa", refuse)
