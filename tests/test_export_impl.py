@@ -6,6 +6,17 @@ import export_impl
 from export_impl import BackendUnavailable, ExportError, export_preflight, export_video, resolve_backend
 
 
+@pytest.fixture(autouse=True)
+def draft_already_saved(monkeypatch):
+    """These tests exercise backend dispatch, not the save-first step.
+
+    export_video saves an unsaved draft before dispatching, so a fake draft_id would
+    otherwise fail at that gate and never reach the backend being tested.
+    """
+    monkeypatch.setattr(export_impl, "_ensure_on_disk",
+                        lambda task_id, draft_id, draft_folder: None)
+
+
 @pytest.fixture
 def backends(monkeypatch):
     """Control which backends appear available."""
