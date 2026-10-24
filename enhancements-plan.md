@@ -55,7 +55,7 @@ this phase did not silently alter anyone's environment; worth verifying before r
 
 Owner decision: assert nothing until the upstream position is confirmed. A derivative cannot be
 licensed more permissively than what it derives from, and this project descends from
-`sun-guannan/CapCutAPI` while vendoring `pyJianYingDraft`.
+`sun-guannan/CapCutAPI` while vendoring `pyJianYingDraft` (since renamed to `capcut_draft`).
 
 - [x] Removed the Apache 2.0 README badge, which linked to a `LICENSE` file that did not exist.
 - [x] Replaced the README licence section — which reproduced the full Apache 2.0 notice — with
@@ -66,7 +66,8 @@ licensed more permissively than what it derives from, and this project descends 
       partner's use and is not being distributed, so it carries no licence at all. The README
       licence section is gone rather than replaced; there is nothing left asserting terms.
       Revisit only if the project is ever published, at which point the upstream positions of
-      `sun-guannan/CapCutAPI` and the vendored `pyJianYingDraft` still have to be confirmed first.
+      `sun-guannan/CapCutAPI` and the vendored `pyJianYingDraft` (now `capcut_draft`) still have
+      to be confirmed first.
 
 ### Phase A3 — Remove the remaining fork references — **COMPLETE (2026-10-23)**
 
@@ -378,7 +379,8 @@ duplication. Pinned by a regression test, verified to fail against the old code.
 
 - [x] `example.py` -- scoped out of `E501` in `.flake8`. It is a demo script whose long lines
       are URL and prompt literals; wrapping them makes the examples harder to copy.
-- [x] The vendored `pyJianYingDraft` -- translated and wrapped along with everything else.
+- [x] The vendored `pyJianYingDraft` (now `capcut_draft`) -- translated and wrapped along
+      with everything else.
 - [x] `E501` -- all 110 resolved: long imports, signatures, comments, docstrings and f-strings
       wrapped; the tool catalogue's single-line schema dicts re-emitted across several lines,
       verified byte-identical by comparing the loaded catalogue before and after.

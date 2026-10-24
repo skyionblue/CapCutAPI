@@ -10,7 +10,7 @@ exclude =
     dist,
     spikes,
     ignored,
-    pyJianYingDraft/metadata
+    capcut_draft/metadata
 max-line-length = 140
 
 # tool_registry imports the project's own modules, which cannot resolve until the

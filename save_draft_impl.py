@@ -1,6 +1,6 @@
 import os
 import re
-import pyJianYingDraft as draft
+import capcut_draft as draft
 import shutil
 from util import zip_draft, is_windows_path
 from oss import upload_to_oss

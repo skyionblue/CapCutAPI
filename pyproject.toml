@@ -50,8 +50,15 @@ Issues = "https://github.com/skyionblue/CapCutAPI/issues"
 # This project is a flat layout: top-level modules alongside several packages. Setuptools
 # cannot auto-discover that, so discovery is declared explicitly -- without this,
 # `pip install .` fails with "Multiple top-level packages discovered in a flat-layout".
+# Subpackages are not implied by their parent, so capcut_draft.metadata is listed too;
+# without it an installed copy raises ModuleNotFoundError on import.
 [tool.setuptools]
-packages = ["export_backends", "pyJianYingDraft", "settings"]
+packages = ["export_backends", "capcut_draft", "capcut_draft.metadata", "settings"]
+
+# Script_file loads draft_content_template.json relative to its own __file__, so the
+# template has to ship inside the package rather than being left behind as a source file.
+[tool.setuptools.package-data]
+capcut_draft = ["draft_content_template.json"]
 py-modules = ["add_audio_track", "add_effect_impl", "add_image_impl", "add_sticker_impl", "add_subtitle_impl", "add_text_impl", "add_video_keyframe_impl", "add_video_track", "capcut_server", "create_draft", "downloader", "draft_cache", "export_impl", "export_task_cache", "get_duration_impl", "mcp_server", "oss", "save_draft_impl", "save_task_cache", "util"]
 
 [tool.pytest.ini_options]

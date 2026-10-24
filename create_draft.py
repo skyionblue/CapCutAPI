@@ -1,5 +1,5 @@
 import uuid
-import pyJianYingDraft as draft
+import capcut_draft as draft
 import time
 from draft_cache import get_script, persist_draft, update_cache
 

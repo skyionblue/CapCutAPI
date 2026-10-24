@@ -17,8 +17,8 @@ import json
 
 import pytest
 
-from pyJianYingDraft.text_segment import Text_segment
-from pyJianYingDraft.time_util import Timerange
+from capcut_draft.text_segment import Text_segment
+from capcut_draft.time_util import Timerange
 
 US = 1_000_000
 LONG = "Second clip running with a deliberately long caption"
@@ -56,7 +56,7 @@ def test_the_wrap_width_is_a_fraction_of_the_frame():
 ])
 def test_subtitle_width_follows_the_draft_canvas(width, height, expected, tmp_path):
     """import_srt used to hardcode 1080/1920, so every other canvas got the wrong width."""
-    import pyJianYingDraft as draft
+    import capcut_draft as draft
 
     srt = tmp_path / "s.srt"
     srt.write_text(f"1\n00:00:00,000 --> 00:00:04,000\n{LONG}\n", encoding="utf-8")

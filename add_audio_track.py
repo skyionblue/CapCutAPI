@@ -1,10 +1,10 @@
 # Imports
 import os
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from util import generate_draft_url, is_windows_path, url_to_hash
 import re
 from typing import Optional, Dict, Tuple, List
-from pyJianYingDraft import (
+from capcut_draft import (
     exceptions, trange,
     CapCut_Voice_filters_effect_type, CapCut_Voice_characters_effect_type,
     CapCut_Speech_to_song_effect_type,

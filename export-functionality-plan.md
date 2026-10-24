@@ -22,7 +22,7 @@ gap.
 ### Guiding principle
 
 CapCut is the rendering engine. Every effect, filter, mask, animation, transition and sticker the
-API can set (`add_effect_impl.py`, `add_sticker_impl.py`, `pyJianYingDraft/animation.py`) is
+API can set (`add_effect_impl.py`, `add_sticker_impl.py`, `capcut_draft/animation.py`) is
 stored as a CapCut effect ID and is resolved only by CapCut's own renderer. Any export path that
 bypasses CapCut loses them. Therefore:
 

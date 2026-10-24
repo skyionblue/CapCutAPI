@@ -1,10 +1,10 @@
 import os
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from util import generate_draft_url, is_windows_path, url_to_hash
-from pyJianYingDraft import trange, Clip_settings
+from capcut_draft import trange, Clip_settings
 import re
 from typing import Optional, Dict
-from pyJianYingDraft import exceptions
+from capcut_draft import exceptions
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
 

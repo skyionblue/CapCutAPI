@@ -1,8 +1,8 @@
-import pyJianYingDraft as draft
+import capcut_draft as draft
 from util import generate_draft_url, hex_to_rgb
 from create_draft import get_or_create_draft
 from draft_cache import persist_draft
-from pyJianYingDraft.text_segment import TextBubble, TextEffect
+from capcut_draft.text_segment import TextBubble, TextEffect
 from typing import Optional
 import requests
 import os
