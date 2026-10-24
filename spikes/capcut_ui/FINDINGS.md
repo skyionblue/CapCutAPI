@@ -5,6 +5,14 @@
 **macOS:** Darwin 25.6.0 (display 3456x2234 Retina)
 **Verdict:** **GATE PASSED** — two consecutive unattended exports, verified with ffprobe.
 
+> **Kept deliberately (2026-10-23).** The spike served its purpose and the backend it proved
+> out now lives in `export_backends/`, but this is the only written record of *how CapCut's UI
+> actually behaves* — which controls respond to AXPress and which ignore it, how CEF changes
+> the rules, why clicks must be hit-tested against the on-screen window. Re-deriving that
+> meant driving a GUI by trial and error, some of it against a live screen share. The scripts
+> alongside this file are the reproductions behind each finding and are excluded from lint and
+> tests, since they are reference material rather than shipped code.
+
 ---
 
 ## 1. What works

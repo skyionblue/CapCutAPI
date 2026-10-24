@@ -436,8 +436,10 @@ C4          ── independent, optional
       `drafts_store/` inside the repo. `draft_store_dir` in `config.json` overrides it. Not the
       system temp directory: a restart there would lose in-progress work, which is the one thing
       this was added to prevent. Covered by `tests/test_draft_persistence.py`.
-- [ ] Should `spikes/capcut_ui/` be kept long-term for its findings, or removed once the backend
-      is stable?
+- [x] **`spikes/capcut_ui/`:** kept (2026-10-23). It is the only written record of how CapCut's
+      UI actually behaves -- what responds to AXPress, how CEF changes the rules, why clicks are
+      hit-tested against the on-screen window. Re-deriving that means driving a GUI by trial and
+      error. Excluded from lint and tests; `FINDINGS.md` now says why it is there.
 
 ---
 
