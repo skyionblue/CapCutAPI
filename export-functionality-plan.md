@@ -294,6 +294,18 @@ feature, not an afterthought.
 
 ## 7. Validation
 
+### Measured: this machine's ffmpeg cannot draw text (2026-10-23)
+
+`drawtext` needs libfreetype at build time and the ffmpeg here does not have it:
+`ffmpeg -filters` lists `drawbox` and `drawgrid` but no `drawtext`. Any draft with text
+compiled a filtergraph ffmpeg could not run, and the export died with
+`No such filter: 'drawtext'` -- discarding the video it could have produced, and reading
+like a filtergraph bug rather than a missing feature in the binary.
+
+The backend now probes for the filter, skips the text, and reports it as a fidelity warning
+naming both ways forward (`backend='capcut'`, or an ffmpeg built with libfreetype).
+`export_preflight` reports it as `can_render_text` so it can be known before exporting.
+
 ### Measured: how CapCut decides to wrap or clip text (2026-10-23)
 
 One draft rendered through real CapCut, four captions carrying the same string, differing

@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import tempfile
+from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
 from export_task_cache import add_fidelity_warning, update_export_task
@@ -43,6 +44,30 @@ class RenderError(Exception):
 
 def _font_file() -> Optional[str]:
     return next((path for path in FONT_CANDIDATES if os.path.exists(path)), None)
+
+
+@lru_cache(maxsize=1)
+def has_drawtext(ffmpeg: str = "ffmpeg") -> bool:
+    """Whether this ffmpeg build can draw text.
+
+    drawtext requires libfreetype at build time and plenty of builds omit it. Without this
+    check the filtergraph is compiled, handed to ffmpeg, and fails with
+    "No such filter: 'drawtext'", which reads like a bug in the filtergraph rather than a
+    missing feature in the binary.
+    """
+    try:
+        process = subprocess.run(
+            [ffmpeg, "-hide_banner", "-filters"],
+            capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    # Each line is "flags name inputs->outputs description"; match the name column only,
+    # so "drawtextborder" or a mention in a description cannot pass for drawtext.
+    return any(
+        len(parts) > 1 and parts[1] == "drawtext"
+        for parts in (line.split() for line in process.stdout.splitlines())
+    )
 
 
 def _atempo_chain(speed: float) -> List[str]:
@@ -212,7 +237,13 @@ def build_command(
 
     # Text segments, drawn over the composite.
     font = _font_file()
-    if texts and not font:
+    if texts and not has_drawtext():
+        warnings.append(
+            "Text segments were NOT rendered: this ffmpeg build has no 'drawtext' filter "
+            "(it needs libfreetype, which many builds omit). Everything else was rendered. "
+            "Use backend='capcut' for text, or install an ffmpeg built with libfreetype."
+        )
+    elif texts and not font:
         warnings.append(
             "Text segments were NOT rendered: no usable font file was found for drawtext."
         )

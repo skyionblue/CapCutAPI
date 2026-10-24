@@ -582,6 +582,13 @@ animations, transitions and stickers are stored only as CapCut effect IDs and ar
 CapCut's own renderer, so the `ffmpeg` backend cannot reproduce them — it reports each one it
 dropped rather than quietly returning a degraded video. **Always surface these to the user.**
 
+One warning depends on your ffmpeg rather than on the draft. Drawing text needs the `drawtext`
+filter, which requires a libfreetype build; plenty of ffmpeg builds omit it, Homebrew's included.
+Where it is missing, the `ffmpeg` backend renders everything else and reports that the text was
+not drawn, instead of failing the whole export. `export_preflight` reports this up front as
+`can_render_text` on the `ffmpeg` backend, so you can choose `backend: "capcut"` before exporting
+rather than discovering it afterwards.
+
 #### Requirements for the `capcut` backend
 
 | Permission | Why | Where |
