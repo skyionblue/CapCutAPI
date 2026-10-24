@@ -294,6 +294,26 @@ feature, not an afterthought.
 
 ## 7. Validation
 
+### Measured: how CapCut decides to wrap or clip text (2026-10-23)
+
+One draft rendered through real CapCut, four captions carrying the same string, differing
+only in two fields:
+
+| `force_apply_line_max_width` | `fixed_width` | Rendered |
+|---|---|---|
+| `False` | 648 | Wraps, full text |
+| `True` | 648 | Wraps, full text — identical to the above |
+| `True` | -1 | Wraps, full text |
+| `False` | -1 | **Clipped at both frame edges** |
+
+So `fixed_width` is what forces the break, and `force_apply_line_max_width` only matters when
+nothing else constrains the width. The last row was exactly what `add_text` produced, which is
+why long `add_text` strings ran off the frame while `add_subtitle` was fine — `import_srt` sets
+a `fixed_width`. `wrap_lines` now defaults to true, which is a no-op wherever a width is already
+set and a fix where it is not. Confirmed by a second export: an unmodified `add_text` draft
+renders wrapped across two lines.
+
+
 - [x] Existing flows unchanged: `create_draft` → adds → `save_draft` still produces a draft CapCut
       opens correctly. Confirmed by the end-to-end run below; CapCut opened and exported the draft.
 - [x] End-to-end natural-language test: describe a video, let the AI build and export it, confirm
@@ -330,4 +350,9 @@ feature, not an afterthought.
       first? (Leaning: auto-save, since it removes a step the AI could forget.)
 - [x] Default backend when the caller doesn't specify: `capcut` when a GUI session is detected,
       else `ffmpeg`?
-- [ ] Is OSS upload wanted at all here, or is a local path sufficient for your workflow?
+- [x] **Is OSS upload wanted?** No, not for now (2026-10-23). A local path is sufficient.
+      This is already the default and needed no code change: `is_upload_draft` is false and
+      both `oss_config` and `mp4_oss_config` are unset, so draft archives are not uploaded on
+      save and `export_video` leaves finished files on disk. The code is left in place rather
+      than removed, because the decision was "for now" -- setting the config keys turns it back
+      on. Revisit if exports ever need to leave this machine.
