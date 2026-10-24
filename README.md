@@ -78,7 +78,7 @@ one module per editing capability, over a draft library that does the real work.
 
 **`capcut_draft` is vendored, not a dependency.** It began as a copy of the open-source
 `pyJianYingDraft` library and has since diverged substantially — translated from Chinese to
-English, stripped of JianYing-mode support so it targets CapCut only, and extended with
+English, stripped of its second editor mode so it targets CapCut only, and extended with
 `Text_shadow` and `TextStyleRange`. It is maintained here as first-party source, so bugs in it
 are as likely to be ours as upstream's. See [NOTICE](./NOTICE) for provenance and licensing
 status.
