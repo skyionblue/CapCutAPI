@@ -63,6 +63,32 @@
 </tr>
 </table>
 
+### 🧱 Project Structure
+
+The repository is a flat layout: the HTTP and MCP entry points sit at the top level alongside
+one module per editing capability, over a draft library that does the real work.
+
+| Path | What it is |
+|------|------------|
+| `capcut_draft/` | The draft library — builds and serialises CapCut draft files. Segments, tracks, keyframes, animations, and the effect/transition/mask/font enum catalogs under `capcut_draft/metadata/`. |
+| `capcut_server.py`, `mcp_server.py` | The two entry points: Flask HTTP server and MCP server |
+| `tool_registry.py` | Shared tool definitions backing both interfaces |
+| `add_*.py`, `save_draft_impl.py`, `export_impl.py` | One module per editing capability |
+| `export_backends/` | Video export: the CapCut GUI backend and the headless ffmpeg backend |
+
+**`capcut_draft` is vendored, not a dependency.** It began as a copy of the open-source
+`pyJianYingDraft` library and has since diverged substantially — translated from Chinese to
+English, stripped of JianYing-mode support so it targets CapCut only, and extended with
+`Text_shadow` and `TextStyleRange`. It is maintained here as first-party source, so bugs in it
+are as likely to be ours as upstream's. See [NOTICE](./NOTICE) for provenance and licensing
+status.
+
+Most code imports it under a short alias:
+
+```python
+import capcut_draft as draft
+```
+
 ---
 
 ## 🚀 Core Features
@@ -618,6 +644,7 @@ It also needs `pyobjc-framework-Quartz` (installed automatically from `requireme
 | **MCP Complete Guide** | [MCP Documentation](./MCP_Documentation_English.md) | Complete MCP server usage guide |
 | **API Reference** | [example.py](./example.py) | Code examples and best practices |
 | **REST Testing** | [rest_client_test.http](./rest_client_test.http) | HTTP interface test cases |
+| **Provenance** | [NOTICE](./NOTICE) | Origin of the vendored `capcut_draft` library and licensing status |
 
 </div>
 
