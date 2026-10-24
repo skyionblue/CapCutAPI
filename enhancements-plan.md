@@ -428,10 +428,14 @@ C4          ── independent, optional
 ## 4. Open Questions
 
 - [x] **Licence:** neither. Not distributed, so no licence is declared anywhere. See Phase A2.
-- [ ] **`save_draft` async:** is a breaking change to the return contract acceptable, or should
-      `wait=True` preserve today's behaviour?
-- [ ] **Draft persistence location:** a working directory inside the repo, a configurable path,
-      or the system temp directory?
+- [x] **`save_draft` async:** resolved — `wait=True` is the default and preserves the
+      synchronous contract existing callers depend on. `wait=False` returns a task_id and runs
+      the save on a worker thread; poll `query_draft_status`. Covered by
+      `tests/test_save_draft_async.py`.
+- [x] **Draft persistence location:** resolved — a configurable path, defaulting to
+      `drafts_store/` inside the repo. `draft_store_dir` in `config.json` overrides it. Not the
+      system temp directory: a restart there would lose in-progress work, which is the one thing
+      this was added to prevent. Covered by `tests/test_draft_persistence.py`.
 - [ ] Should `spikes/capcut_ui/` be kept long-term for its findings, or removed once the backend
       is stable?
 
