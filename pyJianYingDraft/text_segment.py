@@ -319,12 +319,20 @@ class Text_segment(Visual_segment):
     text_styles: List[TextStyleRange]
     """The per-range text styles."""
 
+    wrap_lines: bool
+    """Whether CapCut may break the text across lines to keep it inside the frame.
+
+    Serialised as `force_apply_line_max_width`, which applies `line_max_width` (0.82 of the
+    frame) when no `fixed_width` constrains the text.
+    """
+
     def __init__(self, text: str, timerange: Timerange, *,
                  font: Optional[Font_type] = None,
                  style: Optional[Text_style] = None, clip_settings: Optional[Clip_settings] = None,
                  border: Optional[Text_border] = None, background: Optional[Text_background] = None,
                  shadow: Optional[Text_shadow] = None,
-                 fixed_width: int = -1, fixed_height: int = -1):
+                 fixed_width: int = -1, fixed_height: int = -1,
+                 wrap_lines: bool = True):
         """Create a text segment with its timing, font style and image adjustments.
 
         Once created, add it to a track with `Script_file.add_segment`.
@@ -339,6 +347,14 @@ class Text_segment(Visual_segment):
             background (`Text_background`, optional): background settings; no background by default
             fixed_width (`int`, optional): fixed width in pixels. Default -1, unconstrained
             fixed_height (`int`, optional): fixed height in pixels. Default -1, unconstrained
+            wrap_lines (`bool`, optional): let CapCut break the text across lines to keep it
+                inside the frame instead of running off both edges. Defaults to True.
+
+                Measured against CapCut: with `fixed_width` set this changes nothing -- the
+                width already forces the break. With `fixed_width` unset, which is what
+                `add_text` produces, turning it off clips the text at the frame edges. So the
+                only case it affects is the one where it is needed. Pass False for text that
+                is meant to overflow.
         """
         super().__init__(uuid.uuid4().hex, None, timerange, 1.0, 1.0, clip_settings=clip_settings)
 
@@ -354,6 +370,7 @@ class Text_segment(Visual_segment):
 
         self.fixed_width = fixed_width
         self.fixed_height = fixed_height
+        self.wrap_lines = wrap_lines
         self.text_styles = []
 
     # Set the style for a particular range of the text
@@ -700,7 +717,7 @@ class Text_segment(Visual_segment):
 
             "line_feed": 1,
             "line_max_width": 0.82,
-            "force_apply_line_max_width": False,
+            "force_apply_line_max_width": self.wrap_lines,
 
             "check_flag": check_flag,
 
